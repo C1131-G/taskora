@@ -62,25 +62,21 @@
 }
 .portal-app .page.portal-report-page {
   display: flex;
-  height: calc(100dvh - 3.5rem);
+  height: 100dvh;
   flex-direction: column;
   gap: 10px;
   padding-block: 8px 12px;
 }
 .portal-app .portal-report-heading {
-  display: flex;
-  min-height: 32px;
-  align-items: baseline;
-  gap: 12px;
+  display: block;
+  min-height: 0;
   margin: 0;
 }
 .portal-app .portal-report-heading > div {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
+  display: block;
 }
 .portal-app .portal-report-heading p {
-  margin: 0;
+  margin: 4px 0 0;
 }
 .portal-app .portal-report-panel {
   flex: 1;
@@ -281,14 +277,5 @@
   }
   .portal-app .portal-wizard {
     height: auto;
-  }
-  .portal-app .portal-report-heading {
-    display: block;
-  }
-  .portal-app .portal-report-heading > div {
-    display: block;
-  }
-  .portal-app .portal-report-heading p {
-    margin-top: 4px;
   }
 }

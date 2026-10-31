@@ -164,7 +164,8 @@
 }
 .portal-app .portal-wizard-evidence {
   align-content: start;
-  gap: 10px 12px;
+  align-items: start;
+  gap: 4px 12px;
 }
 .portal-app .portal-wizard-evidence > .portal-fieldset:first-child,
 .portal-app .portal-wizard-evidence > .field {
@@ -174,8 +175,12 @@
   border-radius: var(--r-lg);
   background: var(--surface);
 }
+.portal-app .portal-wizard-evidence > .field {
+  padding-block: 6px;
+}
 .portal-app .portal-wizard-evidence > .portal-fieldset:first-child {
   gap: 6px;
+  padding-block: 8px;
 }
 .portal-app .portal-wizard-evidence > .portal-fieldset:first-child > .hint,
 .portal-app .portal-wizard-evidence > .field > .hint {
@@ -197,8 +202,8 @@
   grid-template-columns: max-content minmax(0, 1fr);
 }
 .portal-app .portal-wizard-evidence .portal-dropzone {
-  min-height: 64px;
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 6px 12px;
 }
 .portal-app .portal-wizard-evidence .portal-context {
   align-content: start;
@@ -210,7 +215,7 @@
 }
 .portal-app .portal-wizard-summary .textarea,
 .portal-app .portal-wizard-reproduction .textarea {
-  min-height: 7rem;
+  min-height: 5rem;
   resize: vertical;
 }
 .portal-app .portal-wizard-reproduction {
