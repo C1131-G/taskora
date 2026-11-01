@@ -17,6 +17,10 @@ import { parseProjectDetailQuery } from "@/features/projects/project-detail-para
 import { projectMetadata } from "@/features/projects/project-metadata";
 import { parseTaskIdParam } from "@/features/tasks/task-param";
 
+// The workspace shell's client provider prevents instant-navigation validation
+// for this request-dependent project page.
+export const instant = false;
+
 const DynamicMetadataMarker = async () => {
   await connection();
   return null;

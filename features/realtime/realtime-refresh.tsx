@@ -42,6 +42,9 @@ export const RealtimeRefresh = () => {
       pollMs: POLL_MS,
       reconnectMs: RECONNECT_MS,
       refresh: () => {
+        if (document.visibilityState === "hidden") {
+          return;
+        }
         startTransition(() => {
           router.refresh();
         });

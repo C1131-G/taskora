@@ -8,9 +8,23 @@
 }
 .workspace-app .project-board-wrap {
   display: flex;
+  flex: 1;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
+  overflow: hidden;
+}
+.workspace-app .project-board-wrap .board {
+  align-items: flex-start;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.workspace-app .project-board-wrap .bcol {
+  max-height: none;
+}
+.workspace-app .project-board-wrap .bcol-b {
+  flex: 0 0 auto;
+  overflow: visible;
 }
 .workspace-app .project-task-create-action {
   display: flex;

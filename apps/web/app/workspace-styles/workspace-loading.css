@@ -1,22 +1,92 @@
 .workspace-app .workspace-loading-sidebar {
-  display: grid;
-  align-content: start;
-  gap: 12px;
-  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
-.workspace-app .workspace-loading-brand,
-.workspace-app .workspace-loading-nav {
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
+.workspace-app .workspace-loading-side-top {
+  flex: none;
 }
 .workspace-app .workspace-loading-brand {
-  width: 60%;
-  height: 32px;
-  margin-bottom: 12px;
+  width: 66px;
+  height: 14px;
 }
-.workspace-app .workspace-loading-nav {
-  height: 30px;
+.workspace-app .workspace-loading-logo {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 6px;
+}
+.workspace-app .workspace-loading-collapse {
+  width: var(--h-md);
+  height: var(--h-md);
+  flex: none;
+  margin-left: auto;
+}
+.workspace-app .workspace-loading-side-scroll {
+  min-height: 0;
+}
+.workspace-app .workspace-loading-group {
+  margin-top: 14px;
+}
+.workspace-app .workspace-loading-group:first-child {
+  margin-top: 0;
+}
+.workspace-app .workspace-loading-group-label {
+  width: 58px;
+  height: 8px;
+}
+.workspace-app .workspace-loading-item {
+  gap: 9px;
+}
+.workspace-app .workspace-loading-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 4px;
+}
+.workspace-app .workspace-loading-label {
+  width: 76px;
+  height: 10px;
+}
+.workspace-app
+  .workspace-loading-group:nth-child(2)
+  .workspace-loading-item:nth-child(3n + 1)
+  .workspace-loading-label {
+  width: 54px;
+}
+.workspace-app
+  .workspace-loading-group:nth-child(2)
+  .workspace-loading-item:nth-child(3n + 2)
+  .workspace-loading-label {
+  width: 90px;
+}
+.workspace-app .workspace-loading-side-bot {
+  flex: none;
+}
+.workspace-app .workspace-loading-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 8px;
+}
+.workspace-app .workspace-loading-avatar {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+}
+.workspace-app .workspace-loading-account-name {
+  width: 82px;
+  height: 10px;
+}
+.workspace-app .workspace-loading-settings {
+  width: 60px;
+}
+.workspace-app .workspace-loading-sidebar .sk {
+  opacity: 0.8;
 }
 .workspace-app .workspace-loading-title,
 .workspace-app .workspace-loading-action,
@@ -25,6 +95,7 @@
   border-radius: var(--r-sm);
   background: var(--surface-2);
 }
+
 .workspace-app .workspace-loading-title {
   width: 140px;
   height: 18px;

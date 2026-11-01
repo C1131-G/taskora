@@ -28,6 +28,7 @@ export const WorkspaceLink = ({
     className="sitem"
     href={href}
     isActive={isActive}
+    showPendingIndicator={false}
     transitionTypes={transitionTypes}
   >
     {(active) => (

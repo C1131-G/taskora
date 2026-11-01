@@ -1,0 +1,64 @@
+diff --git a/cjs/react-dom-client.development.js b/cjs/react-dom-client.development.js
+index 90a9293eb9d445819cfd7cdecc909a68e68973d2..9758d128ea9a2205be69335fe28c28f7c0c56583 100644
+--- a/cjs/react-dom-client.development.js
++++ b/cjs/react-dom-client.development.js
+@@ -24266,8 +24266,9 @@
+                 error.message ||
+               "Skipping view transition because viewport size changed." ===
+                 error.message ||
+-              "Transition was aborted because of invalid state" ===
+-                error.message
++              error.message.startsWith(
++                "Transition was aborted because of invalid state"
++              )
+             )
+               return null;
+         }
+diff --git a/cjs/react-dom-client.production.js b/cjs/react-dom-client.production.js
+index 9c66e78ba70a6ce5270bbbfc2e7e25f86dd2d64b..6ca5eb62491925a26388037b875a8b4a8d5dbf92 100644
+--- a/cjs/react-dom-client.production.js
++++ b/cjs/react-dom-client.production.js
+@@ -15875,8 +15875,9 @@ function startViewTransition(
+                     error.message ||
+                   "Skipping view transition because viewport size changed." ===
+                     error.message ||
+-                  "Transition was aborted because of invalid state" ===
+-                    error.message
++                  error.message.startsWith(
++                    "Transition was aborted because of invalid state"
++                  )
+                 )
+                   error = null;
+             }
+diff --git a/cjs/react-dom-profiling.development.js b/cjs/react-dom-profiling.development.js
+index 148ba0ffd9262a0c0c99b06f5e4ce75b86a243f5..a0a8f0f4934d0841083241f6ebb6a3a2e7e85469 100644
+--- a/cjs/react-dom-profiling.development.js
++++ b/cjs/react-dom-profiling.development.js
+@@ -24274,8 +24274,9 @@
+                 error.message ||
+               "Skipping view transition because viewport size changed." ===
+                 error.message ||
+-              "Transition was aborted because of invalid state" ===
+-                error.message
++              error.message.startsWith(
++                "Transition was aborted because of invalid state"
++              )
+             )
+               return null;
+         }
+diff --git a/cjs/react-dom-profiling.profiling.js b/cjs/react-dom-profiling.profiling.js
+index 0cfceafc08812f93611d6c5fde82333d88aead84..1e4e8b3c853d3f37d1c78fefacae365b5f0c4aa6 100644
+--- a/cjs/react-dom-profiling.profiling.js
++++ b/cjs/react-dom-profiling.profiling.js
+@@ -17777,8 +17777,9 @@ function startViewTransition(
+                     error.message ||
+                   "Skipping view transition because viewport size changed." ===
+                     error.message ||
+-                  "Transition was aborted because of invalid state" ===
+-                    error.message
++                  error.message.startsWith(
++                    "Transition was aborted because of invalid state"
++                  )
+                 )
+                   error = null;
+             }

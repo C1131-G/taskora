@@ -97,6 +97,7 @@ export const WorkspaceNavigationGroups = ({
               // A project id from the shell data names an existing project route.
               href={`/projects/${project.id}` as Route}
               isActive={(pathname) => isProjectPath(pathname, project.id)}
+              showPendingIndicator={false}
               transitionTypes={(pathname) => [
                 getNavigationTransitionType(
                   pathname,

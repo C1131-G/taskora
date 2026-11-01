@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     agentUpgrade: "latest",
     exposeTestingApiInProductionBuild: exposeTestingApi,
     instantInsights: {
-      validationLevel: "warning",
+      validationLevel: "manual-warning",
     },
     optimizePackageImports: ["@phosphor-icons/react"],
     turbopackGc: true,
