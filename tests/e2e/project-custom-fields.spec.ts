@@ -39,9 +39,9 @@ test.describe("Custom fields (/projects/[projectId]/fields)", () => {
         page.getByRole("heading", { level: 1, name: "Custom fields" })
       ).toBeVisible();
 
-      // An empty name is refused beside the field.
+      // An empty name is refused with a toast.
       await page.getByRole("button", { name: "Add field" }).click();
-      await expect(page.getByRole("alert").first()).toContainText(
+      await expect(page.locator("[data-sonner-toast]").first()).toContainText(
         "Enter a field name"
       );
 
@@ -68,7 +68,9 @@ test.describe("Custom fields (/projects/[projectId]/fields)", () => {
       const input = fields.getByLabel(name);
       await input.fill("Called the client");
       await input.blur();
-      await expect(fields.getByRole("alert")).toHaveCount(0);
+      await expect(
+        page.locator('[data-sonner-toast][data-type="error"]')
+      ).toHaveCount(0);
 
       // The value is stored, not just shown: it survives a reload.
       await page.reload();

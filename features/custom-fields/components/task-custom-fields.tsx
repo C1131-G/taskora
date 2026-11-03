@@ -6,7 +6,7 @@ import { CustomFieldEditor } from "@/features/custom-fields/components/custom-fi
 import type { TaskCustomFields as TaskCustomFieldsView } from "@/src/server/custom-fields/custom-field-contracts";
 
 // The drawer's "Fields" section: the project's custom fields with this task's
-// values. A failed read or a project without fields shows nothing.
+// values. A project without fields shows nothing; the drawer reports failed reads.
 export const TaskCustomFields = ({
   customFields,
   onChanged,

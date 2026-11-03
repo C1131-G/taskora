@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import {
   duplicateFileAction,
@@ -17,6 +18,7 @@ import { useUploadQueue } from "@/features/files/hooks/use-upload-queue";
 import { uploadRunner } from "@/features/files/project-upload-runner";
 import type { ProjectFile } from "@/features/files/types/project-file-types";
 import type { TaskFile } from "@/features/tasks/task-details-panel-data";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 // The file list of one project or task, with its uploads, file actions, rename and undo.
 export const useProjectFiles = ({
@@ -32,7 +34,9 @@ export const useProjectFiles = ({
   readonly projectId: string;
   readonly taskId: string | undefined;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The file action could not be completed. Try again."
+  );
   const [localFiles, setLocalFiles] = useState(initialFiles);
   const files = controlledFiles ?? localFiles;
   const updateFiles = (
@@ -44,7 +48,6 @@ export const useProjectFiles = ({
     }
     setLocalFiles(update);
   };
-  const [error, setError] = useState<string | null>(null);
   const [undo, setUndo] = useState<string | null>(null);
   const [renamingFile, setRenamingFile] = useState<ProjectFile | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -74,7 +77,6 @@ export const useProjectFiles = ({
     if (!selectedFiles?.length) {
       return;
     }
-    setError(null);
     for (const file of selectedFiles) {
       queue.start(file, uploadRunner(projectId, taskId ?? null));
     }
@@ -85,14 +87,13 @@ export const useProjectFiles = ({
     action: "download" | "preview" | "duplicate" | "remove"
   ) =>
     startTransition(async () => {
-      setError(null);
       if (action === "download" || action === "preview") {
         const result =
           action === "download"
             ? await getFileDownloadUrlAction({ fileId })
             : await getFilePreviewUrlAction({ fileId });
         if (!result.ok) {
-          setError(result.error.message);
+          toast.error(result.error.message);
           return;
         }
         window.location.assign(result.data);
@@ -104,10 +105,12 @@ export const useProjectFiles = ({
           idempotencyKey: crypto.randomUUID(),
         });
         if (!result.ok) {
-          setError(result.error.message);
+          toast.error(result.error.message);
           return;
         }
-        await reloadFiles();
+        if (!(await reloadFiles())) {
+          toast.error("The file list could not be refreshed. Try again.");
+        }
         return;
       }
       const result = await removeFileAction({
@@ -115,7 +118,7 @@ export const useProjectFiles = ({
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       setUndo(result.data.undoId);
@@ -123,7 +126,6 @@ export const useProjectFiles = ({
     });
 
   const openRename = (file: ProjectFile) => {
-    setError(null);
     setRenamingFile(file);
     setRenameValue(file.originalName);
   };
@@ -140,14 +142,13 @@ export const useProjectFiles = ({
       return;
     }
     startTransition(async () => {
-      setError(null);
       const result = await renameFileAction({
         fileId: currentFile.id,
         fileName: newName,
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       updateFiles((current) =>
@@ -167,17 +168,18 @@ export const useProjectFiles = ({
         undoId: undo,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       setUndo(null);
-      await reloadFiles();
+      if (!(await reloadFiles())) {
+        toast.error("The file list could not be refreshed. Try again.");
+      }
     });
   };
 
   return {
     actOnFile,
-    error,
     files,
     openRename,
     pending,
@@ -185,7 +187,6 @@ export const useProjectFiles = ({
     renameValue,
     renamingFile,
     saveRename,
-    setError,
     setRenameValue,
     setRenamingFile,
     undo,

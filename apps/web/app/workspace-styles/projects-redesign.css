@@ -1,0 +1,168 @@
+/* Projects page: one tidy filter row, a segmented layout switch, and clearer cards. */
+.workspace-app .project-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+}
+.workspace-app .project-toolbar .project-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+.workspace-app .project-toolbar input[type="search"],
+.workspace-app .project-toolbar [data-slot="select-trigger"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  height: 38px;
+  width: 100%;
+}
+.workspace-app .project-toolbar input[type="search"] {
+  padding: 0 12px;
+}
+.workspace-app .project-toolbar .field:not(.project-search) {
+  flex: 0 0 auto;
+  min-width: 150px;
+}
+.workspace-app .project-toolbar .btn {
+  height: 38px;
+  padding-inline: 16px;
+}
+
+/* layout switch as a segmented control */
+.workspace-app .project-view-tabs {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: inline-flex;
+  gap: 2px;
+  margin: 14px 0 12px;
+  padding: 2px;
+  width: max-content;
+}
+.workspace-app .project-view-tabs .tab {
+  align-items: center;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  display: inline-flex;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 30px;
+  padding: 0 16px;
+}
+.workspace-app .project-view-tabs .tab:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.workspace-app .project-view-tabs .tab.on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.workspace-app .project-view-tabs .tab > span[class*="underline"],
+.workspace-app .project-view-tabs .tab::after {
+  display: none;
+}
+
+/* cards */
+.workspace-app .pgrid {
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+.workspace-app .pcard {
+  border-radius: var(--r-xl);
+  gap: 12px;
+  padding: 16px;
+}
+.workspace-app .pcard-link {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.workspace-app .pcard-head {
+  gap: 10px;
+}
+.workspace-app .pcard-head strong {
+  font-size: var(--fs-md);
+  font-weight: 650;
+}
+.workspace-app .pcard-sub {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-top: -6px;
+}
+.workspace-app .pcard-due {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.workspace-app .pcard .desc {
+  color: var(--text-2);
+  min-height: 2.9em;
+}
+.workspace-app .pcard-progress {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+.workspace-app .pcard-progress .prog {
+  height: 6px;
+}
+.workspace-app .pcard-progress .num {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 650;
+  min-width: 34px;
+  text-align: right;
+}
+.workspace-app .pcard-foot {
+  align-items: center;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  gap: 12px;
+  padding-top: 12px;
+}
+.workspace-app .pcard-tasks strong {
+  color: var(--text);
+}
+
+/* list and table views: calmer rows */
+.workspace-app .project-list-view {
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.workspace-app .project-list-row:hover {
+  background: var(--surface-2);
+}
+.workspace-app .project-table th {
+  background: var(--surface-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .workspace-app .project-toolbar .field:not(.project-search) {
+    flex: 1 1 140px;
+  }
+}
+
+/* loading placeholder for the filter row: same sizes as the real controls */
+.workspace-app .project-toolbar .skeleton-filter-select {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
+  height: 38px;
+}
+.workspace-app .project-toolbar .skeleton-filter-select.skeleton-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  padding: 0 12px;
+}
+.workspace-app .project-toolbar .skeleton-filter-select:not(.skeleton-search) {
+  flex: 0 0 auto;
+  justify-content: space-between;
+  min-width: 150px;
+}

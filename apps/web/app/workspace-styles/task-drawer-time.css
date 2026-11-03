@@ -1,0 +1,107 @@
+/* Time in the task drawer: totals as tiles, one clear timer, tidy entries. */
+[data-task-drawer].workspace-app .time-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+[data-task-drawer].workspace-app .time-stat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+}
+[data-task-drawer].workspace-app .time-stat-value {
+  color: var(--text);
+  font-size: var(--fs-xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+[data-task-drawer].workspace-app .time-stat-label {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+/* timer */
+[data-task-drawer].workspace-app .timer-running {
+  background: color-mix(in srgb, var(--st-done) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--st-done) 40%, var(--border));
+  border-radius: var(--r);
+  gap: 12px;
+  padding: 10px 12px;
+}
+[data-task-drawer].workspace-app .timer-clock {
+  color: var(--st-done);
+  font-size: var(--fs-xl);
+}
+[data-task-drawer].workspace-app .timer-start .btn,
+[data-task-drawer].workspace-app .time-add {
+  height: 36px;
+  justify-content: center;
+  width: 100%;
+}
+[data-task-drawer].workspace-app .time-add {
+  gap: 6px;
+}
+
+/* entries */
+[data-task-drawer].workspace-app .time-entries-title {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 4px 0 0;
+  text-transform: uppercase;
+}
+[data-task-drawer].workspace-app .time-entries {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  gap: 0;
+  overflow: hidden;
+}
+[data-task-drawer].workspace-app .time-entry {
+  border: 0;
+  border-radius: 0;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 10px 8px 12px;
+}
+[data-task-drawer].workspace-app .time-entry + .time-entry,
+[data-task-drawer].workspace-app .time-entries > li + li {
+  border-top: 1px solid var(--border);
+}
+[data-task-drawer].workspace-app .time-entry:hover {
+  background: var(--surface-2);
+}
+[data-task-drawer].workspace-app .time-entry-minutes {
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  min-width: 56px;
+  padding: 4px 8px;
+  text-align: center;
+}
+[data-task-drawer].workspace-app .time-entry-body {
+  font-size: var(--fs-sm);
+  gap: 2px;
+}
+[data-task-drawer].workspace-app .time-entry-body .muted {
+  font-size: var(--fs-xs);
+}
+[data-task-drawer].workspace-app .time-entry-actions {
+  gap: 2px;
+}
+[data-task-drawer].workspace-app .time-entries + .muted,
+[data-task-drawer].workspace-app .time-section > .muted {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r);
+  margin: 0;
+  padding: 12px;
+  text-align: center;
+}

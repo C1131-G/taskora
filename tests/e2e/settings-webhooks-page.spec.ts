@@ -35,7 +35,7 @@ test.describe("Webhooks (/settings/webhooks)", () => {
         .getByLabel("Endpoint URL")
         .fill("https://169.254.169.254/latest/");
       await page.getByRole("button", { name: "Add endpoint" }).click();
-      await expect(page.getByRole("alert").first()).toContainText(
+      await expect(page.locator("[data-sonner-toast]").first()).toContainText(
         /not allowed|blocked/iu
       );
       await expect(page.getByText("Metadata probe")).toHaveCount(0);
@@ -49,7 +49,9 @@ test.describe("Webhooks (/settings/webhooks)", () => {
         .getByLabel("Slack webhook URL")
         .fill("https://example.com/services/T000/B000/XXXX");
       await page.getByRole("button", { name: "Add endpoint" }).click();
-      await expect(page.getByRole("alert").first()).toContainText(/Slack/u);
+      await expect(page.locator("[data-sonner-toast]").first()).toContainText(
+        /Slack/u
+      );
     });
 
     test("a signed endpoint shows its secret once, then can be disabled and removed", async ({

@@ -18,11 +18,6 @@ import {
   setProjectClientVisibilityAction as setProjectClientVisibilityImpl,
   updateProjectAction as updateProjectImpl,
 } from "./actions/projects-records";
-import {
-  createSavedViewAction as createSavedViewImpl,
-  deleteSavedViewAction as deleteSavedViewImpl,
-  updateSavedViewAction as updateSavedViewImpl,
-} from "./actions/projects-saved-views";
 
 export async function createProjectAction(input: unknown) {
   return await createProjectImpl(input);
@@ -62,16 +57,4 @@ export async function saveProjectBudgetAction(input: unknown) {
 
 export async function clearProjectBudgetAction(input: unknown) {
   return await clearProjectBudgetImpl(input);
-}
-
-export async function createSavedViewAction(input: unknown) {
-  return await createSavedViewImpl(input);
-}
-
-export async function updateSavedViewAction(input: unknown) {
-  return await updateSavedViewImpl(input);
-}
-
-export async function deleteSavedViewAction(input: unknown) {
-  return await deleteSavedViewImpl(input);
 }

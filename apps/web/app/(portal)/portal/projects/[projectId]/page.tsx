@@ -22,7 +22,7 @@ export const generateMetadata = async ({
 const Page = ({ params }: PageProps<"/portal/projects/[projectId]">) => (
   <PageTransition>
     <div className="page">
-      <SectionErrorBoundary title="Project details couldn't load">
+      <SectionErrorBoundary title="Project details couldn't load" variant="page">
         <SuspenseReveal fallback={<PortalProjectViewSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {params.then(({ projectId }) => (

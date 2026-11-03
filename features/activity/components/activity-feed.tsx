@@ -1,8 +1,10 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
-import { CaretDown } from "@phosphor-icons/react/dist/ssr";
+import { CaretDown, Pulse } from "@phosphor-icons/react/dist/ssr";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/workspace/empty-state";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -14,11 +16,7 @@ import { ActivityFeedList } from "@/features/activity/components/activity-feed-l
 const ActivityFeed = async () => {
   const result = await listActivity({ limit: 100 });
   if (!result.ok) {
-    return (
-      <div className="panel panel-b" role="alert">
-        Activity could not be loaded.
-      </div>
-    );
+    return <ErrorToast message="Activity could not be loaded." />;
   }
 
   const entries = result.data;
@@ -26,10 +24,13 @@ const ActivityFeed = async () => {
   return entries.length ? (
     <ActivityFeedList entries={entries.slice(0, 100)} />
   ) : (
-    <section className="panel panel-b">
-      <h2>No activity yet</h2>
-      <p className="muted">Changes to projects and tasks will appear here.</p>
-    </section>
+    <EmptyState
+      description="Changes to projects and tasks will appear here."
+      headingLevel={2}
+      icon={Pulse}
+      size="panel"
+      title="No activity yet"
+    />
   );
 };
 

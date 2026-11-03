@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -11,6 +12,7 @@ import { WorkspaceModal } from "@/components/workspace/workspace-modal";
 import { createClientUserAction } from "@/features/clients/clients-actions";
 import { TemporaryPasswordReveal } from "@/features/people/components/temporary-password-reveal";
 import { resetEmployeePasswordAction } from "@/features/people/people-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import type { ClientCompanyDetail } from "@/src/server/clients/client-company-contracts";
 
 export type ClientUser = ClientCompanyDetail["users"][number];
@@ -25,8 +27,9 @@ export const AddClientUserDialog = ({
   readonly disabled: boolean;
 }) => {
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The client account could not be created. Try again."
+  );
   const [created, setCreated] = useState<{
     readonly email: string;
     readonly temporaryPassword: string;
@@ -37,13 +40,11 @@ export const AddClientUserDialog = ({
     setOpen(next);
     if (!next) {
       setCreated(null);
-      setError(null);
     }
   };
 
   const create = (form: HTMLFormElement) => {
     const formData = new FormData(form);
-    setError(null);
     startTransition(async () => {
       const result = await createClientUserAction({
         companyId,
@@ -51,7 +52,7 @@ export const AddClientUserDialog = ({
         name: String(formData.get("name") ?? "").trim(),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       form.reset();
@@ -135,11 +136,6 @@ export const AddClientUserDialog = ({
               />
             </label>
           </div>
-          {error ? (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          ) : null}
           <div className="acts">
             <WorkspaceButton
               className="btn btn-primary"
@@ -161,8 +157,9 @@ export const ResetPasswordDialog = ({
   readonly user: ClientUser;
 }) => {
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The password could not be reset. Try again."
+  );
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(
     null
   );
@@ -171,7 +168,6 @@ export const ResetPasswordDialog = ({
     setOpen(next);
     if (!next) {
       setTemporaryPassword(null);
-      setError(null);
     }
   };
 
@@ -181,10 +177,9 @@ export const ResetPasswordDialog = ({
         employeeId: user.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       setTemporaryPassword(result.data.temporaryPassword);
     });
 
@@ -218,11 +213,6 @@ export const ResetPasswordDialog = ({
             choose a new one at the next sign in.
           </p>
         )}
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
         <div className="acts">
           {temporaryPassword ? (
             <WorkspaceButton

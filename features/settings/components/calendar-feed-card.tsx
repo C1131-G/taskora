@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -12,6 +13,7 @@ import {
   revokeCalendarFeedAction,
   rotateCalendarFeedAction,
 } from "@/features/settings/settings-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface FeedStatus {
   readonly active: boolean;
@@ -32,19 +34,19 @@ export const CalendarFeedCard = ({
 }: {
   readonly status: FeedStatus;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The calendar feed could not be updated. Try again."
+  );
   // The secret exists in the browser only until the page is left.
   const [url, setUrl] = useState<string | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const rotate = () =>
     startTransition(async () => {
-      setFailure(null);
       setCopied(false);
       const result = await rotateCalendarFeedAction({});
       if (!result.ok) {
-        setFailure(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       setUrl(calendarFeedUrl(window.location.origin, result.data.token));
@@ -52,10 +54,9 @@ export const CalendarFeedCard = ({
 
   const revoke = () =>
     startTransition(async () => {
-      setFailure(null);
       const result = await revokeCalendarFeedAction({});
       if (!result.ok) {
-        setFailure(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       setUrl(null);
@@ -69,7 +70,7 @@ export const CalendarFeedCard = ({
       await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
-      setFailure("Copy failed. Select the link and copy it by hand.");
+      toast.error("Copy failed. Select the link and copy it by hand.");
     }
   };
 
@@ -118,7 +119,6 @@ export const CalendarFeedCard = ({
               : "You have no feed link yet."}
           </p>
         )}
-        {failure ? <p role="alert">{failure}</p> : null}
         <div className="row">
           {active ? (
             <WorkspaceConfirmDialog

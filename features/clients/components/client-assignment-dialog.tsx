@@ -3,13 +3,15 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
 import { WorkspaceModal } from "@/components/workspace/workspace-modal";
 import type { VersionSink } from "@/features/clients/components/client-company-forms";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 export interface AssignmentOption {
   readonly id: string;
@@ -45,8 +47,9 @@ export const AssignmentDialog = ({
   readonly title: string;
 }) => {
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The assignments could not be saved. Try again."
+  );
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<ReadonlySet<string>>(
     () => new Set(selectedIds)
@@ -58,7 +61,6 @@ export const AssignmentDialog = ({
     if (next) {
       setSelected(new Set(selectedIds));
       setQuery("");
-      setError(null);
     }
   };
 
@@ -79,10 +81,9 @@ export const AssignmentDialog = ({
       const ids = options.flatMap(({ id }) => (selected.has(id) ? [id] : []));
       const result = await onSave(ids);
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       onVersion(result.data.version);
       setOpen(false);
     });
@@ -161,11 +162,6 @@ export const AssignmentDialog = ({
         <p aria-live="polite" className="muted">
           {selected.size} selected
         </p>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
         <div className="acts">
           <WorkspaceButton
             className="btn btn-primary"

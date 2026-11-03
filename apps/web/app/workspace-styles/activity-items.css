@@ -73,3 +73,29 @@
 .workspace-app .kv > dt .i {
   color: var(--text-4);
 }
+.workspace-app .panel-b.feed.home-activity-list > .mini.home-activity-row {
+  align-items: center;
+  box-sizing: border-box;
+  column-gap: 12px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 100px;
+  min-height: 58px;
+  padding-block: 8px;
+  width: 100%;
+}
+.workspace-app .home-activity-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.workspace-app .home-activity-copy strong,
+.workspace-app .home-activity-copy p {
+  line-height: 1.35;
+  margin: 0;
+}
+.workspace-app .home-activity-time {
+  align-self: center;
+  justify-self: end;
+  text-align: right;
+  white-space: nowrap;
+}

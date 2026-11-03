@@ -5,7 +5,6 @@ import {
   CalendarBlank,
   ChartLineUp,
   Files,
-  List,
   Pulse,
   CaretDown,
   SealCheck,
@@ -14,6 +13,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { ViewSwitchTransition } from "@/components/ui/view-switch-transition";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -25,7 +25,6 @@ import { ProjectAdminControls } from "@/features/projects/components/project-adm
 import { ProjectClientVisibility } from "@/features/projects/components/project-client-visibility";
 import { ProjectIcon } from "@/features/projects/components/project-icon";
 import { ProjectMemberAvatars } from "@/features/projects/components/project-list-layouts";
-import { ProjectSavedViews } from "@/features/projects/components/project-saved-views";
 import { ProjectViewContent } from "@/features/projects/components/project-view-content";
 import { ProjectViewTabs } from "@/features/projects/components/project-view-tabs";
 import {
@@ -43,13 +42,21 @@ const ProjectHeader = async ({
   readonly projectId: string;
   readonly requestedView: string;
 }) => {
-  const { employees, isAdmin, isFavorite, project, teams, view } =
-    await getProjectHeaderData(projectId, requestedView);
+  const {
+    employees,
+    isAdmin,
+    isFavorite,
+    personalError,
+    project,
+    teams,
+    view,
+  } = await getProjectHeaderData(projectId, requestedView);
   const membersById = new Map(
     employees.map((employee) => [employee.id, employee] as const)
   );
   return (
     <div className="proj-h">
+      <ErrorToast message={personalError} />
       <div className="row">
         <ProjectIcon color={project.color} icon={project.icon} />
         <span className="faint">Projects</span>
@@ -115,6 +122,7 @@ const ProjectBody = async ({
     calendarMode,
     calendarRange,
     currentUserId,
+    customFieldError,
     customFieldTable,
     editableTaskIds,
     employeeResult,
@@ -127,8 +135,8 @@ const ProjectBody = async ({
     milestonesVersion,
     monthOffset,
     project,
+    preferencesError,
     runResult,
-    savedViewState,
     taskResult,
     tasks,
     teamResult,
@@ -147,12 +155,14 @@ const ProjectBody = async ({
         isAdmin={isAdmin}
         tasks={tasks}
       >
-        <ProjectSavedViews
-          isAdmin={isAdmin}
-          projectId={project.id}
-          selectedId={savedViewState.selected?.id ?? null}
-          userId={currentUserId}
-          views={savedViewState.views}
+        <ErrorToast message={customFieldError} />
+        <ErrorToast message={preferencesError} />
+        <ErrorToast
+          message={employeeResult.ok ? null : employeeResult.error.message}
+        />
+        <ErrorToast message={teamResult.ok ? null : teamResult.error.message} />
+        <ErrorToast
+          message={labelResult.ok ? null : labelResult.error.message}
         />
         <ViewSwitchTransition name="project-view" view={view}>
           <ProjectViewContent
@@ -191,7 +201,6 @@ const ProjectBody = async ({
 const VIEWS = [
   { Icon: SquaresFour, label: "Overview" },
   { Icon: SquaresFour, label: "Board" },
-  { Icon: List, label: "List" },
   { Icon: Table, label: "Table" },
   { Icon: Bug, label: "Bugs" },
   { Icon: CalendarBlank, label: "Calendar" },

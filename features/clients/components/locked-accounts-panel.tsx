@@ -3,7 +3,8 @@
 "use client";
 
 import { LockOpen } from "@phosphor-icons/react";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/workspace/empty-state";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -25,16 +26,17 @@ const timeFormatter = new Intl.DateTimeFormat(undefined, {
 
 const LockedAccountRow = ({ account }: { readonly account: LockedAccount }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   const unlock = () =>
     startTransition(async () => {
-      const result = await unlockUserAction({ userId: account.id });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await unlockUserAction({ userId: account.id });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The account could not be unlocked. Try again.");
       }
-      setError(null);
     });
 
   return (
@@ -48,11 +50,6 @@ const LockedAccountRow = ({ account }: { readonly account: LockedAccount }) => {
           {account.failedLoginCount === 1 ? "attempt" : "attempts"} · Locked
           until {timeFormatter.format(new Date(account.lockedUntil))}
         </span>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
       </div>
       <WorkspaceButton
         aria-label={`Unlock ${account.name}`}

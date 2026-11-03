@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   formatActivityGroup,
   formatActivityTime,
@@ -35,11 +36,7 @@ export const ProjectActivityFeed = ({
   readonly error: boolean;
 }) => {
   if (error) {
-    return (
-      <div className="panel panel-b" role="alert">
-        Project activity could not be loaded.
-      </div>
-    );
+    return <ErrorToast message="Project activity could not be loaded." />;
   }
 
   if (!entries.length) {

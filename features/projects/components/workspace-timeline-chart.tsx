@@ -180,7 +180,7 @@ export const WorkspaceTimelineChart = ({
                   key={date.toISOString()}
                   style={{ width: dayWidth * tickDays }}
                 >
-                  {scale === "week"
+                  {scale === "week" && dayWidth * tickDays >= 44
                     ? WEEK_DAY_FORMATTER.format(date)
                     : DAY_FORMATTER.format(date)}
                 </div>

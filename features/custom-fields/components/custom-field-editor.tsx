@@ -4,6 +4,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { CustomFieldControl } from "@/features/custom-fields/components/custom-field-control";
@@ -49,7 +50,10 @@ export const CustomFieldEditor = ({
               value,
             });
       if (!result.ok) {
-        setError(result.error.fieldErrors?.["value"] ?? result.error.message);
+        const message =
+          result.error.fieldErrors?.["value"] ?? result.error.message;
+        setError(message);
+        toast.error(message);
         return;
       }
       setError(null);
@@ -87,7 +91,7 @@ export const CustomFieldEditor = ({
         ) : null}
       </div>
       {error ? (
-        <span className="err" id={errorId} role="alert">
+        <span className="sr-only" id={errorId}>
           {error}
         </span>
       ) : null}

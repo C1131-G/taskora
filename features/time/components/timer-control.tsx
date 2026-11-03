@@ -5,6 +5,7 @@
 
 import { Play, Stop } from "@phosphor-icons/react";
 import { useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
@@ -54,7 +55,6 @@ export const TimerControl = ({
   readonly timer: RunningTimer | null;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [failure, setFailure] = useState<string | null>(null);
   const [choiceId, setChoiceId] = useState("");
   const [shown, setShown] = useOptimistic(
     timer,
@@ -65,11 +65,10 @@ export const TimerControl = ({
 
   const start = () => {
     if (!choice) {
-      setFailure("Choose a task to time.");
+      toast.error("Choose a task to time.");
       return;
     }
     startTransition(async () => {
-      setFailure(null);
       setShown({
         billable: false,
         note: null,
@@ -78,32 +77,39 @@ export const TimerControl = ({
         taskReference: choice.reference,
         taskTitle: choice.title,
       });
-      const result = await startTimerAction({
-        billable: false,
-        idempotencyKey: crypto.randomUUID(),
-        note: null,
-        taskId: choice.taskId,
-      });
-      if (!result.ok) {
-        setFailure(result.error.message);
-        return;
+      try {
+        const result = await startTimerAction({
+          billable: false,
+          idempotencyKey: crypto.randomUUID(),
+          note: null,
+          taskId: choice.taskId,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        await onChanged?.();
+      } catch {
+        toast.error("The timer could not be started or refreshed. Try again.");
       }
-      await onChanged?.();
     });
   };
 
   const stop = () =>
     startTransition(async () => {
-      setFailure(null);
       setShown(null);
-      const result = await stopTimerAction({
-        idempotencyKey: crypto.randomUUID(),
-      });
-      if (!result.ok) {
-        setFailure(result.error.message);
-        return;
+      try {
+        const result = await stopTimerAction({
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        await onChanged?.();
+      } catch {
+        toast.error("The timer could not be stopped or refreshed. Try again.");
       }
-      await onChanged?.();
     });
 
   const runningHere = shown !== null && shown.taskId === fixedTask?.taskId;
@@ -156,11 +162,6 @@ export const TimerControl = ({
           </WorkspaceButton>
         </div>
       )}
-      {failure ? (
-        <p className="error" role="alert">
-          {failure}
-        </p>
-      ) : null}
     </div>
   );
 };

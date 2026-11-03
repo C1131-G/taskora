@@ -2,9 +2,9 @@
 
 "use client";
 
-import { useId, useOptimistic, useState, useTransition } from "react";
+import { useId, useOptimistic, useTransition } from "react";
+import { toast } from "sonner";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { setTaskClientVisibilityAction } from "@/features/tasks/tasks-actions";
 
 // Lets the people who can edit a task choose whether the client portal lists
@@ -28,7 +28,6 @@ export const TaskClientVisibility = ({
   const hintId = useId();
   const [pending, startTransition] = useTransition();
   const [shown, setShown] = useOptimistic(clientVisible);
-  const [error, setError] = useState<string | null>(null);
 
   const change = (visible: boolean) => {
     if (pending || !editable) {
@@ -36,44 +35,68 @@ export const TaskClientVisibility = ({
     }
     startTransition(async () => {
       setShown(visible);
-      const result = await setTaskClientVisibilityAction({
-        expectedVersion: version,
-        idempotencyKey: crypto.randomUUID(),
-        taskId,
-        visible,
-      });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await setTaskClientVisibilityAction({
+          expectedVersion: version,
+          idempotencyKey: crypto.randomUUID(),
+          taskId,
+          visible,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        onVersionChange(result.data.version);
+        await onReload();
+      } catch {
+        toast.error(
+          "Task visibility could not be updated or refreshed. Try again."
+        );
       }
-      setError(null);
-      onVersionChange(result.data.version);
-      await onReload();
     });
   };
 
   return (
     <section className="stack">
       <h3>Client portal</h3>
-      <label className="row" htmlFor={checkboxId}>
-        <Checkbox
+      <div className="setting-row is-stacked">
+        <div className="setting-copy">
+          <span className="setting-title" id={checkboxId}>
+            Who can see this task?
+          </span>
+          <span className="setting-hint" id={hintId}>
+            Clients see only the title, status and due date, and only when the
+            project is shared with their company.
+          </span>
+        </div>
+        <div
           aria-describedby={hintId}
-          checked={shown}
-          disabled={!editable || pending}
-          id={checkboxId}
-          onCheckedChange={(checked) => change(checked === true)}
-        />
-        <span>Show to client</span>
-      </label>
-      <p className="muted" id={hintId}>
-        Clients see only the title, status and due date, and only when the
-        project is shared with their company.
-      </p>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
+          aria-labelledby={checkboxId}
+          className="choice-pair"
+          role="radiogroup"
+        >
+          <button
+            aria-checked={!shown}
+            className="choice"
+            disabled={!editable || pending}
+            onClick={() => change(false)}
+            role="radio"
+            type="button"
+          >
+            Team only
+          </button>
+          <button
+            aria-checked={shown}
+            className="choice"
+            disabled={!editable || pending}
+            onClick={() => change(true)}
+            role="radio"
+            type="button"
+          >
+            Team and client
+          </button>
+        </div>
+      </div>
     </section>
   );
 };

@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -13,6 +14,7 @@ import {
   reorderCustomFieldsAction,
 } from "@/features/custom-fields/custom-field-actions";
 import { fieldTypeLabel } from "@/features/custom-fields/custom-field-labels";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import type { CustomFieldView } from "@/src/server/custom-fields/custom-field-contracts";
 import { MAX_FIELDS_PER_PROJECT } from "@/src/server/custom-fields/custom-field-definition";
 
@@ -39,9 +41,10 @@ export const CustomFieldManager = ({
   readonly fields: readonly CustomFieldView[];
   readonly projectId: string;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The custom field could not be updated. Try again."
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const run = (
     request: () => Promise<{
@@ -51,7 +54,11 @@ export const CustomFieldManager = ({
   ) =>
     startTransition(async () => {
       const result = await request();
-      setError(result.ok ? null : (result.error?.message ?? null));
+      if (!result.ok) {
+        toast.error(
+          result.error?.message ?? "The custom field could not be updated."
+        );
+      }
     });
 
   const reorder = (index: number, offset: number) =>
@@ -73,11 +80,6 @@ export const CustomFieldManager = ({
 
   return (
     <div aria-busy={pending || undefined} className="stack">
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {fields.length === 0 ? (
         <p className="muted">No custom fields yet.</p>
       ) : (
@@ -155,7 +157,7 @@ export const CustomFieldManager = ({
         <section aria-label="Add a field" className="panel panel-b stack">
           <h2>Add a field</h2>
           <CustomFieldForm
-            onDone={() => setError(null)}
+            onDone={() => setEditingId(null)}
             projectId={projectId}
           />
         </section>

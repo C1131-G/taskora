@@ -1,0 +1,269 @@
+/* My time: week overview with a bar per day on the left, timer and log form on the right. */
+.workspace-app .mt-layout {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+.workspace-app .mt-main,
+.workspace-app .mt-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.workspace-app .mt-side {
+  position: sticky;
+  top: 0;
+}
+.workspace-app .mt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+.workspace-app .mt-title {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* week navigation */
+.workspace-app .mt-weeknav {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+.workspace-app .mt-weeklabel {
+  font-size: var(--fs-xl);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+.workspace-app .mt-iconbtn {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text-2);
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+.workspace-app .mt-iconbtn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.workspace-app .mt-iconbtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* totals */
+.workspace-app .mt-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+.workspace-app .mt-stats > div {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+}
+.workspace-app .mt-stats dt {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  order: 2;
+}
+.workspace-app .mt-stats dd {
+  color: var(--text);
+  font-size: var(--fs-2xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+}
+.workspace-app .mt-stats dd span {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+/* a bar per day */
+.workspace-app .mt-days {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.workspace-app .mt-day {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 4px 8px;
+}
+.workspace-app .mt-day[data-today] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.workspace-app .mt-day-hours {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.workspace-app .mt-day-track {
+  align-items: flex-end;
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  display: flex;
+  height: 96px;
+  max-width: 44px;
+  overflow: hidden;
+  width: 100%;
+}
+.workspace-app .mt-day-fill {
+  background: var(--accent);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  display: block;
+  transition: height var(--dur);
+  width: 100%;
+}
+.workspace-app .mt-day-name {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.workspace-app .mt-day time {
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+}
+
+/* form and timer inside cards */
+.workspace-app .mt-side .time-form {
+  grid-template-columns: 1fr;
+}
+.workspace-app .mt-side .time-form-actions {
+  justify-content: space-between;
+}
+.workspace-app .mt-side .timer-start .btn,
+.workspace-app .mt-side .time-form-actions .btn {
+  height: 38px;
+  justify-content: center;
+}
+.workspace-app .mt-side .timer-start .btn {
+  width: 100%;
+}
+.workspace-app .mt-side .timer-running {
+  background: color-mix(in srgb, var(--st-done) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--st-done) 40%, var(--border));
+  border-radius: var(--r);
+}
+.workspace-app .mt-side .timer-clock {
+  color: var(--st-done);
+  font-size: var(--fs-xl);
+}
+
+/* entries list */
+.workspace-app .mt-main .time-entries {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  gap: 0;
+  overflow: hidden;
+}
+.workspace-app .mt-main .time-entry {
+  border: 0;
+  border-radius: 0;
+  min-height: 56px;
+}
+.workspace-app .mt-main .time-entry + .time-entry {
+  border-top: 1px solid var(--border);
+}
+.workspace-app .mt-main .time-entry:hover {
+  background: var(--surface-2);
+}
+.workspace-app .mt-main .time-entry-minutes {
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .workspace-app .mt-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .mt-side {
+    order: -1;
+    position: static;
+  }
+}
+@media (max-width: 640px) {
+  .workspace-app .mt-card {
+    padding: 14px;
+  }
+  .workspace-app .mt-stats {
+    gap: 6px;
+  }
+  .workspace-app .mt-stats dd {
+    font-size: var(--fs-lg);
+  }
+  .workspace-app .mt-days {
+    gap: 4px;
+  }
+}
+
+/* timer card: pick the task first, the timer and its button sit below the picker */
+.workspace-app .mt-side .timer-control {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.workspace-app .mt-side .timer-start {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  order: 1;
+}
+.workspace-app .mt-side .timer-start > :first-child:not(button) {
+  flex: 0 0 auto;
+  width: 100%;
+}
+.workspace-app .mt-side .timer-start [data-slot="select-trigger"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  height: 38px;
+  justify-content: space-between;
+  width: 100%;
+}
+.workspace-app .mt-side .timer-running {
+  order: 2;
+}
+/* long task lists scroll inside the picker */
+[data-workspace-select] {
+  max-height: min(320px, var(--radix-select-content-available-height, 320px));
+}
+[data-workspace-select] [data-radix-select-viewport] {
+  max-height: inherit;
+  overflow-y: auto;
+}

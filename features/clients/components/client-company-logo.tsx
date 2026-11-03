@@ -3,7 +3,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -17,6 +18,7 @@ import type { VersionSink } from "@/features/clients/components/client-company-f
 import { UploadProgressList } from "@/features/files/components/upload-progress-list";
 import { useUploadQueue } from "@/features/files/hooks/use-upload-queue";
 import type { UploadRunner } from "@/features/files/hooks/use-upload-queue";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 const LOGO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -34,8 +36,9 @@ const ClientCompanyLogo = ({
   readonly onVersion: VersionSink;
   readonly version: number;
 }) => {
-  const [error, setError] = useState<string | null>(null);
-  const [removing, startRemoval] = useTransition();
+  const [removing, startRemoval] = useToastTransition(
+    "The logo could not be removed. Try again."
+  );
   const fileInput = useRef<HTMLInputElement>(null);
   // The upload finishes after renders that may carry a newer version.
   const latestVersion = useRef(version);
@@ -96,13 +99,12 @@ const ClientCompanyLogo = ({
     if (!file) {
       return;
     }
-    setError(null);
     if (!LOGO_TYPES.includes(file.type)) {
-      setError("Choose a PNG, JPEG, or WebP image.");
+      toast.error("Choose a PNG, JPEG, or WebP image.");
       return;
     }
     if (file.size > MAX_LOGO_BYTES) {
-      setError("Logos must be 2 MB or smaller.");
+      toast.error("Logos must be 2 MB or smaller.");
       return;
     }
     queue.start(file, runner);
@@ -116,10 +118,9 @@ const ClientCompanyLogo = ({
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       latestVersion.current = result.data.version;
       onVersion(result.data.version);
     });
@@ -198,11 +199,6 @@ const ClientCompanyLogo = ({
           type="file"
         />
       </div>
-      {error ? (
-        <p className="panel-b error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <UploadProgressList
         onCancel={queue.handleCancel}
         onClearFinished={queue.handleClearFinished}

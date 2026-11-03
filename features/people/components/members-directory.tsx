@@ -188,7 +188,10 @@ const MembersDirectory = ({
       ) : (
         <section aria-label="Workspace members" className="panel members-panel">
           <div className="panel-h members-toolbar">
-            <span className="ct">{filteredEmployees.length} members</span>
+            <span className="members-count-label">
+              <strong>{filteredEmployees.length}</strong>{" "}
+              {filteredEmployees.length === 1 ? "member" : "members"}
+            </span>
             <div className="members-controls">
               <Input
                 aria-label="Search members"
@@ -235,7 +238,6 @@ const MembersDirectory = ({
                   <TableHead>Team</TableHead>
                   <TableHead>Active projects</TableHead>
                   <TableHead>Open tasks</TableHead>
-                  <TableHead>Employee ID</TableHead>
                   <TableHead>Status</TableHead>
                   {canManageMembers ? <TableHead>Actions</TableHead> : null}
                 </TableRow>
@@ -261,24 +263,34 @@ const MembersDirectory = ({
                           <strong>{employee.name}</strong>
                           <span>{employee.email}</span>
                           {employee.jobTitle ? (
-                            <span>{employee.jobTitle}</span>
-                          ) : null}
+                            <span>
+                              {employee.jobTitle} · {employee.employeeId}
+                            </span>
+                          ) : (
+                            <span>{employee.employeeId}</span>
+                          )}
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <span className="ct">
+                      <span className={`member-role role-${employee.role}`}>
                         {employee.role === "admin" ? "Admin" : "Employee"}
                       </span>
                     </TableCell>
-                    <TableCell>{employee.teamName ?? "No team"}</TableCell>
-                    <TableCell>{employee.activeProjectCount}</TableCell>
-                    <TableCell>{employee.openAssignedTaskCount}</TableCell>
-                    <TableCell className="mono">
-                      {employee.employeeId}
+                    <TableCell>
+                      {employee.teamName ?? (
+                        <span className="member-muted">No team</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="member-num">
+                      {employee.activeProjectCount}
+                    </TableCell>
+                    <TableCell className="member-num">
+                      {employee.openAssignedTaskCount}
                     </TableCell>
                     <TableCell>
                       <Badge
+                        className={`member-status${employee.mustChangePassword ? " is-pending" : " is-active"}`}
                         variant={
                           employee.mustChangePassword ? "outline" : "secondary"
                         }

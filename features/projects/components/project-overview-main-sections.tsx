@@ -53,7 +53,7 @@ const ProjectProgress = ({
     <section aria-labelledby="project-progress-heading" className="panel">
       <div className="panel-h project-overview-progress-heading">
         <div>
-          <h2 id="project-progress-heading">Progress</h2>
+          <h2 id="project-progress-heading">Tasks by status</h2>
           <p className="muted">
             {project.completedTaskCount} of {project.taskCount} tasks done
           </p>
@@ -132,9 +132,9 @@ const ProjectUpcomingTasks = ({
         <h2 id="project-coming-up-heading">Coming up</h2>
         <Link
           className="project-overview-text-link"
-          href={`/projects/${project.id}?view=list`}
+          href={`/projects/${project.id}?view=table`}
         >
-          View list
+          View table
         </Link>
       </div>
       {upcomingTasks.length > 0 ? (

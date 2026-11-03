@@ -4,7 +4,8 @@
 "use client";
 
 import { Devices } from "@phosphor-icons/react";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/workspace/empty-state";
 import { LocalTime } from "@/components/workspace/local-time";
@@ -32,12 +33,17 @@ export const PortalSessions = ({
   readonly sessions: readonly PortalSessionSummary[];
 }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   const revoke = (sessionId: string) =>
     startTransition(async () => {
-      const result = await revokeSessionAction({ sessionId });
-      setError(result.ok ? null : result.error.message);
+      try {
+        const result = await revokeSessionAction({ sessionId });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The device could not be signed out. Try again.");
+      }
     });
 
   if (sessions.length === 0) {
@@ -53,11 +59,6 @@ export const PortalSessions = ({
 
   return (
     <div aria-busy={pending}>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {sessions.map((session) => (
         <article className="mini" key={session.id}>
           <div className="grow">

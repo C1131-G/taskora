@@ -4,7 +4,8 @@
 "use client";
 
 import { DotsThree, ListBullets } from "@phosphor-icons/react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ import {
   duplicateTaskAction,
   undoTaskArchiveAction,
 } from "@/features/tasks/tasks-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface EmployeeOption {
   readonly id: string;
@@ -43,7 +45,9 @@ const TaskManageControls = ({
   readonly currentUserId: string | null;
 }) => {
   const { addUndo } = useWorkspaceUndo();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The task could not be updated. Try again."
+  );
   const [versionState, setVersionState] = useState({
     sourceVersion: task.version,
     value: task.version,
@@ -54,7 +58,6 @@ const TaskManageControls = ({
       : task.version;
   const setVersion = (value: number) =>
     setVersionState({ sourceVersion: task.version, value });
-  const [error, setError] = useState<string | null>(null);
   const [localDetailsOpen, setLocalDetailsOpen] = useState(false);
   // Inside a page drawer the details open there, so the row renders no panel.
   const drawer = useTaskDrawer();
@@ -77,10 +80,8 @@ const TaskManageControls = ({
         taskId: task.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
   };
 
@@ -95,10 +96,9 @@ const TaskManageControls = ({
         taskId: task.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       addUndo({
         expiresAt: result.data.expiresAt,
         label: `Archived “${task.title}”`,
@@ -155,16 +155,13 @@ const TaskManageControls = ({
           </DropdownMenuContent>
         </DropdownMenu>
       ) : null}
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {drawer ? (
         <WorkspaceButton
           aria-label={`Open details for ${task.title}`}
           className="ibtn ibtn-sm"
           onClick={openDetails}
+          onFocus={() => drawer.prefetchTask(task.id)}
+          onPointerEnter={() => drawer.prefetchTask(task.id)}
           size="icon-sm"
           title={`Open details for ${task.title}`}
           type="button"

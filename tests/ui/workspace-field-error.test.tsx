@@ -14,7 +14,7 @@ const errors = {
   form: "You can't edit this event.",
 };
 
-test("a field error is announced and tied to its field by id", () => {
+test("a field error remains available to assistive technology without inline text", () => {
   const markup = renderToStaticMarkup(
     createElement(WorkspaceFieldError, {
       errors,
@@ -23,7 +23,7 @@ test("a field error is announced and tied to its field by id", () => {
     })
   );
 
-  expect(markup).toContain('role="alert"');
+  expect(markup).toContain('class="sr-only"');
   expect(markup).toContain(`id="${fieldErrorId("event", "title")}"`);
   expect(markup).toContain("Enter a title.");
 });
@@ -40,7 +40,7 @@ test("a field without an error renders nothing", () => {
   expect(markup).toBe("");
 });
 
-test("a form level error is announced and clears when there is none", () => {
+test("form level errors do not render inline", () => {
   const shown = renderToStaticMarkup(
     createElement(WorkspaceFormError, { errors })
   );
@@ -48,7 +48,6 @@ test("a form level error is announced and clears when there is none", () => {
     createElement(WorkspaceFormError, { errors: NO_FORM_ERRORS })
   );
 
-  expect(shown).toContain('role="alert"');
-  expect(shown).toContain("You can&#x27;t edit this event.");
+  expect(shown).toBe("");
   expect(cleared).toBe("");
 });

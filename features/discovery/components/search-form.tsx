@@ -7,8 +7,10 @@ import { MagnifyingGlass } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/workspace/empty-state";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
 import { recordRecentSearchAction } from "@/features/discovery/discovery-actions";
@@ -17,13 +19,15 @@ import type { WorkspaceSearchResults } from "@/src/server/preferences/discovery-
 const searchHref = (query: string) =>
   `/search?q=${encodeURIComponent(query)}` as const;
 
-// The recent-search list is a convenience; a failed write never holds up or
-// fails the search itself.
+// Recording is independent of the search navigation.
 const recordRecentSearch = async (query: string) => {
   try {
-    await recordRecentSearchAction({ query });
+    const result = await recordRecentSearchAction({ query });
+    if (!result.ok) {
+      toast.error(result.error.message);
+    }
   } catch {
-    // Intentionally ignored.
+    toast.error("The recent search could not be saved.");
   }
 };
 
@@ -92,11 +96,7 @@ const SearchForm = ({
           </WorkspaceButton>
         </form>
       </search>
-      {initialError ? (
-        <p className="error" role="alert">
-          {initialError}
-        </p>
-      ) : null}
+      <ErrorToast message={initialError} />
       {results ? (
         <div
           aria-busy={pending}

@@ -5,6 +5,7 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal classes are authored in apps/web/app/workspace-styles/portal.css. */
 
 import { useId, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceTextarea } from "@/components/workspace/workspace-controls";
@@ -29,16 +30,28 @@ export const PortalApprovalDecision = ({
   const decide = (decision: ApprovalDecision) => {
     if (decision === "request_changes" && comment.trim() === "") {
       setError("Tell the team what needs to change.");
+      toast.error("Tell the team what needs to change.");
       return;
     }
     startTransition(async () => {
-      const result = await decideApprovalAction({
-        comment,
-        decision,
-        idempotencyKey: crypto.randomUUID(),
-        requestId,
-      });
-      setError(result.ok ? null : result.error.message);
+      try {
+        const result = await decideApprovalAction({
+          comment,
+          decision,
+          idempotencyKey: crypto.randomUUID(),
+          requestId,
+        });
+        if (!result.ok) {
+          setError(result.error.message);
+          toast.error(result.error.message);
+          return;
+        }
+        setError(null);
+      } catch {
+        const message = "Your decision could not be saved. Try again.";
+        setError(message);
+        toast.error(message);
+      }
     });
   };
 
@@ -64,7 +77,7 @@ export const PortalApprovalDecision = ({
         />
       </div>
       {error ? (
-        <p className="err" id={errorId} role="alert">
+        <p className="sr-only" id={errorId}>
           {error}
         </p>
       ) : null}

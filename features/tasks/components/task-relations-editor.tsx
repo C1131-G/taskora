@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { TaskRelationsSection } from "@/features/tasks/components/task-relations-section";
@@ -42,92 +43,118 @@ export const TaskRelationsEditor = ({
   const [dependencies, setDependencies] = useState<
     readonly TaskRelationOption[]
   >([]);
-  const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const loadSequence = useRef(0);
 
-  const load = () => {
-    if (pending || loaded) {
-      return;
-    }
+  const load = useCallback(() => {
+    loadSequence.current += 1;
+    const requestId = loadSequence.current;
     startTransition(async () => {
-      const [labelResult, taskResult] = await Promise.all([
-        listLabelsAction({}),
-        listProjectTasksAction({ limit: 200, offset: 0, projectId }),
-      ]);
-      if (labelResult.ok && taskResult.ok) {
-        setLabels(labelResult.data);
-        const options: TaskRelationOption[] = [];
-        for (const task of taskResult.data) {
-          if (task.id !== taskId) {
-            options.push({
-              id: task.id,
-              name: `${task.title} · ${task.status}`,
-            });
-          }
+      setLoaded(false);
+      setLoadFailed(false);
+      try {
+        const [labelResult, taskResult] = await Promise.all([
+          listLabelsAction({}),
+          listProjectTasksAction({ limit: 200, offset: 0, projectId }),
+        ]);
+        if (requestId !== loadSequence.current) {
+          return;
         }
-        setDependencies(options);
-        setLoaded(true);
-        setError(null);
-        return;
+        if (labelResult.ok && taskResult.ok) {
+          setLabels(labelResult.data);
+          const options: TaskRelationOption[] = [];
+          for (const task of taskResult.data) {
+            if (task.id !== taskId) {
+              options.push({
+                id: task.id,
+                name: `${task.title} · ${task.status}`,
+              });
+            }
+          }
+          setDependencies(options);
+          setLoaded(true);
+          return;
+        }
+        const messages = [labelResult, taskResult].flatMap((result) =>
+          result.ok ? [] : [result.error.message]
+        );
+        setLoadFailed(true);
+        toast.error(
+          [...new Set(messages)].join(" ") ||
+            "Labels and dependencies could not be loaded."
+        );
+      } catch {
+        if (requestId !== loadSequence.current) {
+          return;
+        }
+        setLoadFailed(true);
+        toast.error("Labels and dependencies could not be loaded. Try again.");
       }
-      setError(
-        labelResult.ok
-          ? "Task dependencies could not be loaded."
-          : labelResult.error.message
-      );
     });
-  };
+  }, [projectId, taskId]);
+
+  // Labels and dependencies load as soon as the section appears, so there is no
+  // extra button to press before the choices show.
+  useEffect(() => {
+    load();
+    return () => {
+      loadSequence.current += 1;
+    };
+  }, [load]);
 
   const save = (formData: FormData) => {
     if (pending || !editable) {
       return;
     }
     startTransition(async () => {
-      const result = await setTaskRelationsAction({
-        dependencyTaskIds: formData.getAll("dependencyTaskIds").map(String),
-        expectedVersion: version,
-        idempotencyKey: crypto.randomUUID(),
-        labelIds: formData.getAll("labelIds").map(String),
-        taskId,
-      });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await setTaskRelationsAction({
+          dependencyTaskIds: formData.getAll("dependencyTaskIds").map(String),
+          expectedVersion: version,
+          idempotencyKey: crypto.randomUUID(),
+          labelIds: formData.getAll("labelIds").map(String),
+          taskId,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        onVersionChange(result.data.version);
+        await onReload();
+      } catch {
+        toast.error(
+          "Task relations could not be saved or refreshed. Try again."
+        );
       }
-      onVersionChange(result.data.version);
-      setError(null);
-      await onReload();
     });
   };
 
-  return (
-    <section className="stack">
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {loaded ? (
-        <TaskRelationsSection
-          dependencies={dependencies}
-          editable={editable}
-          labels={labels}
-          onSave={save}
-          pending={pending}
-          selectedDependencyIds={dependencyIds}
-          selectedLabelIds={labelIds}
-        />
-      ) : (
-        <WorkspaceButton
-          className="btn btn-sm btn-ghost"
-          disabled={pending}
-          onClick={load}
-          type="button"
-        >
-          {pending
-            ? "Loading labels and dependencies…"
-            : "Load labels and dependencies"}
-        </WorkspaceButton>
-      )}
-    </section>
+  let content = (
+    <output className="muted">Loading labels and dependencies…</output>
   );
+  if (loaded) {
+    content = (
+      <TaskRelationsSection
+        dependencies={dependencies}
+        editable={editable}
+        labels={labels}
+        onSave={save}
+        pending={pending}
+        selectedDependencyIds={dependencyIds}
+        selectedLabelIds={labelIds}
+      />
+    );
+  } else if (loadFailed) {
+    content = (
+      <WorkspaceButton
+        disabled={pending}
+        onClick={load}
+        type="button"
+        workspace
+      >
+        Retry
+      </WorkspaceButton>
+    );
+  }
+  return <section className="stack">{content}</section>;
 };

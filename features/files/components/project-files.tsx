@@ -52,7 +52,6 @@ const ProjectFiles = ({
   const [layout, setLayout] = useState<FileLayout>("grid");
   const {
     actOnFile,
-    error,
     files,
     openRename,
     pending,
@@ -60,7 +59,6 @@ const ProjectFiles = ({
     renameValue,
     renamingFile,
     saveRename,
-    setError,
     setRenameValue,
     setRenamingFile,
     undo,
@@ -117,11 +115,6 @@ const ProjectFiles = ({
         onRetry={queue.handleRetry}
         uploads={queue.uploads}
       />
-      {error && !renamingFile ? (
-        <p className="panel-b error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {undo ? (
         <div className="panel-b row file-undo-banner">
           <span>File removed.</span>
@@ -166,13 +159,9 @@ const ProjectFiles = ({
         </div>
       )}
       <ProjectFileRenameDialog
-        error={renamingFile ? error : null}
         onNameChange={setRenameValue}
         onOpenChange={(open) => {
           setRenamingFile(open ? renamingFile : null);
-          if (open) {
-            setError(null);
-          }
         }}
         onSubmit={saveRename}
         open={renamingFile !== null}

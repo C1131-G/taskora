@@ -1,9 +1,76 @@
 .workspace-app .my-task-table .thead,
 .workspace-app .my-task-table .trow {
-  grid-template-columns: minmax(220px, 2fr) minmax(
-      130px,
-      1fr
-    ) 110px 100px 105px minmax(150px, auto);
+  grid-template-columns:
+    minmax(160px, 2fr) minmax(100px, 1fr) 110px 80px 100px
+    96px;
+}
+.workspace-app .my-task-table .trow > .ttl {
+  min-width: 0;
+  overflow: hidden;
+}
+.workspace-app .my-task-table .trow > .ttl > a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .my-task-table .trow > .c-meta:nth-child(2) a {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* row actions: one consistent 28px hit target with matching 16px glyphs */
+.workspace-app .my-task-table .trow > .c-meta.row {
+  gap: 2px;
+  justify-content: flex-end;
+}
+.workspace-app .my-task-table .trow .ibtn {
+  align-items: center;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  min-height: 28px;
+  min-width: 28px;
+  padding: 0;
+  width: 28px;
+}
+.workspace-app .my-task-table .trow .ibtn svg {
+  height: 16px;
+  width: 16px;
+}
+.workspace-app .my-task-table .task-manage {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+}
+.workspace-app .my-task-table .trow > .col,
+.workspace-app .my-task-table .trow .col {
+  align-items: center;
+  display: inline-flex;
+}
+@media (max-width: 700px) {
+  .workspace-app .my-task-table .thead {
+    display: none;
+  }
+  .workspace-app .my-task-table .trow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 8px 0;
+    padding: 10px;
+  }
+  .workspace-app .my-task-table .trow > .ttl,
+  .workspace-app .my-task-table .trow > .c-meta:nth-child(2),
+  .workspace-app .my-task-table .trow > .c-meta.row {
+    grid-column: 1 / -1;
+  }
+  .workspace-app .my-task-table .trow > .c-meta {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 }
 .workspace-app .my-task-group {
   display: contents;

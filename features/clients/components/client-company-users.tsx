@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,6 +22,7 @@ import {
   deactivateEmployeeAction,
   reactivateEmployeeAction,
 } from "@/features/people/people-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 import {
   AddClientUserDialog,
@@ -44,8 +45,9 @@ const ClientUserActions = ({
   readonly companyActive: boolean;
   readonly user: ClientUser;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The client account could not be updated. Try again."
+  );
 
   const run = (
     action: () => Promise<
@@ -56,10 +58,8 @@ const ClientUserActions = ({
     startTransition(async () => {
       const result = await action();
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   const deactivate = () =>
@@ -137,11 +137,6 @@ const ClientUserActions = ({
           </WorkspaceButton>
         )}
       </div>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 };

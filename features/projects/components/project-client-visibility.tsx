@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useId, useOptimistic, useState, useTransition } from "react";
+import { useId, useOptimistic, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { setProjectClientVisibilityAction } from "@/features/projects/projects-actions";
@@ -22,7 +23,6 @@ export const ProjectClientVisibility = ({
   const hintId = useId();
   const [pending, startTransition] = useTransition();
   const [shown, setShown] = useOptimistic(clientVisible);
-  const [error, setError] = useState<string | null>(null);
 
   const change = (visible: boolean) => {
     if (pending) {
@@ -30,13 +30,19 @@ export const ProjectClientVisibility = ({
     }
     startTransition(async () => {
       setShown(visible);
-      const result = await setProjectClientVisibilityAction({
-        expectedVersion: version,
-        idempotencyKey: crypto.randomUUID(),
-        projectId,
-        visible,
-      });
-      setError(result.ok ? null : result.error.message);
+      try {
+        const result = await setProjectClientVisibilityAction({
+          expectedVersion: version,
+          idempotencyKey: crypto.randomUUID(),
+          projectId,
+          visible,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("Project visibility could not be changed. Try again.");
+      }
     });
   };
 
@@ -57,11 +63,6 @@ export const ProjectClientVisibility = ({
         then the company&rsquo;s projects). Clients see progress, milestones and
         only the tasks marked &ldquo;Show to client&rdquo;.
       </p>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 };

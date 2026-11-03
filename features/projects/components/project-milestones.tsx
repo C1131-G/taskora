@@ -4,14 +4,17 @@
 "use client";
 
 import { CheckCircle, Circle } from "@phosphor-icons/react";
-import { useReducer, useState, useTransition } from "react";
+import { useReducer } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
 import { WorkspaceDatePicker } from "@/components/workspace/workspace-date-picker";
 import { reduceMilestoneDraft } from "@/features/projects/milestone-draft";
 import { saveProjectMilestonesAction } from "@/features/projects/projects-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface MilestoneData {
   readonly id: string | null;
@@ -53,8 +56,9 @@ export const ProjectMilestones = ({
       ? draftState.draft
       : incoming;
   const conflict = draftState.dirty && draftState.baseVersion !== version;
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "Milestones could not be saved. Try again."
+  );
 
   const reload = () => {
     dispatch({
@@ -63,7 +67,6 @@ export const ProjectMilestones = ({
       type: "reload",
       version,
     });
-    setError(null);
   };
 
   const updateMilestone = (index: number, patch: Partial<Milestone>) => {
@@ -90,10 +93,9 @@ export const ProjectMilestones = ({
         projectId,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       const saved = toMilestones(result.data.milestones);
       dispatch({
         draft: saved,
@@ -132,19 +134,14 @@ export const ProjectMilestones = ({
           </WorkspaceButton>
         ) : null}
       </div>
-      {error ? (
-        <p className="panel-b error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {conflict ? (
-        <div className="panel-b error" role="alert">
-          Milestones changed elsewhere. Reload before editing or saving.
-          <WorkspaceButton onClick={reload} type="button" workspace>
-            Reload milestones
-          </WorkspaceButton>
-        </div>
-      ) : null}
+      <ErrorToast
+        action={{ label: "Reload milestones", onClick: reload }}
+        message={
+          conflict
+            ? "Milestones changed elsewhere. Reload before editing or saving."
+            : null
+        }
+      />
       <div className="panel-b stack">
         {milestones.map((milestone, index) => (
           <div className="row milestone" key={milestone.key}>

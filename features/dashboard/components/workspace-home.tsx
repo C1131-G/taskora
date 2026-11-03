@@ -1,7 +1,9 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
 import { listActivity } from "@/features/activity/activity-queries";
 import {
@@ -20,6 +22,7 @@ import { listProjects } from "@/features/projects/projects-queries";
 import { QuickTaskForm } from "@/features/tasks/components/quick-task-form";
 import { listAllProjectTasks } from "@/features/tasks/tasks-queries";
 import { getPageSession } from "@/src/server/auth/page-session";
+import { isWorkspaceUser } from "@/src/server/auth/session";
 
 const greetingAt = (hour: number): string => {
   if (hour < 12) {
@@ -67,20 +70,28 @@ const WorkspaceHome = async ({
 }: {
   readonly taskView: HomeTaskView;
 }) => {
-  const [dashboardResult, projectResult, session, employeesResult] =
-    await Promise.all([
-      getDashboardOverview({}),
-      listProjects({}),
-      getPageSession(),
-      listAllEmployees(),
-    ]);
+  const session = await getPageSession();
+  if (session.kind === "anonymous") {
+    redirect("/login");
+  }
+  if (session.user.mustChangePassword) {
+    redirect("/change-password");
+  }
+  if (!isWorkspaceUser(session.user)) {
+    redirect("/portal");
+  }
+
+  const [dashboardResult, projectResult, employeesResult] = await Promise.all([
+    getDashboardOverview({}),
+    listProjects({}),
+    listAllEmployees(),
+  ]);
   if (!dashboardResult.ok || !projectResult.ok) {
     throw new Error("Workspace data could not be loaded.");
   }
 
-  const userId = session.kind === "authenticated" ? session.user.id : null;
-  const isAdmin =
-    session.kind === "authenticated" && session.user.role === "admin";
+  const userId = session.user.id;
+  const isAdmin = session.user.role === "admin";
   const employee =
     userId && employeesResult.ok
       ? employeesResult.data.find(({ id }) => id === userId)
@@ -194,6 +205,9 @@ const WorkspaceHome = async ({
 
   return (
     <div className="page">
+      <ErrorToast
+        message={employeesResult.ok ? null : employeesResult.error.message}
+      />
       <div className="ph">
         <div>
           <h1>

@@ -17,11 +17,6 @@ import {
 import { requestHeadersOrFail } from "@/src/server/core/request-headers";
 import { runServerAction } from "@/src/server/core/server-action";
 import {
-  SavedViewManagement,
-  SavedViewManagementLive,
-  SavedViewSummarySchema,
-} from "@/src/server/preferences/saved-view-management";
-import {
   ProjectListItemSchema,
   ProjectManagement,
   ProjectMilestonesResultSchema,
@@ -112,27 +107,6 @@ export const listProjectBudgets = async (input: unknown) =>
     Schema.Array(BudgetListRowSchema)
   );
 
-export const listSavedViews = async (input: unknown) => {
-  const result = await runServerAction(
-    input,
-    Schema.Struct({}),
-    () =>
-      Effect.gen(function* listViews() {
-        const requestHeaders = yield* requestHeadersOrFail;
-        const sessions = yield* AuthSession;
-        const user = yield* sessions.requireWorkspaceAccess(requestHeaders);
-        const views = yield* SavedViewManagement;
-        return yield* views.listViews(user.id);
-      }).pipe(
-        Effect.provide(AuthSessionLive),
-        Effect.provide(SavedViewManagementLive)
-      ),
-    undefined,
-    Schema.Array(SavedViewSummarySchema)
-  );
-  return result;
-};
-
 // Project pages read the full list for their title and their body; one
 // request shares a single read.
 export const listAllProjects = cache(async () => await listProjects({}));
@@ -147,7 +121,3 @@ export const getProject = cache(async (projectId: string) => {
   }
   return project;
 });
-
-// The header and the body both resolve the active view; one request reads the
-// saved views once.
-export const listAllSavedViews = cache(async () => await listSavedViews({}));

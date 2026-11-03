@@ -37,12 +37,20 @@ export const TaskTimeSection = ({
     <section aria-label="Time tracking" className="stack time-section">
       <div className="time-section-head">
         <h3>Time</h3>
-        {time ? (
-          <p className="muted time-totals">
-            <strong>{formatMinutes(time.totalMinutes)}</strong> logged,{" "}
-            {formatMinutes(time.billableMinutes)} billable
-          </p>
-        ) : null}
+      </div>
+      <div className="time-stats">
+        <div className="time-stat">
+          <span className="time-stat-value">
+            {time ? formatMinutes(time.totalMinutes) : "—"}
+          </span>
+          <span className="time-stat-label">Logged</span>
+        </div>
+        <div className="time-stat">
+          <span className="time-stat-value">
+            {time ? formatMinutes(time.billableMinutes) : "—"}
+          </span>
+          <span className="time-stat-label">Billable</span>
+        </div>
       </div>
       <TimerControl
         fixedTask={{ reference: "", taskId, title: taskTitle ?? "This task" }}
@@ -61,16 +69,15 @@ export const TaskTimeSection = ({
           today={today}
         />
       ) : (
-        <div>
-          <WorkspaceButton
-            className="btn btn-secondary btn-sm"
-            onClick={() => setAdding(true)}
-            type="button"
-          >
-            Log time manually
-          </WorkspaceButton>
-        </div>
+        <WorkspaceButton
+          className="btn btn-secondary time-add"
+          onClick={() => setAdding(true)}
+          type="button"
+        >
+          Add time entry
+        </WorkspaceButton>
       )}
+      <h4 className="time-entries-title">Entries</h4>
       {time ? (
         <TimeEntryList
           currentUserId={currentUserId}

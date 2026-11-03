@@ -3,6 +3,7 @@
 /* eslint-disable shadcn/no-restyle */
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { registerPushSubscriptionAction } from "@/features/notifications/notifications-actions";
@@ -42,7 +43,9 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
           setAvailable(true);
         }
       } catch {
-        // Push is an optional browser enhancement; the workspace remains usable.
+        if (!cancelled) {
+          toast.error("Push notifications could not be initialized.");
+        }
       }
     };
     void registerServiceWorker();
@@ -59,7 +62,7 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        setMessage("Allow notifications in your browser to enable them here.");
+        toast.error("Allow notifications in your browser to enable them here.");
         return;
       }
       const registration = await navigator.serviceWorker.ready;
@@ -71,7 +74,7 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
       });
       const { keys } = subscription.toJSON();
       if (!keys?.auth || !keys.p256dh) {
-        setMessage("Your browser returned an invalid push subscription.");
+        toast.error("Your browser returned an invalid push subscription.");
         return;
       }
       const result = await registerPushSubscriptionAction({
@@ -83,10 +86,10 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
       if (result.ok) {
         setMessage("Notifications are enabled.");
       } else {
-        setMessage(result.error.message);
+        toast.error(result.error.message);
       }
     } catch {
-      setMessage("Notifications could not be enabled. Try again later.");
+      toast.error("Notifications could not be enabled. Try again later.");
     }
   };
 

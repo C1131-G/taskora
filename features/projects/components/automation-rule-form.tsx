@@ -3,8 +3,9 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -27,6 +28,7 @@ import {
   ConditionRow,
 } from "@/features/projects/components/automation-rule-fields";
 import type { Option } from "@/features/projects/components/automation-rule-fields";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import {
   MAX_ACTIONS_PER_RULE,
   MAX_CONDITIONS_PER_RULE,
@@ -53,14 +55,15 @@ export const AutomationRuleForm = ({
   readonly rule?: { readonly id: string; readonly version: number };
 }) => {
   const [draft, setDraft] = useState<RuleDraft>(initial);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The automation could not be saved. Try again."
+  );
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const converted = draftToRuleInput(draft);
     if (!converted.ok) {
-      setError(converted.message);
+      toast.error(converted.message);
       return;
     }
     startTransition(async () => {
@@ -80,7 +83,7 @@ export const AutomationRuleForm = ({
         onClose();
         return;
       }
-      setError(result.error.message);
+      toast.error(result.error.message);
     });
   };
 
@@ -222,7 +225,6 @@ export const AutomationRuleForm = ({
           </span>
         </div>
       </div>
-      {error ? <p role="alert">{error}</p> : null}
       <div className="row">
         <WorkspaceButton
           aria-busy={pending || undefined}

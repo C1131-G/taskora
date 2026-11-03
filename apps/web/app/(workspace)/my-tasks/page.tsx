@@ -1,10 +1,10 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
-import { SuspenseReveal } from "@/components/ui/suspense-reveal";
 import {
   parseCalendarMode,
   parseMonthOffset,
@@ -17,8 +17,8 @@ export const metadata: Metadata = { title: "My Tasks | Taskora" };
 const MyTasksPage = ({ searchParams }: PageProps<"/my-tasks">) => (
   <PageTransition>
     <div className="page flush">
-      <SectionErrorBoundary title="My tasks couldn't load">
-        <SuspenseReveal fallback={<MyTasksSkeleton />}>
+      <SectionErrorBoundary title="My tasks couldn't load" variant="page">
+        <Suspense fallback={<MyTasksSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (
             <MyTasks
@@ -27,7 +27,7 @@ const MyTasksPage = ({ searchParams }: PageProps<"/my-tasks">) => (
               monthOffset={parseMonthOffset(params["monthOffset"])}
             />
           ))}
-        </SuspenseReveal>
+        </Suspense>
       </SectionErrorBoundary>
     </div>
   </PageTransition>

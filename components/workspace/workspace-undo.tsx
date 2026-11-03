@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -90,8 +91,7 @@ const WorkspaceUndoNotices = ({
               <div className="workspace-undo-copy">
                 <span>{label}</span>
                 <span className="faint">
-                  {error ??
-                    `Undo available until ${new Date(expiresAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`}
+                  {`Undo available until ${new Date(expiresAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`}
                 </span>
               </div>
               <Button
@@ -176,11 +176,8 @@ const WorkspaceUndoProvider = ({
       .catch(() => "Undo failed. Refresh and try again.");
     if (error) {
       setAnnouncement(`${undoNotice.label}. ${error}`);
-      setItems((current) =>
-        current.map((notice) =>
-          notice.id === id ? { ...notice, error } : notice
-        )
-      );
+      toast.error(error);
+      setItems((current) => current.filter((notice) => notice.id !== id));
     } else {
       dismiss(id);
       setAnnouncement(`Undid ${undoNotice.label}.`);

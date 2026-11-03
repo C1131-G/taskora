@@ -127,7 +127,17 @@ export const TaskCommentsSection = ({
 
   return (
     <section className="stack">
-      <h3>Comments</h3>
+      <h3>
+        Comments
+        {comments.length > 0 ? (
+          <span className="subtasks-count">{comments.length}</span>
+        ) : null}
+      </h3>
+      {comments.length === 0 ? (
+        <p className="subtasks-empty">
+          No comments yet. Start the conversation below.
+        </p>
+      ) : null}
       {comments.map((comment) => (
         <CommentCard
           canRemove={isAdmin || comment.authorId === currentUserId}
@@ -147,7 +157,7 @@ export const TaskCommentsSection = ({
         }`}
       >
         <label htmlFor={fieldId}>
-          <span>Add a comment</span>
+          <span>Write a comment</span>
         </label>
         <WorkspaceTextarea
           aria-autocomplete="list"
@@ -208,7 +218,7 @@ export const TaskCommentsSection = ({
         ) : null}
       </div>
       <WorkspaceButton
-        className="btn btn-sm btn-primary"
+        className="btn btn-primary comment-submit"
         disabled={pending || !body.trim()}
         onClick={onSubmit}
         type="button"

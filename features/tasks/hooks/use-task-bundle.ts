@@ -24,8 +24,26 @@ const approvalsOf = (bundle: TaskBundle | null): TaskApprovals | null =>
 const customFieldsOf = (bundle: TaskBundle | null): TaskCustomFields | null =>
   bundle?.customFields.ok ? bundle.customFields.data : null;
 
-// Reads everything the task panel shows while it is open, and owns the panel's
-// error so the reads and the comment actions report into one place. A deep link
+const bundleError = (bundle: TaskBundle): string | null => {
+  const reads = [
+    bundle.task,
+    bundle.comments,
+    bundle.subtasks,
+    bundle.files,
+    bundle.time,
+    bundle.timer,
+    bundle.pulls,
+    bundle.approvals,
+    bundle.customFields,
+    ...(bundle.bugHistory ? [bundle.bugHistory] : []),
+  ];
+  const messages = reads.flatMap((result) =>
+    result.ok ? [] : [result.error.message]
+  );
+  return messages.length ? [...new Set(messages)].join(" ") : null;
+};
+
+// Reads everything the task panel shows while it is open. A deep link
 // hands in the server's read as initialBundle, so the first load skips a round trip.
 export const useTaskBundle = ({
   initialBundle,
@@ -41,27 +59,16 @@ export const useTaskBundle = ({
   const [bugHistory, setBugHistory] = useState(
     initialBundle?.bugHistory?.ok ? initialBundle.bugHistory.data : null
   );
-  const initialFailure = initialBundle
-    ? [
-        initialBundle.task,
-        initialBundle.comments,
-        initialBundle.subtasks,
-        initialBundle.files,
-        initialBundle.time,
-        initialBundle.timer,
-        ...(initialBundle.bugHistory ? [initialBundle.bugHistory] : []),
-      ].find((result) => !result.ok)
-    : undefined;
   const [error, setError] = useState<string | null>(
-    initialFailure && !initialFailure.ok ? initialFailure.error.message : null
+    initialBundle ? bundleError(initialBundle) : null
   );
+  const [errorRevision, setErrorRevision] = useState(0);
   const [loading, setLoading] = useState(false);
   const comments = useTaskComments({
     allowPublicReplies: typeof bugHistory?.bug.clientCompanyId === "string",
     initialComments: initialBundle?.comments.ok
       ? initialBundle.comments.data
       : [],
-    onError: setError,
     taskId,
   });
   const { setComments } = comments;
@@ -80,29 +87,21 @@ export const useTaskBundle = ({
   const [timer, setTimer] = useState<RunningTimer | null>(
     initialBundle?.timer.ok ? initialBundle.timer.data : null
   );
-  // Linked pull requests are a read-only extra, so a failed read just hides them.
   const [pulls, setPulls] = useState(() => linkedPullsOf(initialBundle));
-  // Like pull requests, approvals are an extra: a failed read hides the section.
   const [approvals, setApprovals] = useState(() => approvalsOf(initialBundle));
-  // Custom fields are another extra: a failed read hides the section.
   const [customFields, setCustomFields] = useState(() =>
     customFieldsOf(initialBundle)
   );
   const requestSequence = useRef(0);
 
-  // The first failing read is reported; the reads that succeeded still show.
+  // Failed reads are reported while the reads that succeeded still show.
   const applyBundle = useCallback(
     (bundle: TaskBundle) => {
-      const failure = [
-        bundle.task,
-        bundle.comments,
-        bundle.subtasks,
-        bundle.files,
-        bundle.time,
-        bundle.timer,
-        ...(bundle.bugHistory ? [bundle.bugHistory] : []),
-      ].find((result) => !result.ok);
-      setError(failure && !failure.ok ? failure.error.message : null);
+      const message = bundleError(bundle);
+      setError(message);
+      if (message) {
+        setErrorRevision((revision) => revision + 1);
+      }
       if (bundle.task.ok) {
         setTask(bundle.task.data);
       }
@@ -149,6 +148,7 @@ export const useTaskBundle = ({
     } catch {
       if (requestId === requestSequence.current) {
         setError("Task details could not be refreshed. Try again.");
+        setErrorRevision((revision) => revision + 1);
       }
     }
     if (requestId === requestSequence.current) {
@@ -162,6 +162,7 @@ export const useTaskBundle = ({
     comments,
     customFields,
     error,
+    errorRevision,
     files,
     loading,
     pulls,

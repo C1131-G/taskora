@@ -11,13 +11,18 @@ const SAVE_DELAY_MS = 600;
 // already stored, so they are not written back.
 export const usePersistColumnWidths = (
   columnWidths: Partial<Record<TaskTableColumnId, number>>
-): { readonly error: string | null; readonly handleRetry: () => void } => {
+): {
+  readonly error: string | null;
+  readonly errorRevision: number;
+  readonly handleRetry: () => void;
+} => {
   const lastSaved = useRef<string | null>(null);
   const latestWidths = useRef(columnWidths);
   const saving = useRef(false);
   const mounted = useRef(false);
   const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [errorRevision, setErrorRevision] = useState(0);
 
   useEffect(() => {
     latestWidths.current = columnWidths;
@@ -62,10 +67,12 @@ export const usePersistColumnWidths = (
           }
         } else if (mounted.current) {
           setError("Column widths could not be saved. Retry to save them.");
+          setErrorRevision((revision) => revision + 1);
         }
       } catch {
         if (mounted.current) {
           setError("Column widths could not be saved. Retry to save them.");
+          setErrorRevision((revision) => revision + 1);
         }
       }
       saving.current = false;
@@ -92,6 +99,7 @@ export const usePersistColumnWidths = (
 
   return {
     error,
+    errorRevision,
     handleRetry: () => setRetryCount((count) => count + 1),
   };
 };

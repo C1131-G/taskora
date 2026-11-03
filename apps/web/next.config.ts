@@ -21,7 +21,6 @@ const nextConfig: NextConfig = {
       validationLevel: "manual-warning",
     },
     optimizePackageImports: ["@phosphor-icons/react"],
-    turbopackGc: true,
     turbopackLazyDynamicImports: true,
     turbopackRustReactCompiler: true,
     useTypeScriptCli: true,

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { TabUnderline } from "@/components/ui/tab-underline";
 import { ViewSwitchTransition } from "@/components/ui/view-switch-transition";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -21,7 +22,6 @@ import { listAllEmployees } from "@/features/people/people-queries";
 import { ProjectCreateForm } from "@/features/projects/components/project-create-form";
 import {
   ProjectGridView,
-  ProjectListView,
   ProjectTableView,
 } from "@/features/projects/components/project-list-layouts";
 import {
@@ -86,6 +86,10 @@ const ProjectDirectory = async ({
     session.kind === "authenticated" && session.user.role === "admin";
   return (
     <>
+      <ErrorToast message={personal.ok ? null : personal.error.message} />
+      <ErrorToast
+        message={employeeResult.ok ? null : employeeResult.error.message}
+      />
       <form className="toolbar project-toolbar" method="get">
         <label className="field project-search" htmlFor="projects-search">
           <span className="sr-only">Search projects</span>
@@ -135,7 +139,7 @@ const ProjectDirectory = async ({
           </WorkspaceSelect>
         </label>
         <input name="view" type="hidden" value={view} />
-        <WorkspaceButton className="btn btn-sm btn-secondary" type="submit">
+        <WorkspaceButton className="btn btn-secondary" type="submit">
           Apply
         </WorkspaceButton>
       </form>
@@ -158,14 +162,6 @@ const ProjectDirectory = async ({
       <ViewSwitchTransition name="project-layout" view={view}>
         {projects.length > 0 && view === "grid" ? (
           <ProjectGridView
-            favorites={favoriteProjectIds}
-            isAdmin={isAdmin}
-            membersById={membersById}
-            projects={projects}
-          />
-        ) : null}
-        {projects.length > 0 && view === "list" ? (
-          <ProjectListView
             favorites={favoriteProjectIds}
             isAdmin={isAdmin}
             membersById={membersById}
@@ -226,31 +222,34 @@ const ProjectDirectoryActions = async () => {
 
 const PROJECT_CARDS = SKELETON_KEYS.slice(0, 3);
 
-const VIEWS = ["Grid", "List", "Table"] as const;
+const VIEWS = ["Grid", "Table"] as const;
 
 const ProjectCardSkeleton = () => (
   <article className="pcard">
     <div className="pcard-link">
-      <div className="row">
+      <div className="row pcard-head">
         <SkeletonBone shape="avatar" />
         <strong className="grow">
           <SkeletonBone />
         </strong>
+      </div>
+      <div className="pcard-sub">
+        <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
       </div>
       <p className="desc">
         <SkeletonBone />
       </p>
-      <div className="row">
+      <div className="pcard-progress">
         <span className="prog skeleton-prog">
           <SkeletonBone />
         </span>
         <SkeletonBone shape="short" />
       </div>
-      <div className="foot">
+      <div className="foot pcard-foot">
+        <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
         <span className="sp" />
-        <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
       </div>
     </div>
@@ -273,7 +272,7 @@ const ProjectDirectorySkeleton = () => (
         Recently active
         <CaretDown aria-hidden="true" size={14} />
       </span>
-      <span className="btn btn-sm btn-secondary">Apply</span>
+      <span className="btn btn-secondary">Apply</span>
     </div>
     <nav aria-label="Project layout" className="tabs project-view-tabs">
       {VIEWS.map((view) => (

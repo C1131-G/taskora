@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -64,6 +65,9 @@ const FavoriteWork = async () => {
 
   return (
     <>
+      <ErrorToast
+        message={employeesResult.ok ? null : employeesResult.error.message}
+      />
       <section aria-labelledby="favorite-projects-heading" className="stack">
         <h2 className="section-heading" id="favorite-projects-heading">
           Projects <span className="muted">{projects.length}</span>
@@ -91,7 +95,16 @@ const FavoriteWork = async () => {
           Tasks <span className="muted">{personal.data.tasks.length}</span>
         </h2>
         {personal.data.tasks.length ? (
-          <div className="panel favorite-task-list">
+          <div className="panel favorite-task-list fav-table">
+            <div aria-hidden="true" className="fav-head">
+              <span />
+              <span>Task</span>
+              <span>Status</span>
+              <span>Priority</span>
+              <span>Due</span>
+              <span>Assignees</span>
+              <span />
+            </div>
             {personal.data.tasks.map((task) => {
               const canEdit =
                 isAdmin ||
@@ -99,7 +112,7 @@ const FavoriteWork = async () => {
                 task.assignees.some((assignee) => assignee.id === userId);
 
               return (
-                <article className="favorite-task-row" key={task.id}>
+                <article className="favorite-task-row fav-row" key={task.id}>
                   {canEdit ? (
                     <TaskCompletionCheckbox
                       status={task.status}
@@ -126,38 +139,50 @@ const FavoriteWork = async () => {
                     >
                       {task.projectName}
                     </Link>
-                    <div className="favorite-task-metadata">
-                      <Badge data-task-status={task.status} variant="outline">
-                        {taskStatusLabels[task.status]}
-                      </Badge>
-                      {task.priority === "none" ? null : (
-                        <Badge
-                          data-task-priority={task.priority}
-                          variant="outline"
-                        >
-                          {taskPriorityLabels[task.priority]}
-                        </Badge>
-                      )}
-                      {task.dueDate ? (
-                        <time dateTime={task.dueDate}>{task.dueDate}</time>
-                      ) : null}
-                    </div>
-                    <ul
-                      aria-label={`Assignees: ${task.assignees.map(({ name }) => name).join(", ") || "Unassigned"}`}
-                      className="favorite-task-assignees"
-                    >
-                      {task.assignees.slice(0, 3).map((assignee) => (
-                        <li aria-label={assignee.name} key={assignee.id}>
-                          <span aria-hidden="true" className="av">
-                            {assignee.name.slice(0, 1).toUpperCase()}
-                          </span>
-                        </li>
-                      ))}
-                      {task.assignees.length > 3 ? (
-                        <li className="muted">+{task.assignees.length - 3}</li>
-                      ) : null}
-                    </ul>
                   </div>
+                  <span className="fav-cell" data-label="Status">
+                    <Badge data-task-status={task.status} variant="outline">
+                      {taskStatusLabels[task.status]}
+                    </Badge>
+                  </span>
+                  <span className="fav-cell" data-label="Priority">
+                    {task.priority === "none" ? (
+                      <span className="muted">—</span>
+                    ) : (
+                      <span className={`fav-priority prio-${task.priority}`}>
+                        {taskPriorityLabels[task.priority]}
+                      </span>
+                    )}
+                  </span>
+                  <span className="fav-cell" data-label="Due">
+                    {task.dueDate ? (
+                      <time dateTime={task.dueDate}>{task.dueDate}</time>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
+                  </span>
+                  <ul
+                    aria-label={`Assignees: ${task.assignees.map(({ name }) => name).join(", ") || "Unassigned"}`}
+                    className="favorite-task-assignees fav-cell"
+                  >
+                    {task.assignees.slice(0, 3).map((assignee) => (
+                      <li
+                        aria-label={assignee.name}
+                        key={assignee.id}
+                        title={assignee.name}
+                      >
+                        <span aria-hidden="true" className="av">
+                          {assignee.name.slice(0, 1).toUpperCase()}
+                        </span>
+                      </li>
+                    ))}
+                    {task.assignees.length > 3 ? (
+                      <li className="muted">+{task.assignees.length - 3}</li>
+                    ) : null}
+                    {task.assignees.length === 0 ? (
+                      <li className="muted">—</li>
+                    ) : null}
+                  </ul>
                   <FavoriteToggle id={task.id} initialFavorite kind="task" />
                 </article>
               );

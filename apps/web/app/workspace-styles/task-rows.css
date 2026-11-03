@@ -277,6 +277,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.workspace-app .home-task-row {
+  column-gap: 16px;
+}
 .workspace-app .home-task-row .num {
   flex-shrink: 0;
   white-space: nowrap;

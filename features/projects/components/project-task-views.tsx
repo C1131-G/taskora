@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { TaskCalendarGrid } from "@/features/calendar/components/task-calendar-grid";
 import { ProjectTaskListViewContent } from "@/features/projects/components/project-task-list-view-content";
 import { WorkspaceTimeline } from "@/features/projects/components/workspace-timeline";
@@ -80,11 +81,7 @@ export const ProjectTaskViews = ({
 
   if (view === "calendar") {
     if (!calendarRange || !calendarEvents) {
-      return (
-        <section className="panel panel-b" role="alert">
-          Project calendar could not be loaded.
-        </section>
-      );
+      return <ErrorToast message="Project calendar could not be loaded." />;
     }
     const calendarLabel =
       calendarMode === "week"

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import type { TaskSubtaskView } from "@/features/tasks/components/task-details-subtasks";
 import {
@@ -24,8 +25,16 @@ export const useTaskSubtaskActions = ({
   readonly setSubtasks: (subtasks: readonly TaskSubtaskView[]) => void;
   readonly onVersionChange: (version: number) => void;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, beginTransition] = useTransition();
+  const startTransition = (action: () => Promise<void>) => {
+    beginTransition(async () => {
+      try {
+        await action();
+      } catch {
+        toast.error("The subtask could not be updated. Try again.");
+      }
+    });
+  };
 
   const add = (formData: FormData) =>
     startTransition(async () => {
@@ -39,12 +48,11 @@ export const useTaskSubtaskActions = ({
         title: String(formData.get("title") ?? "").trim(),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       onVersionChange(result.data.parentVersion);
       setSubtasks([...subtasks, result.data.subtask]);
-      setError(null);
     });
 
   const toggle = (subtask: TaskSubtaskView) =>
@@ -60,7 +68,7 @@ export const useTaskSubtaskActions = ({
         title: subtask.title,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       onVersionChange(result.data.parentVersion);
@@ -71,7 +79,6 @@ export const useTaskSubtaskActions = ({
             : existingSubtask
         )
       );
-      setError(null);
     });
 
   const edit = (subtask: TaskSubtaskView, formData: FormData) =>
@@ -87,7 +94,7 @@ export const useTaskSubtaskActions = ({
         title: String(formData.get("title") ?? "").trim(),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       onVersionChange(result.data.parentVersion);
@@ -98,7 +105,6 @@ export const useTaskSubtaskActions = ({
             : existingSubtask
         )
       );
-      setError(null);
     });
 
   const remove = (subtask: TaskSubtaskView) =>
@@ -109,12 +115,11 @@ export const useTaskSubtaskActions = ({
         subtaskId: subtask.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       onVersionChange(result.data.parentVersion);
       setSubtasks(subtasks.filter(({ id }) => id !== subtask.id));
-      setError(null);
     });
 
   const reorder = (index: number, direction: -1 | 1) =>
@@ -136,12 +141,11 @@ export const useTaskSubtaskActions = ({
         taskId,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       onVersionChange(result.data.parentVersion);
       setSubtasks(result.data.subtasks);
-      setError(null);
     });
 
   const promote = (subtask: TaskSubtaskView) =>
@@ -152,13 +156,12 @@ export const useTaskSubtaskActions = ({
         subtaskId: subtask.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       onVersionChange(version + 1);
       setSubtasks(subtasks.filter(({ id }) => id !== subtask.id));
-      setError(null);
     });
 
-  return { add, edit, error, pending, promote, remove, reorder, toggle };
+  return { add, edit, pending, promote, remove, reorder, toggle };
 };

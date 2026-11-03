@@ -1,25 +1,16 @@
-/* eslint-disable shadcn/no-unknown-classes -- Portal pages reuse the workspace stylesheet classes. */
-
 import type { Metadata } from "next";
-import Link from "next/link";
+
+import { NotFoundState } from "@/components/ui/not-found-state";
 
 export const metadata: Metadata = { title: "Not found | Taskora" };
 
-// Rendered inside the portal shell when a bug page calls notFound().
 const PortalNotFound = () => (
-  <div className="page fullstate">
-    <div className="box">
-      <span className="code">404</span>
-      <h1>We couldn&apos;t find that page</h1>
-      <p>
-        The bug may not belong to your company, or the link may be wrong. Head
-        back to your company&apos;s bugs.
-      </p>
-      <Link className="btn btn-primary" href="/portal">
-        Company bugs
-      </Link>
-    </div>
-  </div>
+  <NotFoundState
+    description="The link may be wrong, or the page may have moved."
+    href="/portal"
+    linkText="Go to portal"
+    title="Page not found"
+  />
 );
 
 export default PortalNotFound;

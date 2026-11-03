@@ -39,6 +39,20 @@ export const typeMatchesFilter = (
   return type === filter;
 };
 
+const DAY_MS = 86_400_000;
+
+export const getDayGroup = (value: string): string => {
+  const startOfToday = new Date().setHours(0, 0, 0, 0);
+  const days = Math.floor((startOfToday - new Date(value).getTime()) / DAY_MS);
+  if (days < 0) {
+    return "Today";
+  }
+  if (days < 1) {
+    return "Yesterday";
+  }
+  return days < 7 ? "This week" : "Earlier";
+};
+
 export const getInitials = (name: string): string =>
   name
     .split(" ")

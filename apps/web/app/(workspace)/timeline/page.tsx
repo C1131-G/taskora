@@ -1,10 +1,10 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
-import { SuspenseReveal } from "@/components/ui/suspense-reveal";
 import {
   ProjectTimeline,
   ProjectTimelineSkeleton,
@@ -23,12 +23,12 @@ const TimelinePage = ({ searchParams }: PageProps<"/timeline">) => (
         </div>
       </div>
       <SectionErrorBoundary title="Timeline couldn't load">
-        <SuspenseReveal fallback={<ProjectTimelineSkeleton />}>
+        <Suspense fallback={<ProjectTimelineSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (
             <ProjectTimeline initialTaskId={parseTaskIdParam(params["task"])} />
           ))}
-        </SuspenseReveal>
+        </Suspense>
       </SectionErrorBoundary>
     </div>
   </PageTransition>

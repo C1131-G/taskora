@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
 
@@ -22,6 +24,9 @@ export interface GlobalTaskRowsProps {
   readonly userId: string | null;
   readonly isAdmin: boolean;
   readonly view: "list" | "board" | "table";
+  // Shown at the start of the selection bar so the view switch and the
+  // selection controls share one line.
+  readonly viewSwitch?: ReactNode;
 }
 
 export interface TaskSelectionProps {

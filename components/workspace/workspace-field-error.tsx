@@ -3,7 +3,7 @@
 import { fieldErrorId } from "@/lib/field-errors";
 import type { FormErrors } from "@/lib/field-errors";
 
-// The message under one field; its id is what the field's aria-describedby names.
+// The field's aria-describedby points to this screen-reader-only message.
 const WorkspaceFieldError = ({
   errors,
   field,
@@ -15,18 +15,13 @@ const WorkspaceFieldError = ({
 }) => {
   const message = errors.fields[field];
   return message ? (
-    <span className="err" id={fieldErrorId(formId, field)} role="alert">
+    <span className="sr-only" id={fieldErrorId(formId, field)}>
       {message}
     </span>
   ) : null;
 };
 
-// A failure no field on the form owns, such as a permission or network error.
-const WorkspaceFormError = ({ errors }: { readonly errors: FormErrors }) =>
-  errors.form ? (
-    <p className="error" role="alert">
-      {errors.form}
-    </p>
-  ) : null;
+// Form-level failures are reported by useFormErrors through a toast.
+const WorkspaceFormError = (_props: { readonly errors: FormErrors }) => null;
 
 export { WorkspaceFieldError, WorkspaceFormError };

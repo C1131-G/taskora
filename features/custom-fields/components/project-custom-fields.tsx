@@ -1,5 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
 import { CustomFieldManager } from "@/features/custom-fields/components/custom-field-manager";
 import { listProjectCustomFields } from "@/features/custom-fields/custom-field-queries";
@@ -20,9 +21,7 @@ export const ProjectCustomFields = async ({
   ]);
   if (session.kind !== "authenticated" || session.user.role !== "admin") {
     return (
-      <section className="panel panel-b" role="alert">
-        Only administrators can define custom fields.
-      </section>
+      <ErrorToast message="Only administrators can define custom fields." />
     );
   }
   const fields = readOrThrow(

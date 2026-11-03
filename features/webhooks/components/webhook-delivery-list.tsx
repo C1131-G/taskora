@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { LocalTime } from "@/components/workspace/local-time";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -22,17 +23,19 @@ export const WebhookDeliveryList = ({
   readonly endpointName: string;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [failure, setFailure] = useState<string | null>(null);
 
   const redeliver = (deliveryId: string) =>
     startTransition(async () => {
-      setFailure(null);
-      const result = await redeliverWebhookAction({
-        deliveryId,
-        idempotencyKey: crypto.randomUUID(),
-      });
-      if (!result.ok) {
-        setFailure(result.error.message);
+      try {
+        const result = await redeliverWebhookAction({
+          deliveryId,
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The webhook could not be redelivered. Try again.");
       }
     });
 
@@ -41,7 +44,6 @@ export const WebhookDeliveryList = ({
   }
   return (
     <div className="stack">
-      {failure ? <p role="alert">{failure}</p> : null}
       <table className="tbl" data-webhook-deliveries="true">
         <caption className="sr-only">
           Recent deliveries for {endpointName}

@@ -49,23 +49,25 @@ export const TaskAssigneesFieldset = ({
           value={search}
         />
       </label>
-      {visibleEmployees.map((employee) => (
-        <label
-          className="row"
-          htmlFor={fieldId(`employee-${employee.id}`)}
-          key={employee.id}
-        >
-          <Checkbox
-            checked={assigneeSet.has(employee.id)}
-            disabled={!editable}
-            id={fieldId(`employee-${employee.id}`)}
-            onCheckedChange={(checked) =>
-              onToggle(employee.id, checked === true)
-            }
-          />
-          <span>{employee.name}</span>
-        </label>
-      ))}
+      <div className="assignee-list">
+        {visibleEmployees.map((employee) => (
+          <label
+            className="row"
+            htmlFor={fieldId(`employee-${employee.id}`)}
+            key={employee.id}
+          >
+            <Checkbox
+              checked={assigneeSet.has(employee.id)}
+              disabled={!editable}
+              id={fieldId(`employee-${employee.id}`)}
+              onCheckedChange={(checked) =>
+                onToggle(employee.id, checked === true)
+              }
+            />
+            <span className="assignee-name">{employee.name}</span>
+          </label>
+        ))}
+      </div>
     </fieldset>
   );
 };

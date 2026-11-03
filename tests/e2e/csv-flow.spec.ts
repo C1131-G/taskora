@@ -100,7 +100,9 @@ test.describe("CSV import, export and calendar feed", () => {
     await page.getByLabel("CSV file").setInputFiles(path);
     await page.getByRole("button", { name: "Import tasks" }).click();
 
-    const alert = page.getByRole("alert").filter({ hasText: "not imported" });
+    const alert = page
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: "Row 3, priority" });
     await expect(alert).toContainText("Row 3, priority");
     await expect(alert).toContainText("Row 3, due_date");
 

@@ -4,7 +4,8 @@
 "use client";
 
 import { DownloadSimple, UploadSimple } from "@phosphor-icons/react";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceCombobox } from "@/components/workspace/workspace-combobox";
@@ -17,6 +18,7 @@ import {
   getTasksCsvExportAction,
   importTasksCsvAction,
 } from "@/features/tasks/tasks-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import { saveCsv } from "@/lib/save-csv";
 import type { TaskCsvFilters } from "@/src/server/tasks/task-csv";
 
@@ -34,38 +36,31 @@ const ExportButton = ({
   readonly filters: TaskCsvFilters;
   readonly today: string;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [failure, setFailure] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The task export could not be prepared. Try again."
+  );
 
   const download = () =>
     startTransition(async () => {
-      setFailure(null);
       const result = await getTasksCsvExportAction(filters);
       if (!result.ok) {
-        setFailure(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       saveCsv(result.data, csvDownloadName(today));
     });
 
   return (
-    <>
-      <WorkspaceButton
-        aria-busy={pending || undefined}
-        className="btn btn-secondary btn-sm"
-        disabled={pending}
-        onClick={download}
-        type="button"
-      >
-        <DownloadSimple aria-hidden="true" size={14} />
-        {pending ? "Exporting…" : "Export CSV"}
-      </WorkspaceButton>
-      {failure ? (
-        <p className="muted" role="alert">
-          {failure}
-        </p>
-      ) : null}
-    </>
+    <WorkspaceButton
+      aria-busy={pending || undefined}
+      className="btn btn-secondary btn-sm"
+      disabled={pending}
+      onClick={download}
+      type="button"
+    >
+      <DownloadSimple aria-hidden="true" size={14} />
+      {pending ? "Exporting…" : "Export CSV"}
+    </WorkspaceButton>
   );
 };
 
@@ -75,12 +70,18 @@ const ImportDialog = ({
   readonly projects: readonly ProjectOption[];
 }) => {
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The task import could not be completed. Try again."
+  );
   const [problems, setProblems] = useState<readonly string[]>([]);
   const [summary, setSummary] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   // One key per chosen file, so a retried submit cannot import it twice.
   const keyRef = useRef<string | null>(null);
+  const showProblems = (messages: readonly string[]) => {
+    setProblems(messages);
+    toast.error(messages.join(" "));
+  };
 
   const reset = () => {
     setProblems([]);
@@ -94,11 +95,11 @@ const ImportDialog = ({
       setSummary(null);
       const file = fileRef.current?.files?.[0];
       if (!file) {
-        setProblems(["Choose a CSV file to import."]);
+        showProblems(["Choose a CSV file to import."]);
         return;
       }
       if (file.size > MAX_FILE_BYTES) {
-        setProblems(["The file is too large. Import at most 1 MB at a time."]);
+        showProblems(["The file is too large. Import at most 1 MB at a time."]);
         return;
       }
       const idempotencyKey = keyRef.current ?? crypto.randomUUID();
@@ -109,11 +110,11 @@ const ImportDialog = ({
         text: await file.text(),
       });
       if (!result.ok) {
-        setProblems([result.error.message]);
+        showProblems([result.error.message]);
         return;
       }
       if (result.data.errors.length > 0) {
-        setProblems(describeImportErrors(result.data.errors));
+        showProblems(describeImportErrors(result.data.errors));
         return;
       }
       setSummary(
@@ -179,7 +180,7 @@ const ImportDialog = ({
           </p>
         </div>
         {problems.length > 0 ? (
-          <div role="alert">
+          <div className="sr-only">
             <p>
               <strong>
                 The file was not imported. Fix these and try again.

@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,6 +17,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import { bulkUpdateTasksAction } from "@/features/tasks/tasks-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
 
@@ -40,8 +42,9 @@ export const GlobalTaskBulkDialog = ({
   const [assigneeIds, setAssigneeIds] = useState<ReadonlySet<string>>(
     new Set()
   );
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The selected tasks could not be updated. Try again."
+  );
   const ready =
     tasks.length > 0 &&
     status !== "unset" &&
@@ -70,7 +73,6 @@ export const GlobalTaskBulkDialog = ({
     setDueDate("");
     setAssigneeMode("");
     setAssigneeIds(new Set());
-    setError(null);
   };
 
   const submit = () => {
@@ -92,7 +94,7 @@ export const GlobalTaskBulkDialog = ({
         })),
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       setOpen(false);
@@ -255,11 +257,6 @@ export const GlobalTaskBulkDialog = ({
             </div>
           ) : null}
         </fieldset>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
         <WorkspaceButton disabled={!ready || pending} type="submit">
           {pending ? "Updating tasks…" : `Update ${tasks.length} tasks`}
         </WorkspaceButton>

@@ -7,6 +7,7 @@
 import { CheckCircle } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -39,6 +40,7 @@ const PortalChangePassword = () => {
 
   const fail = (message: string, field: string) => {
     setFeedback({ done: false, error: message, field });
+    toast.error(message);
     setPending(false);
     formRef.current?.querySelector<HTMLInputElement>(`#${field}`)?.focus();
   };
@@ -94,11 +96,7 @@ const PortalChangePassword = () => {
         </output>
       ) : null}
       {error ? (
-        <p
-          className="portal-form-error"
-          id="portal-password-error"
-          role="alert"
-        >
+        <p className="sr-only" id="portal-password-error">
           {error}
         </p>
       ) : null}

@@ -1,4 +1,4 @@
-/* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles, shadcn/no-restyle */
+/* eslint-disable shadcn/no-unknown-classes, shadcn/no-restyle */
 
 import {
   CalendarCheck,
@@ -68,7 +68,7 @@ const WorkspaceOverview = async () => {
 
   return (
     <>
-      <div className="stats" style={{ marginBottom: 16 }}>
+      <div className="stats ov-stats">
         <div className="stat">
           <span className="k">Projects</span>
           <span className="v">{activeProjectCount}</span>
@@ -92,7 +92,7 @@ const WorkspaceOverview = async () => {
           <span className="d">Active team members</span>
         </div>
       </div>
-      <div className="grid2 overview-grid">
+      <div className="overview-grid ov-layout">
         <section aria-labelledby="overview-portfolio-heading" className="panel">
           <div className="panel-h">
             <h2 id="overview-portfolio-heading">Portfolio</h2>
@@ -106,7 +106,6 @@ const WorkspaceOverview = async () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Project</TableHead>
-                  <TableHead>Lead</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Progress</TableHead>
                   <TableHead>Open</TableHead>
@@ -127,13 +126,18 @@ const WorkspaceOverview = async () => {
                           color={project.color}
                           icon={project.icon}
                         />
-                        <span>{project.name}</span>
+                        <span className="ov-project">
+                          <span className="ov-project-name">
+                            {project.name}
+                          </span>
+                          <span className="ov-project-lead">
+                            {project.leadId
+                              ? (employeesById.get(project.leadId) ??
+                                "Inactive lead")
+                              : "Unassigned"}
+                          </span>
+                        </span>
                       </Link>
-                    </TableCell>
-                    <TableCell>
-                      {project.leadId
-                        ? (employeesById.get(project.leadId) ?? "Inactive lead")
-                        : "Unassigned"}
                     </TableCell>
                     <TableCell>
                       <span className={`pstatus ${project.status}`}>
@@ -152,7 +156,13 @@ const WorkspaceOverview = async () => {
                       </span>
                     </TableCell>
                     <TableCell>{project.openTaskCount}</TableCell>
-                    <TableCell>{project.overdueTaskCount}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`ov-overdue${project.overdueTaskCount > 0 ? " has" : ""}`}
+                      >
+                        {project.overdueTaskCount}
+                      </span>
+                    </TableCell>
                     <TableCell>{project.dueDate ?? "—"}</TableCell>
                   </TableRow>
                 ))}

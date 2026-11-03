@@ -55,7 +55,7 @@ export const ProjectMemberAvatars = ({
     {memberIds.slice(0, 3).map((memberId) => {
       const member = membersById.get(memberId);
       return member ? (
-        <li key={member.id}>
+        <li key={member.id} title={member.name}>
           <Avatar className="project-member-avatar">
             <AvatarImage alt={member.name} src={member.avatar ?? undefined} />
             <AvatarFallback>{initials(member.name)}</AvatarFallback>
@@ -88,36 +88,41 @@ const ProjectCard = ({
       href={`/projects/${project.id}`}
       transitionTypes={["nav-forward"]}
     >
-      <div className="row">
+      <div className="row pcard-head">
         <ProjectIcon color={project.color} icon={project.icon} />
         <strong className="trunc grow">{project.name}</strong>
+      </div>
+      <div className="pcard-sub">
         <span className={`pstatus ${project.status}`}>
           {statusLabel[project.status]}
         </span>
+        <span className="pcard-due">
+          {project.dueDate ? `Due ${project.dueDate}` : "No due date"}
+        </span>
       </div>
       <p className="desc">{project.description || "No description"}</p>
-      <div className="row">
+      <div className="pcard-progress">
         <span aria-label={`${project.progress}% complete`} className="prog">
           <span style={{ width: `${project.progress}%` }} />
         </span>
         <span className="num">{project.progress}%</span>
       </div>
-      <div className="foot">
-        <span>
-          {project.completedTaskCount} of {project.taskCount} tasks
+      <div className="foot pcard-foot">
+        <span className="pcard-tasks">
+          <strong>{project.completedTaskCount}</strong> of {project.taskCount}{" "}
+          tasks
         </span>
-        <span className="sp" />
-        <span>{project.dueDate ?? "No due date"}</span>
         <time dateTime={project.updatedAt} title="Last updated">
           {formatDistanceToNowStrict(new Date(project.updatedAt), {
             addSuffix: true,
           })}
         </time>
+        <span className="sp" />
+        <ProjectMemberAvatars
+          memberIds={project.memberIds}
+          membersById={membersById}
+        />
       </div>
-      <ProjectMemberAvatars
-        memberIds={project.memberIds}
-        membersById={membersById}
-      />
     </Link>
     <FavoriteToggle
       id={project.id}
@@ -134,59 +139,6 @@ export const ProjectGridView = (props: ProjectLayoutProps) => (
       <ProjectCard key={project.id} project={project} {...props} />
     ))}
   </div>
-);
-
-export const ProjectListView = ({
-  projects,
-  favorites,
-  membersById,
-  isAdmin,
-}: ProjectLayoutProps) => (
-  <section aria-label="Project list" className="project-list-view">
-    {projects.map((project) => (
-      <article className="project-list-row" key={project.id}>
-        <Link
-          aria-label={`Open ${project.name}`}
-          className="project-list-main"
-          href={`/projects/${project.id}`}
-          transitionTypes={["nav-forward"]}
-        >
-          <ProjectIcon color={project.color} icon={project.icon} />
-          <span className="project-list-title">
-            <strong>{project.name}</strong>
-            <span className="muted trunc">
-              {project.description || "No description"}
-            </span>
-          </span>
-          <Badge data-project-status={project.status} variant="outline">
-            {statusLabel[project.status]}
-          </Badge>
-          <span className="project-list-progress">
-            <span className="prog">
-              <span style={{ width: `${project.progress}%` }} />
-            </span>
-            <span className="num">{project.progress}%</span>
-          </span>
-          <span className="muted">{project.dueDate ?? "No due date"}</span>
-          <span className="muted" title="Last updated">
-            {formatDistanceToNowStrict(new Date(project.updatedAt), {
-              addSuffix: true,
-            })}
-          </span>
-          <ProjectMemberAvatars
-            memberIds={project.memberIds}
-            membersById={membersById}
-          />
-        </Link>
-        <FavoriteToggle
-          id={project.id}
-          initialFavorite={favorites.has(project.id)}
-          kind="project"
-        />
-        {isAdmin ? <ProjectListActions project={project} /> : null}
-      </article>
-    ))}
-  </section>
 );
 
 export const ProjectTableView = ({
@@ -272,26 +224,29 @@ export const ProjectTableView = ({
 const ProjectCardSkeleton = () => (
   <article className="pcard">
     <div className="pcard-link">
-      <div className="row">
+      <div className="row pcard-head">
         <SkeletonBone shape="avatar" />
         <strong className="grow">
           <SkeletonBone />
         </strong>
+      </div>
+      <div className="pcard-sub">
+        <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
       </div>
       <p className="desc">
         <SkeletonBone />
       </p>
-      <div className="row">
+      <div className="pcard-progress">
         <span className="prog skeleton-prog">
           <SkeletonBone />
         </span>
         <SkeletonBone shape="short" />
       </div>
-      <div className="foot">
+      <div className="foot pcard-foot">
+        <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
         <span className="sp" />
-        <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
       </div>
     </div>

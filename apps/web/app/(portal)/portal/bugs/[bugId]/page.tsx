@@ -24,7 +24,7 @@ export const generateMetadata = async ({
 const Page = ({ params }: PageProps<"/portal/bugs/[bugId]">) => (
   <PageTransition>
     <div className="page">
-      <SectionErrorBoundary title="Bug details couldn't load">
+      <SectionErrorBoundary title="Bug details couldn't load" variant="page">
         <SuspenseReveal fallback={<PortalBugViewSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {params.then(({ bugId }) => (

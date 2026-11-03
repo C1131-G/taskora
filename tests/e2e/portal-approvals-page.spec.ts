@@ -167,7 +167,9 @@ test.describe("Portal approvals (/portal/approvals)", () => {
     await page.goto(`/portal/approvals/${seeded.requestId}`);
     await page.getByRole("button", { name: "Request changes" }).click();
     await expect(
-      page.getByRole("alert").filter({ hasText: "what needs to change" })
+      page
+        .locator("[data-sonner-toast]")
+        .filter({ hasText: "what needs to change" })
     ).toBeVisible();
     await page.getByLabel(/^Comment/u).fill(CHANGE_NOTE);
     await page.getByRole("button", { name: "Request changes" }).click();

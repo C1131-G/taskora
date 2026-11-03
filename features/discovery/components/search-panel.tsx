@@ -1,5 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -23,12 +24,15 @@ const SearchPanel = async ({
       : Promise.resolve(null),
   ]);
   return (
-    <SearchForm
-      initialResults={search?.ok ? search.data : null}
-      initialError={search && !search.ok ? search.error.message : null}
-      key={initialQuery}
-      recentSearches={workspace.ok ? workspace.data.recentSearches : []}
-    />
+    <>
+      <ErrorToast message={workspace.ok ? null : workspace.error.message} />
+      <SearchForm
+        initialResults={search?.ok ? search.data : null}
+        initialError={search && !search.ok ? search.error.message : null}
+        key={initialQuery}
+        recentSearches={workspace.ok ? workspace.data.recentSearches : []}
+      />
+    </>
   );
 };
 

@@ -5,6 +5,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,7 +54,7 @@ const FieldError = ({
   readonly message: string | undefined;
 }) =>
   message ? (
-    <p className="auth-alert" id={id} role="alert">
+    <p className="sr-only" id={id}>
       <span>{message}</span>
     </p>
   ) : null;
@@ -78,6 +79,7 @@ const IntakeForm = ({
     const file = data.get("attachment");
     if (file instanceof File && file.size > MAX_ATTACHMENT_BYTES) {
       setFields({ attachment: "Attachments can be at most 5 MB." });
+      toast.error("Attachments can be at most 5 MB.");
       return;
     }
     setPending(true);
@@ -98,8 +100,12 @@ const IntakeForm = ({
       const failure = await readFailure(response);
       setFields(failure.fields);
       setError(failure.message);
+      toast.error(
+        [failure.message, ...Object.values(failure.fields)].join(" ")
+      );
     } catch {
       setError("The report could not be sent. Check your connection.");
+      toast.error("The report could not be sent. Check your connection.");
     }
     setPending(false);
   };

@@ -1,6 +1,9 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import {
+  SkeletonBone,
+  SkeletonStats,
+} from "@/components/workspace/skeleton-shapes";
 import {
   hoursLabel,
   taskCountLabel,
@@ -21,13 +24,56 @@ const WorkloadGrid = async () => {
       </section>
     );
   }
+  const overloadedWeeks = workload.people.reduce(
+    (sum, person) =>
+      sum + person.weeks.filter((week) => week.overloaded).length,
+    0
+  );
+  const overdueTotal = workload.people.reduce(
+    (sum, person) => sum + person.overdueCount,
+    0
+  );
   return (
     <section aria-label="Team workload" className="workload">
-      <p className="muted workload-note">
-        A week is over capacity when more than {workload.capacityHours} hours of
-        estimated work is due in it. Overdue tasks count toward this week; tasks
-        without an estimate are weighted by priority.
-      </p>
+      <div className="stats workload-stats">
+        <div className="stat">
+          <span className="k">Teammates</span>
+          <span className="v">{workload.people.length}</span>
+          <span className="d">Shown below</span>
+        </div>
+        <div className="stat">
+          <span className="k">Weekly capacity</span>
+          <span className="v">{workload.capacityHours}h</span>
+          <span className="d">Per person</span>
+        </div>
+        <div className={`stat${overloadedWeeks > 0 ? " alert" : ""}`}>
+          <span className="k">Over capacity</span>
+          <span className="v">{overloadedWeeks}</span>
+          <span className="d">Person-weeks to rebalance</span>
+        </div>
+        <div className={`stat${overdueTotal > 0 ? " alert" : ""}`}>
+          <span className="k">Overdue tasks</span>
+          <span className="v">{overdueTotal}</span>
+          <span className="d">Counted in the first week</span>
+        </div>
+      </div>
+      <ul aria-label="How to read the grid" className="workload-legend">
+        <li>
+          <span aria-hidden="true" className="workload-swatch is-ok" />
+          Within capacity
+        </li>
+        <li>
+          <span aria-hidden="true" className="workload-swatch is-high" />
+          Over 70% of capacity
+        </li>
+        <li>
+          <span aria-hidden="true" className="workload-swatch is-over" />
+          Over {workload.capacityHours}h
+        </li>
+        <li className="workload-legend-note">
+          Tasks without an estimate are weighted by priority.
+        </li>
+      </ul>
       <div className="tbl-wrap">
         <table className="tbl workload-table">
           <caption className="sr-only">
@@ -49,16 +95,32 @@ const WorkloadGrid = async () => {
             {workload.people.map((person) => (
               <tr key={person.userId}>
                 <th scope="row">
-                  <span>{person.name}</span>
-                  {person.overdueCount > 0 ? (
-                    <span className="workload-overdue">
-                      {person.overdueCount} overdue
+                  <span className="workload-person">
+                    <span aria-hidden="true" className="workload-avatar">
+                      {person.name.slice(0, 1).toUpperCase()}
                     </span>
-                  ) : null}
+                    <span className="workload-person-copy">
+                      <span className="workload-name">{person.name}</span>
+                      {person.overdueCount > 0 ? (
+                        <span className="workload-overdue">
+                          {person.overdueCount} overdue
+                        </span>
+                      ) : null}
+                    </span>
+                  </span>
                 </th>
                 {person.weeks.map((week) => (
                   <td
                     className="workload-cell"
+                    data-level={
+                      week.overloaded
+                        ? "over"
+                        : week.loadHours > workload.capacityHours * 0.7
+                          ? "high"
+                          : week.taskCount > 0
+                            ? "ok"
+                            : "none"
+                    }
                     data-overloaded={week.overloaded}
                     key={week.weekStart}
                   >
@@ -72,6 +134,13 @@ const WorkloadGrid = async () => {
                         <strong>{hoursLabel(week.loadHours)}</strong>
                         <span className="workload-count">
                           {taskCountLabel(week.taskCount)}
+                        </span>
+                        <span aria-hidden="true" className="workload-bar">
+                          <span
+                            style={{
+                              width: `${Math.min(100, Math.round((week.loadHours / workload.capacityHours) * 100))}%`,
+                            }}
+                          />
                         </span>
                         {week.overloaded ? (
                           <span className="workload-flag">Over capacity</span>
@@ -106,8 +175,50 @@ const WorkloadGrid = async () => {
   );
 };
 
+const SKELETON_ROWS = ["a", "b", "c", "d", "e", "f"] as const;
+const SKELETON_WEEKS = ["w1", "w2", "w3", "w4", "w5", "w6"] as const;
+
+// The summary strip, the legend and the grid frame at their real sizes; only the
+// people and their weekly numbers are placeholders.
 const WorkloadGridSkeleton = () => (
-  <PanelSkeleton label="Loading workload…" rows={5} variant="list" />
+  <section aria-busy="true" className="workload" role="status">
+    <span className="sr-only">Loading workload…</span>
+    <SkeletonStats />
+    <div aria-hidden="true" className="workload-legend">
+      <SkeletonBone shape="short" />
+    </div>
+    <div aria-hidden="true" className="tbl-wrap">
+      <table className="tbl workload-table">
+        <thead>
+          <tr>
+            <th scope="col">Person</th>
+            {SKELETON_WEEKS.map((key) => (
+              <th key={key} scope="col">
+                <SkeletonBone shape="short" />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {SKELETON_ROWS.map((row) => (
+            <tr key={row}>
+              <th scope="row">
+                <span className="workload-person">
+                  <SkeletonBone shape="avatar" />
+                  <SkeletonBone />
+                </span>
+              </th>
+              {SKELETON_WEEKS.map((key) => (
+                <td className="workload-cell" key={key}>
+                  <SkeletonBone shape="short" />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
 );
 
 export { WorkloadGrid, WorkloadGridSkeleton };

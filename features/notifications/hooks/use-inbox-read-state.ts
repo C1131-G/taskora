@@ -1,6 +1,7 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
+import { toast } from "sonner";
 
 import {
   shownUnreadCount,
@@ -19,7 +20,6 @@ const useInboxReadState = (
   unreadCount: number
 ) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const [shownItems, markShownRead] = useOptimistic(
     items,
     withNotificationsRead<NotificationItem>
@@ -28,24 +28,35 @@ const useInboxReadState = (
   const markRead = (notificationId: string) =>
     startTransition(async () => {
       markShownRead({ id: notificationId, readAt: new Date().toISOString() });
-      const result = await markNotificationReadAction({
-        idempotencyKey: crypto.randomUUID(),
-        notificationId,
-      });
-      setError(result.ok ? null : result.error.message);
+      try {
+        const result = await markNotificationReadAction({
+          idempotencyKey: crypto.randomUUID(),
+          notificationId,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The notification could not be marked as read. Try again.");
+      }
     });
 
   const markAllRead = () =>
     startTransition(async () => {
       markShownRead({ id: "all", readAt: new Date().toISOString() });
-      const result = await markAllNotificationsReadAction({
-        idempotencyKey: crypto.randomUUID(),
-      });
-      setError(result.ok ? null : result.error.message);
+      try {
+        const result = await markAllNotificationsReadAction({
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("Notifications could not be marked as read. Try again.");
+      }
     });
 
   return {
-    error,
     markAllRead,
     markRead,
     pending,

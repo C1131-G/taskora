@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { changeTaskColumnAction } from "@/features/tasks/tasks-actions";
@@ -19,7 +20,6 @@ const TaskCompletionCheckbox = ({
   readonly version: number;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   // The box ticks at once; the action's revalidation brings the saved status,
   // and a failed save falls back to it.
   const [completed, setOptimisticCompleted] = useOptimistic(status === "done");
@@ -27,17 +27,19 @@ const TaskCompletionCheckbox = ({
   const setCompleted = (checked: boolean) =>
     startTransition(async () => {
       setOptimisticCompleted(checked);
-      const result = await changeTaskColumnAction({
-        expectedVersion: version,
-        idempotencyKey: crypto.randomUUID(),
-        status: checked ? "done" : "todo",
-        taskId,
-      });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await changeTaskColumnAction({
+          expectedVersion: version,
+          idempotencyKey: crypto.randomUUID(),
+          status: checked ? "done" : "todo",
+          taskId,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The task status could not be changed. Try again.");
       }
-      setError(null);
     });
 
   return (
@@ -52,11 +54,6 @@ const TaskCompletionCheckbox = ({
           }
         }}
       />
-      {error ? (
-        <span className="task-completion-error" role="alert">
-          {error}
-        </span>
-      ) : null}
     </span>
   );
 };

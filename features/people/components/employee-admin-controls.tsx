@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -19,6 +20,7 @@ import {
   deactivateEmployeeAction,
   resetEmployeePasswordAction,
 } from "@/features/people/people-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 type EmployeeRole = "admin" | "employee";
 
@@ -50,8 +52,9 @@ export const EmployeeAdminControls = ({
   readonly employee: Employee;
   readonly teams: readonly Team[];
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The employee account could not be updated. Try again."
+  );
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(
     null
   );
@@ -68,10 +71,8 @@ export const EmployeeAdminControls = ({
         role,
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   const resetPassword = () =>
@@ -80,10 +81,9 @@ export const EmployeeAdminControls = ({
         employeeId: employee.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       setTemporaryPassword(result.data.temporaryPassword);
     });
 
@@ -94,10 +94,8 @@ export const EmployeeAdminControls = ({
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   return (
@@ -111,11 +109,6 @@ export const EmployeeAdminControls = ({
       }
     >
       <div className="panel-b stack">
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
         <EmployeeDetailsForm employee={employee} teams={teams} />
         <label className="field" htmlFor={`employee-${employee.id}-field-170`}>
           <span>Role</span>

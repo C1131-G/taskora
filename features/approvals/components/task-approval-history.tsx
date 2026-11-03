@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { LocalTime } from "@/components/workspace/local-time";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -25,43 +26,47 @@ const ApprovalRow = ({
   readonly request: Request;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const badge = APPROVAL_STATUS_BADGES[request.status];
 
   const cancel = () => {
     startTransition(async () => {
-      const result = await cancelApprovalAction({
-        idempotencyKey: crypto.randomUUID(),
-        requestId: request.id,
-      });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await cancelApprovalAction({
+          idempotencyKey: crypto.randomUUID(),
+          requestId: request.id,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        await onChanged();
+      } catch {
+        toast.error(
+          "The approval request could not be withdrawn or refreshed. Try again."
+        );
       }
-      setError(null);
-      await onChanged();
     });
   };
 
   return (
-    <li className="stack" data-approval-version={request.version}>
-      <div className="row">
+    <li className="approval-card" data-approval-version={request.version}>
+      <div className="approval-head">
         <strong>Version {request.version}</strong>
         <span className={`badge ${badge.tone}`}>{badge.label}</span>
-        <span className="muted">{request.companyName}</span>
+        <span className="approval-company">{request.companyName}</span>
       </div>
-      <p className="muted">
+      <p className="approval-meta">
         Requested by {request.requestedByName} on{" "}
         <LocalTime value={request.requestedAt} />
       </p>
-      <p>{request.message}</p>
-      <ul>
+      <p className="approval-message">{request.message}</p>
+      <ul className="approval-files">
         {request.files.map((file) => (
           <li key={file.fileId}>{file.fileName}</li>
         ))}
       </ul>
       {request.decidedAt ? (
-        <p className="muted">
+        <p className="approval-decision">
           {request.status === "approved" ? "Approved" : "Changes requested"} by{" "}
           {request.decidedByName ?? "a client"} on{" "}
           <LocalTime value={request.decidedAt} />
@@ -81,11 +86,6 @@ const ApprovalRow = ({
           </WorkspaceButton>
         </div>
       ) : null}
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </li>
   );
 };
@@ -99,7 +99,7 @@ export const TaskApprovalHistory = ({
   readonly onChanged: () => Promise<void>;
   readonly requests: TaskApprovals["requests"];
 }) => (
-  <ul aria-label="Approval history" className="stack">
+  <ul aria-label="Approval history" className="approval-list">
     {requests.map((request) => (
       <ApprovalRow
         canCancel={canCancel}

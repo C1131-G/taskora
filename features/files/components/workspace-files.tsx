@@ -3,6 +3,7 @@
 import { CaretDown } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -35,7 +36,12 @@ const WorkspaceFiles = async () => {
       {fileResults.map(({ files, project }) => (
         <section className="stack file-project" key={project.id}>
           <div className="row">
-            <h2>{project.name}</h2>
+            <h2>
+              {project.name}
+              {files.ok ? (
+                <span className="file-count">{files.data.length}</span>
+              ) : null}
+            </h2>
             <span className="sp" />
             <Link
               className="btn btn-sm btn-ghost"
@@ -55,9 +61,9 @@ const WorkspaceFiles = async () => {
               projectId={project.id}
             />
           ) : (
-            <p className="panel panel-b muted">
-              Files are unavailable for this project.
-            </p>
+            <ErrorToast
+              message={`Files are unavailable for ${project.name}.`}
+            />
           )}
         </section>
       ))}

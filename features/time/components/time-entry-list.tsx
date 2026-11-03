@@ -4,6 +4,7 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { TimeEntryForm } from "@/features/time/components/time-entry-form";
@@ -32,7 +33,6 @@ export const TimeEntryList = ({
 }) => {
   const [pending, startTransition] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
   const [visible, removeVisible] = useOptimistic(
     entries,
     (current, removedId: string) =>
@@ -41,95 +41,91 @@ export const TimeEntryList = ({
 
   const remove = (entryId: string) =>
     startTransition(async () => {
-      setFailure(null);
       removeVisible(entryId);
-      const result = await deleteTimeEntryAction({
-        entryId,
-        idempotencyKey: crypto.randomUUID(),
-      });
-      if (!result.ok) {
-        setFailure(result.error.message);
-        return;
+      try {
+        const result = await deleteTimeEntryAction({
+          entryId,
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        await onChanged?.();
+      } catch {
+        toast.error(
+          "The time entry could not be removed or refreshed. Try again."
+        );
       }
-      await onChanged?.();
     });
 
   if (visible.length === 0) {
     return <p className="muted">No time logged yet.</p>;
   }
   return (
-    <>
-      {failure ? (
-        <p className="error" role="alert">
-          {failure}
-        </p>
-      ) : null}
-      <ul aria-busy={pending || undefined} className="time-entries">
-        {visible.map((entry) => {
-          const mayChange = isAdmin || entry.userId === currentUserId;
-          if (editingId === entry.id) {
-            return (
-              <li key={entry.id}>
-                <TimeEntryForm
-                  entry={entry}
-                  idPrefix={`edit-${entry.id}`}
-                  onCancel={() => setEditingId(null)}
-                  onSaved={async () => {
-                    setEditingId(null);
-                    await onChanged?.();
-                  }}
-                  today={today}
-                />
-              </li>
-            );
-          }
+    <ul aria-busy={pending || undefined} className="time-entries">
+      {visible.map((entry) => {
+        const mayChange = isAdmin || entry.userId === currentUserId;
+        if (editingId === entry.id) {
           return (
-            <li className="time-entry" key={entry.id}>
-              <span className="time-entry-minutes">
-                {formatMinutes(entry.minutes)}
-              </span>
-              <span className="time-entry-body">
-                <span>
-                  {showTask ? (
-                    <>
-                      <strong>{entry.taskReference}</strong> {entry.taskTitle}
-                      {" · "}
-                    </>
-                  ) : null}
-                  {showPerson ? `${entry.userName} · ` : null}
-                  <time dateTime={entry.workDate}>{entry.workDate}</time>
-                </span>
-                {entry.note ? (
-                  <span className="muted">{entry.note}</span>
-                ) : null}
-              </span>
-              {entry.billable ? (
-                <span className="badge green">Billable</span>
-              ) : null}
-              {mayChange ? (
-                <span className="time-entry-actions">
-                  <WorkspaceButton
-                    aria-label={`Edit ${formatMinutes(entry.minutes)} entry on ${entry.workDate}`}
-                    className="btn btn-ghost btn-xs"
-                    onClick={() => setEditingId(entry.id)}
-                    type="button"
-                  >
-                    Edit
-                  </WorkspaceButton>
-                  <WorkspaceButton
-                    aria-label={`Delete ${formatMinutes(entry.minutes)} entry on ${entry.workDate}`}
-                    className="btn btn-danger-ghost btn-xs"
-                    onClick={() => remove(entry.id)}
-                    type="button"
-                  >
-                    Delete
-                  </WorkspaceButton>
-                </span>
-              ) : null}
+            <li key={entry.id}>
+              <TimeEntryForm
+                entry={entry}
+                idPrefix={`edit-${entry.id}`}
+                onCancel={() => setEditingId(null)}
+                onSaved={async () => {
+                  setEditingId(null);
+                  await onChanged?.();
+                }}
+                today={today}
+              />
             </li>
           );
-        })}
-      </ul>
-    </>
+        }
+        return (
+          <li className="time-entry" key={entry.id}>
+            <span className="time-entry-minutes">
+              {formatMinutes(entry.minutes)}
+            </span>
+            <span className="time-entry-body">
+              <span>
+                {showTask ? (
+                  <>
+                    <strong>{entry.taskReference}</strong> {entry.taskTitle}
+                    {" · "}
+                  </>
+                ) : null}
+                {showPerson ? `${entry.userName} · ` : null}
+                <time dateTime={entry.workDate}>{entry.workDate}</time>
+              </span>
+              {entry.note ? <span className="muted">{entry.note}</span> : null}
+            </span>
+            {entry.billable ? (
+              <span className="badge green">Billable</span>
+            ) : null}
+            {mayChange ? (
+              <span className="time-entry-actions">
+                <WorkspaceButton
+                  aria-label={`Edit ${formatMinutes(entry.minutes)} entry on ${entry.workDate}`}
+                  className="btn btn-ghost btn-xs"
+                  onClick={() => setEditingId(entry.id)}
+                  type="button"
+                >
+                  Edit
+                </WorkspaceButton>
+                <WorkspaceButton
+                  aria-label={`Delete ${formatMinutes(entry.minutes)} entry on ${entry.workDate}`}
+                  className="btn btn-danger-ghost btn-xs"
+                  onClick={() => remove(entry.id)}
+                  type="button"
+                >
+                  Delete
+                </WorkspaceButton>
+              </span>
+            ) : null}
+          </li>
+        );
+      })}
+    </ul>
   );
 };

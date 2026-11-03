@@ -23,7 +23,7 @@ export { NotificationPreferencesForm } from "@/features/notifications/components
 
 const ProfileForm = ({ name }: { readonly name: string }) => {
   const fieldId = useId();
-  const { error, pending, saved, setError, startTransition } = useSaveState();
+  const { pending, saved, setError, startTransition } = useSaveState();
   const save = (formData: FormData) =>
     startTransition(async () => {
       const result = await updateOwnProfileAction({
@@ -50,11 +50,6 @@ const ProfileForm = ({ name }: { readonly name: string }) => {
           id={`${fieldId}-name`}
         />
       </label>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <WorkspaceButton
         aria-busy={pending || undefined}
         className="btn btn-primary"
@@ -73,7 +68,7 @@ const PreferencesForm = ({
   readonly values: PersonalPreferenceValues;
 }) => {
   const fieldId = useId();
-  const { error, pending, saved, setError, startTransition } = useSaveState();
+  const { pending, saved, setError, startTransition } = useSaveState();
   const save = (formData: FormData) =>
     startTransition(async () => {
       const density = String(formData.get("density"));
@@ -82,9 +77,6 @@ const PreferencesForm = ({
       const result = await savePersonalPreferencesAction({
         idempotencyKey: crypto.randomUUID(),
         preferences: {
-          ...(values.defaultViewId === undefined
-            ? {}
-            : { defaultViewId: values.defaultViewId }),
           calendarView,
           density,
           timezone,
@@ -147,11 +139,6 @@ const PreferencesForm = ({
           </WorkspaceSelectItem>
         </WorkspaceSelect>
       </label>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <WorkspaceButton
         aria-busy={pending || undefined}
         className="btn btn-primary"
@@ -170,7 +157,7 @@ const CompanySettingsForm = ({
   readonly values: CompanySettingsValues;
 }) => {
   const fieldId = useId();
-  const { error, pending, saved, setError, startTransition } = useSaveState();
+  const { pending, saved, setError, startTransition } = useSaveState();
   const save = (formData: FormData) =>
     startTransition(async () => {
       const result = await updateCompanySettingsAction({
@@ -253,11 +240,6 @@ const CompanySettingsForm = ({
           <span>Enable company branding</span>
         </label>
       </div>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <WorkspaceButton
         aria-busy={pending || undefined}
         className="btn btn-primary"

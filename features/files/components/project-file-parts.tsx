@@ -126,7 +126,6 @@ const ProjectFileCard = ({
 );
 
 const ProjectFileRenameDialog = ({
-  error,
   onNameChange,
   onOpenChange,
   onSubmit,
@@ -134,7 +133,6 @@ const ProjectFileRenameDialog = ({
   pending,
   value,
 }: {
-  readonly error: string | null;
   readonly onNameChange: (value: string) => void;
   readonly onOpenChange: (open: boolean) => void;
   readonly onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -162,7 +160,6 @@ const ProjectFileRenameDialog = ({
             value={value}
           />
         </label>
-        {error ? <p role="alert">{error}</p> : null}
         <div className="file-rename-actions">
           <WorkspaceButton
             onClick={() => onOpenChange(false)}

@@ -1,12 +1,12 @@
-/* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in app/workspace-styles. */
+import { NotFoundState } from "@/components/ui/not-found-state";
 
 const MemberNotFound = () => (
-  <div className="page">
-    <section className="panel panel-b">
-      <h1>Member not found</h1>
-      <p>The member may have been deactivated or removed.</p>
-    </section>
-  </div>
+  <NotFoundState
+    description="The member may have been deactivated or removed."
+    href="/members"
+    linkText="Go to members"
+    title="Member not found"
+  />
 );
 
 export default MemberNotFound;

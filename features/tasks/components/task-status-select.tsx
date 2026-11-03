@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic } from "react";
+import { toast } from "sonner";
 
 import {
   WorkspaceSelect,
@@ -14,6 +15,7 @@ import {
   changeTaskColumnAction,
   undoTaskCompletionAction,
 } from "@/features/tasks/tasks-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 const statuses = [
   ["backlog", "Backlog"],
@@ -35,8 +37,9 @@ const TaskStatusSelect = ({
   readonly status: TaskStatus;
 }) => {
   const { addUndo } = useWorkspaceUndo();
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The task status could not be changed. Try again."
+  );
   // The select shows the new status at once; the action's refresh brings the
   // saved status, and a refused change falls back to it with the error shown.
   const [shownStatus, setShownStatus] = useOptimistic(status);
@@ -45,7 +48,6 @@ const TaskStatusSelect = ({
     if (pending || nextStatus === shownStatus) {
       return;
     }
-    setError(null);
     startTransition(async () => {
       setShownStatus(nextStatus);
       const result = await changeTaskColumnAction({
@@ -55,7 +57,7 @@ const TaskStatusSelect = ({
         taskId,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       const { completionUndo } = result.data;
@@ -83,7 +85,6 @@ const TaskStatusSelect = ({
       <label className="status-control">
         <span className="sr">Change task status</span>
         <WorkspaceSelect
-          {...(error ? { ariaInvalid: true } : {})}
           className="pstatus"
           disabled={pending}
           onValueChange={(nextStatus) => {
@@ -103,11 +104,6 @@ const TaskStatusSelect = ({
             </WorkspaceSelectItem>
           ))}
         </WorkspaceSelect>
-        {error ? (
-          <span className="error" role="alert">
-            {error}
-          </span>
-        ) : null}
       </label>
     </div>
   );

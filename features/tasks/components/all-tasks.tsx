@@ -1,6 +1,7 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
 
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import { ErrorToast } from "@/components/workspace/error-toast";
+import { TaskTableSkeleton } from "@/components/workspace/task-table-skeleton";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";
 import { listAllEmployees } from "@/features/people/people-queries";
 import { listProjects } from "@/features/projects/projects-queries";
@@ -79,6 +80,13 @@ const AllTasks = async ({
           version: task.version,
         }))}
       >
+        <ErrorToast
+          message={employeeResult.ok ? null : employeeResult.error.message}
+        />
+        <ErrorToast
+          message={preferences.ok ? null : preferences.error.message}
+        />
+        <ErrorToast message={personal.ok ? null : personal.error.message} />
         <GlobalTasksWorkspace
           employees={employees}
           favoriteTaskIds={favoriteTaskIds}
@@ -103,7 +111,7 @@ const AllTasksSkeleton = () => (
         <p aria-hidden="true">&nbsp;</p>
       </div>
     </div>
-    <PanelSkeleton variant="tasks" label="Loading tasks…" rows={5} />
+    <TaskTableSkeleton global />
   </>
 );
 

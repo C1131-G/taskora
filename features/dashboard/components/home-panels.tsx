@@ -167,7 +167,7 @@ export const ProjectProgressPanel = ({
   readonly projects: readonly ProjectListItem[];
   readonly membersById: ReadonlyMap<string, EmployeeDirectoryEntry>;
 }) => (
-  <section className="panel">
+  <section className="panel home-progress-panel">
     <div className="panel-h">
       <h2>Project progress</h2>
       <Link className="btn btn-sm btn-ghost" href="/projects">

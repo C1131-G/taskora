@@ -4,7 +4,8 @@
 
 import { Bell, Check, GearSix } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -36,7 +37,6 @@ const NotificationList = ({
   readonly unreadCount: number;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useSearchParamState<NotificationFilter>(
     "show",
     NOTIFICATION_FILTERS,
@@ -54,27 +54,31 @@ const NotificationList = ({
 
   const markAllRead = () =>
     startTransition(async () => {
-      const result = await markAllNotificationsReadAction({
-        idempotencyKey: crypto.randomUUID(),
-      });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await markAllNotificationsReadAction({
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("Notifications could not be marked as read. Try again.");
       }
-      setError(null);
     });
 
   const markRead = (notificationId: string) =>
     startTransition(async () => {
-      const result = await markNotificationReadAction({
-        idempotencyKey: crypto.randomUUID(),
-        notificationId,
-      });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await markNotificationReadAction({
+          idempotencyKey: crypto.randomUUID(),
+          notificationId,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The notification could not be marked as read. Try again.");
       }
-      setError(null);
     });
 
   return (
@@ -105,7 +109,7 @@ const NotificationList = ({
                 All
               </TabsTrigger>
               <TabsTrigger aria-controls={undefined} value="unread">
-                Unread
+                Unread{unreadCount > 0 ? ` (${unreadCount})` : ""}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -131,11 +135,6 @@ const NotificationList = ({
           </WorkspaceButton>
         </div>
       </header>
-      {error ? (
-        <p className="panel-b error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {visibleItems.length ? (
         DATE_BUCKETS.map((bucket) => {
           const bucketItems = groupedItems.get(bucket) ?? [];
@@ -148,7 +147,12 @@ const NotificationList = ({
               className="notification-date-group"
               key={bucket}
             >
-              <h2>{bucket}</h2>
+              <h2>
+                {bucket}
+                <span className="notification-group-count">
+                  {bucketItems.length}
+                </span>
+              </h2>
               <div className="panel notification-card">
                 {bucketItems.map((notification) => {
                   const Icon = getNotificationIcon(notification.type);
@@ -159,7 +163,7 @@ const NotificationList = ({
                     >
                       <span
                         aria-hidden="true"
-                        className="notification-row-icon"
+                        className={`notification-row-icon type-${notification.type}`}
                       >
                         <Icon size={17} />
                       </span>
@@ -206,12 +210,13 @@ const NotificationList = ({
                           <span className="sr-only">Unread</span>
                           <WorkspaceButton
                             aria-label={`Mark as read: ${notification.text}`}
-                            className="btn btn-sm btn-ghost notification-row-read"
+                            className="btn btn-sm btn-secondary notification-row-read"
                             disabled={pending}
                             onClick={() => markRead(notification.id)}
                             type="button"
                           >
-                            <Check aria-hidden="true" size={15} />
+                            <Check aria-hidden="true" size={14} />
+                            Mark read
                           </WorkspaceButton>
                         </>
                       ) : null}

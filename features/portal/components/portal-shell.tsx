@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { PortalNavLinks } from "@/features/portal/components/portal-nav";
 import { getPortalApprovalCount } from "@/features/portal/portal-approval-queries";
 import { getPortalCompany } from "@/features/portal/portal-company";
@@ -59,7 +60,10 @@ const PortalPreviewBanner = async () => {
 
 const PortalUnreadBadge = async () => {
   const result = await listPortalNotifications({});
-  const unreadCount = result.ok ? result.data.unreadCount : 0;
+  if (!result.ok) {
+    return <ErrorToast message={result.error.message} />;
+  }
+  const { unreadCount } = result.data;
   if (unreadCount === 0) {
     return null;
   }
@@ -73,7 +77,10 @@ const PortalUnreadBadge = async () => {
 
 const PortalApprovalBadge = async () => {
   const result = await getPortalApprovalCount({});
-  const waiting = result.ok ? result.data : 0;
+  if (!result.ok) {
+    return <ErrorToast message={result.error.message} />;
+  }
+  const waiting = result.data;
   if (waiting === 0) {
     return null;
   }

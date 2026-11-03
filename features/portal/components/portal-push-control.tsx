@@ -5,7 +5,9 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal classes are authored in apps/web/app/workspace-styles/portal.css. */
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { toast } from "sonner";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
   registerPortalPushAction,
@@ -66,7 +68,9 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
           setSubscribed(existing !== null);
         }
       } catch {
-        // Push is an optional enhancement; the toggle stays unavailable.
+        if (!cancelled) {
+          toast.error("Push notifications could not be initialized.");
+        }
       }
     };
     void check();
@@ -79,7 +83,7 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
       setDenied(permission === "denied");
-      setMessage("Allow notifications in your browser to turn them on.");
+      toast.error("Allow notifications in your browser to turn them on.");
       return;
     }
     const registration = await navigator.serviceWorker.ready;
@@ -91,7 +95,7 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
     });
     const { keys } = subscription.toJSON();
     if (!keys?.auth || !keys.p256dh) {
-      setMessage("Your browser returned an invalid push subscription.");
+      toast.error("Your browser returned an invalid push subscription.");
       return;
     }
     const result = await registerPortalPushAction({
@@ -105,7 +109,7 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
       setMessage("Push notifications are on for this device.");
     } else {
       await subscription.unsubscribe();
-      setMessage(result.error.message);
+      toast.error(result.error.message);
     }
   };
 
@@ -118,7 +122,7 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setMessage(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       await subscription.unsubscribe();
@@ -133,24 +137,19 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
     try {
       await (subscribed ? disable() : enable());
     } catch {
-      setMessage("Push notifications could not be changed. Try again later.");
+      toast.error("Push notifications could not be changed. Try again later.");
     }
     setPending(false);
   };
 
   if (capability === "unsupported") {
     return (
-      <p className="muted">
-        Push notifications are not available in this browser.
-      </p>
+      <ErrorToast message="Push notifications are not available in this browser." />
     );
   }
   if (capability === "denied" || denied) {
     return (
-      <p className="muted">
-        Notifications are blocked for this site. Allow them in your browser
-        settings to turn on push notifications.
-      </p>
+      <ErrorToast message="Notifications are blocked for this site. Allow them in your browser settings to turn on push notifications." />
     );
   }
 

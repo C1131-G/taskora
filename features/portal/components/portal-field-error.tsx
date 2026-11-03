@@ -17,7 +17,7 @@ export const FieldError = ({
   readonly field: FieldKey;
 }) =>
   errors[field] ? (
-    <p className="err" id={errorId(field)} role="alert">
+    <p className="sr-only" id={errorId(field)}>
       {errors[field]}
     </p>
   ) : null;

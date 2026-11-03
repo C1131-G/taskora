@@ -104,24 +104,26 @@ export const TaskApprovalForm = ({
       </div>
       <fieldset className="field" id={`${formId}-fileIds`}>
         <legend>Files to review</legend>
-        {files.length === 0 ? (
-          <p className="muted">Attach a file to this task first.</p>
-        ) : (
-          files.map((file) => (
-            <label className="row" key={file.id}>
-              <input
-                checked={chosenIds.has(file.id)}
-                onChange={(event) => toggle(file.id, event.target.checked)}
-                type="checkbox"
-              />
-              <span>{file.originalName}</span>
-            </label>
-          ))
-        )}
+        <div className="rel-list">
+          {files.length === 0 ? (
+            <p className="muted">Attach a file to this task first.</p>
+          ) : (
+            files.map((file) => (
+              <label className="row" key={file.id}>
+                <input
+                  checked={chosenIds.has(file.id)}
+                  onChange={(event) => toggle(file.id, event.target.checked)}
+                  type="checkbox"
+                />
+                <span>{file.originalName}</span>
+              </label>
+            ))
+          )}
+        </div>
         <WorkspaceFieldError errors={errors} field="fileIds" formId={formId} />
       </fieldset>
       <div className="field">
-        <label htmlFor={`${formId}-message`}>Message</label>
+        <label htmlFor={`${formId}-message`}>Message to the client</label>
         <WorkspaceTextarea
           className="input"
           id={`${formId}-message`}

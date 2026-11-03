@@ -1,0 +1,550 @@
+/* Timeline: title and view controls on one line, tidy filters, a readable date header. */
+.workspace-app .timeline-panel {
+  border-radius: var(--r-xl);
+}
+.workspace-app .timeline-panel-header {
+  gap: 12px;
+  padding: 16px 18px 14px;
+}
+.workspace-app .timeline-head-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  width: 100%;
+}
+.workspace-app .timeline-head-row h2 {
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  margin: 0;
+}
+.workspace-app .timeline-head-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+.workspace-app .timeline-scale {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+  padding: 2px;
+}
+.workspace-app .timeline-scale button {
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 30px;
+  min-height: 30px;
+  padding-inline: 14px;
+}
+.workspace-app .timeline-scale button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.workspace-app .timeline-head-actions > button {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-weight: 600;
+  height: 36px;
+}
+
+/* filters */
+.workspace-app .timeline-toolbar .field,
+.workspace-app .timeline-toolbar [data-slot="select-trigger"],
+.workspace-app .timeline-toolbar input {
+  min-height: 38px;
+}
+.workspace-app .timeline-toolbar input[type="search"],
+.workspace-app .timeline-toolbar [data-slot="select-trigger"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
+  height: 38px;
+}
+.workspace-app .timeline-toolbar .timeline-search {
+  flex: 1 1 220px;
+}
+
+/* chart */
+.workspace-app .tl-left {
+  background: var(--surface);
+}
+.workspace-app .tl-head {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-strong);
+}
+.workspace-app .tl-left .tl-head {
+  color: var(--text-2);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app .tl-months div {
+  font-size: var(--fs-sm);
+  padding: 6px 0;
+}
+.workspace-app .tl-days div {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.workspace-app .tl-days div.today {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+.workspace-app .tl-row {
+  font-size: var(--fs-sm);
+}
+.workspace-app .tl-row.g {
+  background: var(--sunken);
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.workspace-app .tl-today {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  opacity: 0.9;
+}
+.workspace-app .bar {
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-sm);
+  font-weight: 500;
+}
+@media (max-width: 760px) {
+  .workspace-app .timeline-head-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* every filter is the same width, in an even grid */
+.workspace-app .timeline-toolbar {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.workspace-app .timeline-toolbar .timeline-search {
+  grid-column: 1 / -1;
+}
+.workspace-app .timeline-toolbar .field {
+  max-width: none;
+  min-width: 0;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar .field > *,
+.workspace-app .timeline-toolbar [data-slot="select-trigger"],
+.workspace-app .timeline-toolbar button[role="combobox"] {
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* loading placeholder: same controls at the same sizes as the real header */
+.workspace-app .timeline-head-row .timeline-scale .btn {
+  align-items: center;
+  border-radius: var(--r-sm);
+  display: inline-flex;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 30px;
+  padding-inline: 14px;
+}
+.workspace-app .timeline-head-row .timeline-scale .btn-secondary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.workspace-app .timeline-head-actions > .btn {
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  display: inline-flex;
+  font-weight: 600;
+  height: 36px;
+  padding-inline: 14px;
+}
+.workspace-app .timeline-toolbar .field > .skeleton-filter-select {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
+  height: 38px;
+  justify-content: space-between;
+  min-width: 0;
+  padding-inline: 12px;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar .field > .skeleton-search {
+  justify-content: flex-start;
+}
+
+/* ---- final: controls laid out exactly like the loading state --------------------------
+   one joined grid of bordered cells, centred labels, the scale switch and Today in the second row */
+.workspace-app .timeline-toolbar {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .btn,
+.workspace-app .timeline-toolbar > button {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  margin: 0;
+  max-width: none;
+  min-height: 36px;
+  min-width: 0;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .timeline-search,
+.workspace-app .timeline-toolbar > .skeleton-search {
+  grid-column: auto;
+  justify-content: flex-start;
+  padding-inline: 12px;
+}
+.workspace-app .timeline-toolbar > .field input[type="search"] {
+  background: transparent;
+  border: 0;
+  height: 34px;
+  min-height: 0;
+  padding: 0;
+}
+.workspace-app .timeline-toolbar > .field > label,
+.workspace-app .timeline-toolbar > .field > * {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"],
+.workspace-app .timeline-toolbar > .field button[role="combobox"] {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-weight: 600;
+  gap: 8px;
+  height: 34px;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .timeline-scale {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  display: inline-flex;
+  height: 36px;
+  margin: 0;
+  padding: 2px;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  flex: 1 1 0;
+  font-weight: 600;
+  height: 30px;
+  min-height: 0;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button[aria-pressed="true"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+}
+.workspace-app .timeline-toolbar > .timeline-scale button[aria-pressed="false"] {
+  color: var(--text-3);
+}
+@media (max-width: 900px) {
+  .workspace-app .timeline-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* spacing: an even gap between the control cells and room around the whole block */
+.workspace-app .timeline-toolbar {
+  gap: 8px;
+}
+.workspace-app .timeline-panel-header {
+  gap: 14px;
+  padding: 16px 18px 16px;
+}
+.workspace-app .timeline-toolbar > .timeline-scale {
+  padding: 3px;
+}
+
+/* the opened assignee picker (and every workspace combobox): a boxy search field and square corners, not pills */
+[data-workspace-combobox] {
+  border-radius: 6px;
+}
+[data-workspace-combobox] [data-slot="command"] {
+  border-radius: 4px;
+}
+[data-workspace-combobox] [data-slot="command-input-wrapper"] {
+  padding: 4px 4px 4px;
+}
+[data-workspace-combobox] [data-slot="input-group"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  height: 36px;
+}
+[data-workspace-combobox] [data-slot="command-input"] {
+  border-radius: 0;
+}
+[data-workspace-combobox] [data-slot="command-item"] {
+  border-radius: 4px;
+}
+
+/* the assignee picker is a button, not a native select: give it the same flat look as the other cells */
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"],
+.workspace-app .timeline-toolbar > .field [data-workspace-button] {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  gap: 8px;
+  height: 34px;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 12px;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"] > span {
+  flex: 0 1 auto;
+}
+.workspace-app .timeline-toolbar > .field input[type="search"] {
+  font-size: var(--fs-sm);
+}
+/* skeleton text matches the real cells */
+.workspace-app .timeline-toolbar > .skeleton-filter-select {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  gap: 8px;
+}
+
+/* search: square, with a square focus ring on the cell instead of a rounded one on the input */
+.workspace-app .timeline-toolbar > .field input[type="search"],
+.workspace-app .timeline-toolbar > .field input[type="search"]:focus,
+.workspace-app .timeline-toolbar > .field input[type="search"]:focus-visible {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  outline: 0;
+}
+.workspace-app .timeline-toolbar > .field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .timeline-scale,
+.workspace-app .timeline-toolbar > button {
+  border-radius: 4px;
+}
+
+/* the assignee label is not clipped at the bottom (descenders like g and y) */
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"] {
+  align-items: center;
+  line-height: 1.5;
+  padding-block: 0;
+}
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"] > .truncate,
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"] > span {
+  display: inline-block;
+  line-height: 1.5;
+  overflow: visible;
+  padding-bottom: 2px;
+  text-overflow: clip;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"] [data-slot="select-value"] {
+  line-height: 1.5;
+  overflow: visible;
+}
+
+/* every control is the same size, labels sit centred with their chevron, and the opened lists match */
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .timeline-scale,
+.workspace-app .timeline-toolbar > button,
+.workspace-app .timeline-toolbar > .btn {
+  height: 40px;
+  min-height: 40px;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"],
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"],
+.workspace-app .timeline-toolbar > .field input[type="search"] {
+  height: 38px;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"] {
+  gap: 8px;
+  justify-content: center;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"] [data-slot="select-value"] {
+  flex: 0 1 auto;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"] svg,
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"] svg {
+  flex: 0 0 auto;
+  height: 16px;
+  margin-left: 0;
+  width: 16px;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  height: 32px;
+}
+/* opened lists: same width as the control, same row height and text size */
+[data-workspace-select],
+[data-workspace-combobox] {
+  min-width: var(--radix-select-trigger-width, var(--radix-popover-trigger-width, 160px));
+}
+[data-workspace-select] {
+  max-width: 320px;
+  padding: 4px;
+}
+
+/* every control cell is the same size and its text is bold; the font size stays as it was */
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .timeline-scale,
+.workspace-app .timeline-toolbar > button,
+.workspace-app .timeline-toolbar > .btn {
+  box-sizing: border-box;
+  height: 38px !important;
+  min-height: 38px !important;
+}
+.workspace-app .timeline-toolbar > button,
+.workspace-app .timeline-toolbar > .btn {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  font-size: var(--fs-sm) !important;
+  font-weight: 700 !important;
+  padding: 0 12px !important;
+  width: 100%;
+}
+.workspace-app .timeline-toolbar > .field button,
+.workspace-app .timeline-toolbar > .field [data-slot="select-value"],
+.workspace-app .timeline-toolbar > .field input,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+.workspace-app .timeline-toolbar > .field input::placeholder {
+  font-weight: 700;
+  opacity: 0.55;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  height: 32px !important;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button[aria-pressed="false"] {
+  color: var(--text-3);
+}
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  font-size: var(--fs-sm) !important;
+  font-weight: 700 !important;
+}
+
+/* text: every control uses the same normal weight and size as the search placeholder */
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .field input,
+.workspace-app .timeline-toolbar > .field button,
+.workspace-app .timeline-toolbar > .field [data-slot="select-value"],
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .btn,
+.workspace-app .timeline-toolbar > button,
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-value"],
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"] > span {
+  color: var(--text);
+}
+.workspace-app .timeline-toolbar > .timeline-scale button[aria-pressed="true"] {
+  font-weight: 500;
+}
+
+/* compact controls: smaller buttons that match the rows of the lists they open */
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .timeline-scale,
+.workspace-app .timeline-toolbar > button,
+.workspace-app .timeline-toolbar > .btn {
+  height: 32px;
+  min-height: 32px;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"],
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"],
+.workspace-app .timeline-toolbar > .field input[type="search"] {
+  height: 30px;
+  padding-block: 0;
+}
+.workspace-app .timeline-toolbar > .timeline-scale {
+  padding: 2px;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  height: 26px;
+  min-height: 0;
+  padding-inline: 12px;
+}
+.workspace-app .timeline-toolbar > .field svg {
+  height: 14px;
+  width: 14px;
+}
+.workspace-app .timeline-toolbar {
+  gap: 6px;
+}
+
+/* control width = the width of the lists they open: one fixed column size for all of them */
+.workspace-app .timeline-toolbar {
+  grid-template-columns: repeat(auto-fill, 140px);
+  justify-content: start;
+}
+.workspace-app .timeline-toolbar > .timeline-search,
+.workspace-app .timeline-toolbar > .skeleton-search {
+  grid-column: span 2;
+}
+.workspace-app .timeline-toolbar > .field,
+.workspace-app .timeline-toolbar > .skeleton-filter-select,
+.workspace-app .timeline-toolbar > .timeline-scale,
+.workspace-app .timeline-toolbar > button,
+.workspace-app .timeline-toolbar > .btn {
+  height: 30px;
+  min-height: 30px;
+}
+.workspace-app .timeline-toolbar > .field [data-slot="select-trigger"],
+.workspace-app .timeline-toolbar > .field button[aria-haspopup="listbox"],
+.workspace-app .timeline-toolbar > .field input[type="search"] {
+  height: 28px;
+}
+.workspace-app .timeline-toolbar > .timeline-scale button {
+  height: 24px;
+}
+[data-workspace-select],
+[data-workspace-combobox] {
+  min-width: 140px;
+  width: max(140px, var(--radix-select-trigger-width, var(--radix-popover-trigger-width, 140px)));
+}
+@media (max-width: 900px) {
+  .workspace-app .timeline-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .workspace-app .timeline-toolbar > .timeline-search,
+  .workspace-app .timeline-toolbar > .skeleton-search {
+    grid-column: 1 / -1;
+  }
+}

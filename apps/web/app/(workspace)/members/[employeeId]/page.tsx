@@ -45,7 +45,7 @@ const MemberProfilePage = ({
           <ArrowLeft aria-hidden="true" size={15} />
           All members
         </Link>
-        <SectionErrorBoundary title="Member profile couldn't load">
+        <SectionErrorBoundary title="Member profile couldn't load" variant="page">
           <SuspenseReveal fallback={<MemberHeaderSkeleton />}>
             {/* oxlint-disable-next-line promise/prefer-await-to-then -- Route values resolve inside the boundary. */}
             {route.then(({ employeeId }) => (

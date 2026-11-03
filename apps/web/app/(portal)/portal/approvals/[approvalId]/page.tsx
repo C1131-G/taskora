@@ -24,7 +24,7 @@ export const generateMetadata = async ({
 const Page = ({ params }: PageProps<"/portal/approvals/[approvalId]">) => (
   <PageTransition>
     <div className="page">
-      <SectionErrorBoundary title="Approval details couldn't load">
+      <SectionErrorBoundary title="Approval details couldn't load" variant="page">
         <SuspenseReveal fallback={<PortalApprovalViewSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {params.then(({ approvalId }) => (

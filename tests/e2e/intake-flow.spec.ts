@@ -114,7 +114,7 @@ test.describe("Intake (public form to triage)", () => {
     await page
       .getByRole("button", { name: "Send report" })
       .dispatchEvent("click");
-    await expect(page.getByRole("alert").first()).toBeVisible();
+    await expect(page.locator("[data-sonner-toast]").first()).toBeVisible();
     await expect(page).toHaveURL(publicPath);
     await context.close();
   });

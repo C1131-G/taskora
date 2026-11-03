@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { LocalTime } from "@/components/workspace/local-time";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -22,6 +23,7 @@ import {
 import type { Lookups } from "@/features/projects/automation-form";
 import type { Option } from "@/features/projects/components/automation-rule-fields";
 import { AutomationRuleForm } from "@/features/projects/components/automation-rule-form";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import { MAX_RULES_PER_PROJECT } from "@/src/server/automation/automation-contracts";
 import type {
   AutomationRuleSummary,
@@ -39,8 +41,9 @@ const RuleItem = ({
   readonly onEdit: () => void;
   readonly rule: AutomationRuleSummary;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [failure, setFailure] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The automation could not be changed. Try again."
+  );
   const described = describeRule(rule, lookups);
 
   const run = (
@@ -51,37 +54,38 @@ const RuleItem = ({
   ) =>
     startTransition(async () => {
       const result = await task();
-      setFailure(result.ok ? null : (result.error?.message ?? "Try again."));
+      if (!result.ok) {
+        toast.error(result.error?.message ?? "Try again.");
+      }
     });
 
   return (
-    <li className="stack" data-automation-rule={rule.id}>
-      <div className="row">
+    <li className="automation-rule" data-automation-rule={rule.id}>
+      <div className="automation-rule-head">
         <strong>{rule.name}</strong>
         <span className={`badge ${rule.enabled ? "green" : "gray"}`}>
           {rule.enabled ? "Enabled" : "Disabled"}
         </span>
       </div>
-      <p>
-        <span className="muted">When</span> {described.when}
+      <p className="automation-when">
+        <span className="automation-tag">When</span> {described.when}
         {described.conditions.length > 0 ? (
           <>
             {" "}
-            <span className="muted">if</span>{" "}
+            <span className="automation-tag">If</span>{" "}
             {described.conditions.join(" and ")}
           </>
         ) : null}
       </p>
-      <ol className="stack">
+      <ol className="automation-then">
         {described.actions.map((action, index) => (
           // oxlint-disable-next-line react/no-array-index-key -- Actions are an ordered list without ids.
           <li key={`${index}-${action}`}>
-            <span className="muted">Then</span> {action}
+            <span className="automation-tag">Then</span> {action}
           </li>
         ))}
       </ol>
-      {failure ? <p role="alert">{failure}</p> : null}
-      <div className="row">
+      <div className="automation-actions">
         <WorkspaceButton
           aria-label={`${rule.enabled ? "Disable" : "Enable"} ${rule.name}`}
           className="btn btn-secondary btn-sm"
@@ -141,10 +145,10 @@ const RunLog = ({
   readonly runs: readonly AutomationRunSummary[];
 }) => {
   if (runs.length === 0) {
-    return <p className="muted">No runs yet.</p>;
+    return <p className="automation-empty">No runs yet.</p>;
   }
   return (
-    <table className="tbl" data-automation-runs="true">
+    <table className="tbl automation-runs" data-automation-runs="true">
       <caption className="sr-only">Recent automation runs</caption>
       <thead>
         <tr>
@@ -249,9 +253,9 @@ export const ProjectAutomations = ({
             </div>
           )}
           {rules.length === 0 ? (
-            <p className="muted">No automations yet.</p>
+            <p className="automation-empty">No automations yet.</p>
           ) : (
-            <ul className="stack">
+            <ul className="automation-rules">
               {rules.map((rule) => (
                 <RuleItem
                   key={rule.id}

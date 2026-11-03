@@ -2,10 +2,12 @@
 
 "use client";
 
+import { ListMagnifyingGlass } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/workspace/empty-state";
 import { WorkspaceCombobox } from "@/components/workspace/workspace-combobox";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import {
@@ -188,10 +190,13 @@ const ActivityFeedList = ({
           </section>
         ))
       ) : (
-        <section className="panel panel-b">
-          <h2>No matching activity</h2>
-          <p className="muted">Try another activity filter or person.</p>
-        </section>
+        <EmptyState
+          description="Try another activity filter or person."
+          headingLevel={2}
+          icon={ListMagnifyingGlass}
+          size="panel"
+          title="No matching activity"
+        />
       )}
     </section>
   );

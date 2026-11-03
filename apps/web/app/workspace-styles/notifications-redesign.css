@@ -1,0 +1,196 @@
+/* Notifications page: clear header, grouped cards, coloured type icons, visible actions. */
+.workspace-app .notification-page {
+  width: min(100%, 860px);
+}
+.workspace-app .notification-page-heading {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  padding-bottom: 18px;
+}
+.workspace-app .notification-page-heading h1 {
+  font-size: var(--fs-2xl);
+  letter-spacing: -0.02em;
+}
+.workspace-app .notification-unread-count {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--fs-xs);
+  padding: 5px 10px;
+}
+.workspace-app .notification-page-actions [data-slot="tabs-list"] {
+  border-radius: var(--r);
+  height: 36px;
+}
+.workspace-app .notification-page-actions [data-slot="tabs-trigger"] {
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 30px;
+  min-height: 30px;
+  padding-inline: 12px;
+}
+.workspace-app .notification-page-actions .btn {
+  height: 36px;
+}
+
+/* groups */
+.workspace-app .notification-date-group > h2 {
+  align-items: center;
+  color: var(--text-2);
+  display: flex;
+  font-size: var(--fs-xs);
+  gap: 8px;
+  padding: 18px 2px 8px;
+}
+.workspace-app .notification-group-count {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0;
+  padding: 2px 7px;
+}
+.workspace-app .notification-card {
+  border-radius: var(--r-xl);
+}
+
+/* rows */
+.workspace-app .notification-row {
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 12px 16px;
+  position: relative;
+  transition: background var(--dur);
+}
+.workspace-app .notification-row:hover {
+  background: var(--surface-2);
+}
+.workspace-app .notification-row.unread {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.workspace-app .notification-row-icon {
+  background: color-mix(in srgb, var(--inbox-type, var(--text-3)) 16%, var(--surface));
+  border-radius: var(--r-full);
+  color: var(--inbox-type, var(--text-2));
+  flex: 0 0 36px;
+  height: 36px;
+}
+.workspace-app .notification-row-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.workspace-app .notification-row-title {
+  color: var(--text-2);
+  font-size: var(--fs);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.workspace-app .notification-row.unread .notification-row-title {
+  color: var(--text);
+  font-weight: 650;
+}
+.workspace-app .notification-row-snippet {
+  color: var(--text-3);
+  display: -webkit-box;
+  font-size: var(--fs-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.workspace-app .notification-row-meta {
+  color: var(--text-3);
+  display: flex;
+  font-size: var(--fs-xs);
+  gap: 6px;
+}
+.workspace-app .notification-unread-dot {
+  display: none;
+}
+.workspace-app .notification-row-read {
+  flex: 0 0 auto;
+  gap: 6px;
+  height: 32px;
+}
+
+/* empty state */
+.workspace-app .notification-empty {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 36px 16px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .workspace-app .notification-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .workspace-app .notification-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .workspace-app .notification-row-read {
+    margin-left: 50px;
+  }
+}
+
+/* unread vs read: a clear difference at a glance */
+.workspace-app .notification-row:not(.unread) {
+  background: transparent;
+}
+.workspace-app .notification-row:not(.unread) .notification-row-copy {
+  opacity: 0.62;
+}
+.workspace-app .notification-row:not(.unread) .notification-row-icon {
+  background: var(--surface-2);
+  color: var(--text-3);
+  filter: saturate(0);
+}
+.workspace-app .notification-row.unread {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.workspace-app .notification-row.unread .notification-row-title::before {
+  background: var(--accent);
+  border-radius: var(--r-full);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  content: "";
+  display: inline-block;
+  height: 8px;
+  margin-right: 8px;
+  vertical-align: 1px;
+  width: 8px;
+}
+.workspace-app .notification-row.unread .notification-row-meta time {
+  color: var(--accent);
+  font-weight: 600;
+}
+.workspace-app .notification-page-actions [data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* same treatment in the Inbox list */
+.workspace-app .inbox-item.read .inbox-item-copy {
+  opacity: 0.62;
+}
+.workspace-app .inbox-item.read .inbox-avatar,
+.workspace-app .inbox-item.read .inbox-system-icon {
+  filter: saturate(0);
+}
+.workspace-app .inbox-item.unread {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.workspace-app .inbox-item.unread:not(.selected) {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}

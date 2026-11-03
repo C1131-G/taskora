@@ -45,7 +45,6 @@ const ClientCompanyWorkspace = ({
   // arrives; whichever is newer guards the following change.
   const [localVersion, setLocalVersion] = useState(company.version);
   const version = Math.max(localVersion, company.version);
-  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="clients-workspace">
@@ -79,17 +78,11 @@ const ClientCompanyWorkspace = ({
           />
           <ClientCompanyStatusControl
             company={company}
-            onError={setError}
             onVersion={setLocalVersion}
             version={version}
           />
         </div>
       </header>
-      {error ? (
-        <p className="error clients-error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <ClientCompanyLogo
         companyId={company.id}
         companyName={company.name}

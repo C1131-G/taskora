@@ -1,0 +1,394 @@
+/* Calendar redesign: one clear top bar, a filter row, a card-style grid. */
+.workspace-app .cal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* top bar: period navigation on the left, view switch on the right */
+.workspace-app .cal-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+}
+.workspace-app .cal-bar-nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.workspace-app .cal .calendar-month-label {
+  color: var(--text);
+  font-size: var(--fs-2xl);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+  min-width: 9ch;
+}
+.workspace-app .cal-seg {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+}
+.workspace-app .cal-seg-item {
+  align-items: center;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  display: inline-flex;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 30px;
+  justify-content: center;
+  padding: 0 14px;
+  text-decoration: none;
+  transition:
+    background var(--dur),
+    color var(--dur);
+}
+.workspace-app .cal-seg-icon {
+  padding: 0;
+  width: 32px;
+}
+.workspace-app .cal-seg-item:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.workspace-app .cal-seg-item[aria-current="page"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.workspace-app .cal-seg-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* filter row: search, filter, sort, then the project legend */
+.workspace-app .cal-filters {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 0 18px 14px;
+}
+.workspace-app .cal-filters .calendar-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+}
+.workspace-app .cal-filters .calendar-search {
+  width: 220px;
+}
+.workspace-app .cal-filters .calendar-project-legend {
+  flex: 1 1 280px;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.workspace-app .cal-filters .calendar-project-legend-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  color: var(--text);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  padding: 3px 10px 3px 8px;
+  white-space: nowrap;
+}
+
+/* weekday header */
+.workspace-app .cal-h {
+  background: var(--sunken);
+  border-bottom: 1px solid var(--border);
+}
+.workspace-app .cal-h div {
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+  padding: 9px 8px;
+}
+
+/* day cells */
+.workspace-app .cal-g {
+  gap: 0;
+}
+.workspace-app .cday {
+  gap: 4px;
+  padding: 6px 6px 8px;
+}
+.workspace-app .cday .dn {
+  align-self: flex-start;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 26px;
+  margin-bottom: 2px;
+  width: 26px;
+}
+.workspace-app .cday.today {
+  background: var(--accent-soft);
+  box-shadow: none;
+}
+.workspace-app .cday.today .dn {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.workspace-app .cday .add {
+  right: 6px;
+  top: 6px;
+}
+
+/* chips keep a left colour edge and clear text */
+.workspace-app .cev {
+  background: color-mix(in srgb, var(--c) 14%, var(--surface));
+  border: 0;
+  border-left: 3px solid var(--c);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-weight: 500;
+}
+.workspace-app .cev:hover {
+  background: color-mix(in srgb, var(--c) 24%, var(--surface));
+}
+.workspace-app .cmore {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+}
+
+/* week view as seven day cards */
+.workspace-app .week {
+  gap: 0;
+}
+.workspace-app .wcol-h {
+  align-items: center;
+  background: var(--sunken);
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 6px;
+}
+.workspace-app .wcol-h.today {
+  background: var(--accent-soft);
+}
+.workspace-app .wcard {
+  background: var(--surface);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+}
+
+/* phone: stack the bar, keep cells readable */
+@media (max-width: 700px) {
+  .workspace-app .cal-bar,
+  .workspace-app .cal-filters {
+    padding-inline: 12px;
+  }
+  .workspace-app .cal .calendar-month-label {
+    font-size: var(--fs-xl);
+  }
+  .workspace-app .cal-filters .calendar-search {
+    width: 100%;
+  }
+  .workspace-app .cal-filters .calendar-project-legend {
+    justify-content: flex-start;
+  }
+}
+
+/* project legend: one tidy scrolling row under the filters, with a label and visible dots */
+.workspace-app .cal-filters .calendar-project-legend {
+  align-items: center;
+  border-top: 1px solid var(--border);
+  flex: 1 1 100%;
+  flex-wrap: nowrap;
+  gap: 6px;
+  justify-content: flex-start;
+  margin: 4px 0 0;
+  overflow-x: auto;
+  padding: 10px 0 0;
+  scrollbar-width: thin;
+}
+.workspace-app .cal-filters .calendar-project-legend::before {
+  color: var(--text-3);
+  content: "Projects";
+  flex: 0 0 auto;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin-right: 6px;
+  text-transform: uppercase;
+}
+.workspace-app .cal-filters .calendar-project-legend-item {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  gap: 7px;
+  padding: 4px 11px 4px 9px;
+}
+.workspace-app .cal-filters .calendar-project-legend-item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.workspace-app .cal-filters .calendar-project-legend-item .pdot {
+  background: var(--c, var(--text-4));
+  border-radius: var(--r-full);
+  box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 2.5px color-mix(in srgb, var(--c, var(--text-4)) 55%, var(--border-strong));
+  flex: 0 0 auto;
+  height: 9px;
+  margin-left: 1px;
+  width: 9px;
+}
+.workspace-app .cal-filters .calendar-project-legend {
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  scrollbar-width: none;
+}
+.workspace-app .cal-filters .calendar-project-legend::-webkit-scrollbar {
+  display: none;
+}
+
+/* the calendar never traps scrolling: it grows with its rows and the page scrolls */
+.workspace-app .cal {
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: clip;
+}
+.workspace-app .cal-g,
+.workspace-app .week {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+.workspace-app .week {
+  min-height: 420px;
+}
+.workspace-app .wcol-b {
+  overflow: visible;
+}
+
+/* v3: one top bar (period, search and filters, view switch), then the legend, then roomy days */
+.workspace-app .cal-bar {
+  align-items: center;
+  gap: 12px 16px;
+}
+.workspace-app .cal-bar .calendar-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 1 1 300px;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 0;
+}
+.workspace-app .cal-bar .calendar-search {
+  flex: 1 1 160px;
+  max-width: 260px;
+  min-width: 140px;
+}
+.workspace-app .cal-bar .calendar-search input {
+  height: 36px;
+}
+.workspace-app .cal-bar .calendar-toolbar button {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  height: 36px !important;
+  padding: 0 12px !important;
+}
+.workspace-app .cal-filters {
+  border-bottom: 1px solid var(--border);
+  padding: 0 18px 12px;
+}
+.workspace-app .cal-filters .calendar-project-legend {
+  border-top: 0;
+  margin: 0;
+  padding: 0;
+}
+.workspace-app .cal-g {
+  grid-auto-rows: minmax(150px, 1fr);
+}
+.workspace-app .cday {
+  padding: 8px 8px 10px;
+}
+.workspace-app .cday .dn {
+  font-size: var(--fs);
+  height: 28px;
+  width: 28px;
+}
+.workspace-app .cday.out .dn {
+  opacity: 0.5;
+}
+.workspace-app .cal-h div {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+}
+.workspace-app .cal-h div:nth-child(n + 6) {
+  color: var(--text-4);
+}
+
+/* loading placeholder: the real bar sizes */
+.workspace-app .cal-bar .skeleton-filter-select.calendar-search {
+  height: 36px;
+  justify-content: flex-start;
+  padding-inline: 12px;
+}
+.workspace-app .cal-bar .calendar-toolbar .btn {
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  display: inline-flex;
+  height: 36px;
+  padding-inline: 12px;
+}
+.workspace-app .cal-filters .skeleton-legend {
+  display: flex;
+  gap: 8px;
+}
+.workspace-app .cal-filters .skeleton-legend .skeleton-bone {
+  width: 120px;
+}
+
+/* narrower screens: period and view switch on the first line, search and filters on the second */
+@media (max-width: 1300px) {
+  .workspace-app .cal-bar .cal-bar-nav {
+    order: 1;
+  }
+  .workspace-app .cal-bar > .cal-seg {
+    margin-left: auto;
+    order: 2;
+  }
+  .workspace-app .cal-bar .calendar-toolbar {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    order: 3;
+  }
+  .workspace-app .cal-bar .calendar-search {
+    max-width: none;
+  }
+}
+
+/* page headers: the action sits at the right edge, level with the title */
+.workspace-app .ph > :not(:first-child) {
+  margin-left: auto;
+}
+.workspace-app .ph {
+  align-items: center;
+}
+.workspace-app .page > .ph > button,
+.workspace-app .page > .ph > [data-slot="button"] {
+  align-items: center;
+  border-radius: var(--r);
+  display: inline-flex;
+  gap: 6px;
+  height: 38px;
+  padding-inline: 16px;
+}

@@ -6,6 +6,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { PortalTime } from "@/features/portal/components/portal-time";
@@ -27,7 +28,6 @@ const PortalNotificationList = ({
   readonly items: readonly Item[];
   readonly unreadCount: number;
 }) => {
-  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [readIds, setReadIds] = useState<ReadonlySet<string>>(new Set());
 
@@ -35,7 +35,6 @@ const PortalNotificationList = ({
     if (isPreview) {
       return;
     }
-    setError("");
     try {
       const result = await markPortalNotificationReadAction({
         notificationId: id,
@@ -43,25 +42,24 @@ const PortalNotificationList = ({
       if (result.ok) {
         setReadIds((current) => new Set([...current, id]));
       } else {
-        setError(result.error.message);
+        toast.error(result.error.message);
       }
     } catch {
-      setError("The notification could not be marked as read.");
+      toast.error("The notification could not be marked as read.");
     }
   };
 
   const markAll = async () => {
     setBusy(true);
-    setError("");
     try {
       const result = await markAllPortalNotificationsReadAction({});
       if (result.ok) {
         setReadIds(new Set(items.map(({ id }) => id)));
       } else {
-        setError(result.error.message);
+        toast.error(result.error.message);
       }
     } catch {
-      setError("Notifications could not be marked as read.");
+      toast.error("Notifications could not be marked as read.");
     }
     setBusy(false);
   };
@@ -88,11 +86,6 @@ const PortalNotificationList = ({
           </WorkspaceButton>
         </div>
       </div>
-      {error ? (
-        <p className="portal-form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <ul className="portal-notifs">
         {items.map((item) => {
           const unread = isUnread(item);

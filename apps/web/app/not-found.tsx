@@ -1,34 +1,18 @@
-/* eslint-disable shadcn/no-unknown-classes -- Auth screens are styled by features/user/styles/*.css. */
-
-import { ArrowRight, Compass } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { AuthCard } from "@/features/user/components/auth-card";
-import { AuthShell } from "@/features/user/components/auth-shell";
+import { NotFoundState } from "@/components/ui/not-found-state";
 
 export const metadata: Metadata = { title: "Not found | Taskora" };
 
-// Unmatched URLs render outside the workspace shell, so this uses the public chrome.
 const RootNotFound = () => (
-  <AuthShell>
-    <AuthCard
-      badge={<Compass size={22} weight="duotone" />}
+  <main className="grid min-h-dvh place-items-center">
+    <NotFoundState
       description="The link may be wrong, or the page may have moved."
+      href="/"
+      linkText="Go to home"
       title="Page not found"
-      titleId="not-found-title"
-    >
-      <Link className="auth-submit auth-submit-link" href="/">
-        Go to Taskora
-        <ArrowRight
-          aria-hidden="true"
-          className="auth-submit-arrow"
-          size={16}
-          weight="bold"
-        />
-      </Link>
-    </AuthCard>
-  </AuthShell>
+    />
+  </main>
 );
 
 export default RootNotFound;

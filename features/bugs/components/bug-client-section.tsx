@@ -2,8 +2,9 @@
 
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useId, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ import {
   CloseNotABugDialog,
 } from "@/features/bugs/components/bug-client-dialogs";
 import { BugPickForm } from "@/features/bugs/components/bug-pick-form";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 import { formatBugDate } from "../bug-workflow-ui-shared";
 import type { BugHistory } from "../bug-workflow-ui-shared";
@@ -43,19 +45,19 @@ const ReassignForm = ({
   readonly history: BugHistory;
 }) => {
   const id = useId();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The bug could not be reassigned. Try again."
+  );
   const [employeeId, setEmployeeId] = useState("");
-  const [message, setMessage] = useState<{
-    readonly ok: boolean;
-    readonly text: string;
-  } | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const currentIds = new Set(history.assignees.map((person) => person.id));
   const options = employees.filter((employee) => !currentIds.has(employee.id));
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setMessage(null);
     if (!employeeId) {
-      setMessage({ ok: false, text: "Choose an employee to reassign to." });
+      toast.error("Choose an employee to reassign to.");
       return;
     }
     const name = options.find((employee) => employee.id === employeeId)?.name;
@@ -66,11 +68,11 @@ const ReassignForm = ({
         expectedVersion: history.bug.version,
       });
       if (result.ok) {
-        setMessage({ ok: true, text: `Reassigned to ${name ?? "employee"}.` });
+        setMessage(`Reassigned to ${name ?? "employee"}.`);
         setEmployeeId("");
         return;
       }
-      setMessage({ ok: false, text: result.error.message });
+      toast.error(result.error.message);
     });
   };
 
@@ -91,13 +93,8 @@ const ReassignForm = ({
           </SelectContent>
         </Select>
       </div>
-      {message?.ok === false ? (
-        <p className="bug-form-error" role="alert">
-          {message.text}
-        </p>
-      ) : null}
-      {message?.ok ? (
-        <output className="bug-client-success">{message.text}</output>
+      {message ? (
+        <output className="bug-client-success">{message}</output>
       ) : null}
       <Button disabled={pending || options.length === 0} type="submit">
         {pending ? "Reassigning…" : "Reassign"}

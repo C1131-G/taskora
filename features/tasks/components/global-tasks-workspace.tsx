@@ -2,6 +2,7 @@
 
 "use client";
 
+import { Kanban, Table } from "@phosphor-icons/react";
 import { useMemo } from "react";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -31,7 +32,7 @@ type GlobalTask = Omit<
 type TaskView = "list" | "board" | "table";
 
 const toTaskView = (value: string): TaskView =>
-  value === "board" || value === "table" ? value : "list";
+  value === "board" ? "board" : "list";
 
 const taskDescription = (
   status: string,
@@ -75,6 +76,26 @@ export const GlobalTasksWorkspace = ({
   );
   const view = toTaskView(search.view);
 
+  const viewSwitch = (
+    <nav aria-label="Task view" className="row task-view-tabs">
+      {GLOBAL_TASK_VIEWS.map((taskView) => (
+        <WorkspaceButton
+          aria-current={view === taskView ? "page" : undefined}
+          key={taskView}
+          onClick={() => update({ view: taskView })}
+          size="sm"
+          variant={view === taskView ? "default" : "secondary"}
+        >
+          {taskView === "list" ? <Table aria-hidden="true" size={15} /> : null}
+          {taskView === "board" ? (
+            <Kanban aria-hidden="true" size={15} />
+          ) : null}
+          {taskView === "list" ? "Table" : "Board"}
+        </WorkspaceButton>
+      ))}
+    </nav>
+  );
+
   return (
     <>
       <div className="ph">
@@ -100,20 +121,6 @@ export const GlobalTasksWorkspace = ({
         searchLabel="Search tasks"
         showGroup
       />
-      <nav aria-label="Task view" className="row task-view-tabs">
-        {GLOBAL_TASK_VIEWS.map((taskView) => (
-          <WorkspaceButton
-            aria-current={view === taskView ? "page" : undefined}
-            key={taskView}
-            onClick={() => update({ view: taskView })}
-            size="sm"
-            variant={view === taskView ? "default" : "secondary"}
-          >
-            {taskView[0]?.toLocaleUpperCase()}
-            {taskView.slice(1)}
-          </WorkspaceButton>
-        ))}
-      </nav>
       {visibleTasks.length ? (
         <GlobalTaskRows
           employees={employees}
@@ -122,18 +129,22 @@ export const GlobalTasksWorkspace = ({
           taskGroups={taskGroups}
           userId={userId}
           view={view}
+          viewSwitch={viewSwitch}
         />
       ) : (
-        <section className="panel panel-b">
-          <h2>
-            {tasks.length ? "No tasks match these filters" : "No tasks yet"}
-          </h2>
-          <p className="muted">
-            {tasks.length
-              ? "Change the filter to see more tasks."
-              : "Tasks will appear here when they are created in a project."}
-          </p>
-        </section>
+        <>
+          {viewSwitch}
+          <section className="panel panel-b">
+            <h2>
+              {tasks.length ? "No tasks match these filters" : "No tasks yet"}
+            </h2>
+            <p className="muted">
+              {tasks.length
+                ? "Change the filter to see more tasks."
+                : "Tasks will appear here when they are created in a project."}
+            </p>
+          </section>
+        </>
       )}
     </>
   );

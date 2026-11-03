@@ -1,12 +1,12 @@
-/* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in app/workspace-styles. */
+import { NotFoundState } from "@/components/ui/not-found-state";
 
 const BugNotFound = () => (
-  <div className="page">
-    <section className="panel panel-b">
-      <h1>Bug report not found</h1>
-      <p>The report may have been archived or removed.</p>
-    </section>
-  </div>
+  <NotFoundState
+    description="The report may have been archived or removed."
+    href="/bugs"
+    linkText="Go to bugs"
+    title="Bug report not found"
+  />
 );
 
 export default BugNotFound;

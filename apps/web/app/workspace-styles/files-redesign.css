@@ -1,0 +1,98 @@
+/* Files page: one clean card per project - a title row, a slim toolbar, a small drop area and compact file cards. */
+.workspace-app .file-project {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  gap: 0;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.workspace-app .file-project > .row {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px;
+}
+.workspace-app .file-project > .row h2 {
+  align-items: center;
+  display: flex;
+  font-size: var(--fs-md);
+  font-weight: 650;
+  gap: 10px;
+  margin: 0;
+}
+.workspace-app .file-count {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 2px 9px;
+}
+.workspace-app .file-project > .row .btn {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-weight: 600;
+  height: 32px;
+}
+/* the inner panel loses its own frame: the project card is the frame */
+.workspace-app .file-project .project-files {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 14px 18px 18px;
+}
+.workspace-app .file-project .file-toolbar {
+  border: 0;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+}
+.workspace-app .file-project .file-toolbar input,
+.workspace-app .file-project .file-toolbar [data-slot="select-trigger"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
+  height: 36px;
+}
+.workspace-app .file-project .file-dropzone {
+  background: transparent;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  font-size: var(--fs-sm);
+  min-height: 56px;
+  padding: 10px;
+}
+.workspace-app .file-project .file-dropzone:hover {
+  border-color: var(--accent);
+}
+.workspace-app .file-project .file-results {
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  margin-top: 12px;
+}
+.workspace-app .file-project .file-card {
+  border-radius: var(--r-lg);
+}
+.workspace-app .file-project .file-card-preview {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+.workspace-app .file-project .file-empty-state {
+  background: transparent;
+  border: 0;
+  color: var(--text-3);
+  padding: 14px 0 2px;
+  text-align: center;
+}
+.workspace-app .file-project .file-empty-state h3 {
+  font-size: var(--fs-sm);
+  margin: 0 0 2px;
+}
+@media (max-width: 640px) {
+  .workspace-app .file-project > .row,
+  .workspace-app .file-project .project-files {
+    padding-inline: 12px;
+  }
+}

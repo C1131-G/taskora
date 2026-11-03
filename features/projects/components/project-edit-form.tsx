@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
@@ -21,6 +21,7 @@ import type {
   ProjectControlsData,
   TeamOption,
 } from "@/features/projects/types/project-admin-contracts";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 const ProjectEditForm = ({
   project,
@@ -29,8 +30,9 @@ const ProjectEditForm = ({
   readonly project: ProjectControlsData;
   readonly teams: readonly TeamOption[];
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The project could not be saved. Try again."
+  );
   const update = (formData: FormData) =>
     startTransition(async () => {
       const result = await updateProjectAction({
@@ -48,10 +50,8 @@ const ProjectEditForm = ({
         teamId: String(formData.get("teamId") ?? "") || null,
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   return (
@@ -183,11 +183,6 @@ const ProjectEditForm = ({
             />
           </label>
         </div>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
         <WorkspaceButton
           className="btn btn-primary"
           disabled={pending}

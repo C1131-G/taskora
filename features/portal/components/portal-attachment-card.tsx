@@ -6,7 +6,9 @@
 
 import { DownloadSimple, FilePdf, FileVideo } from "@phosphor-icons/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { getPortalFileUrlAction } from "@/features/portal/portal-upload-actions";
 import { formatFileSize } from "@/features/portal/portal-upload-rules";
@@ -23,9 +25,9 @@ const ImagePreview = ({
 }) => {
   if (url === null) {
     return (
-      <span className="portal-preview portal-preview-empty">
-        Preview unavailable
-      </span>
+      <ErrorToast
+        message={`Preview for ${attachment.fileName} could not be loaded.`}
+      />
     );
   }
   return (
@@ -49,10 +51,8 @@ const DownloadButton = ({
   readonly attachment: Attachment;
 }) => {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
   const download = async () => {
     setPending(true);
-    setError("");
     try {
       const result = await getPortalFileUrlAction({
         disposition: "download",
@@ -61,30 +61,23 @@ const DownloadButton = ({
       if (result.ok) {
         window.location.assign(result.data);
       } else {
-        setError(result.error.message);
+        toast.error(result.error.message);
       }
     } catch {
-      setError("The download could not start. Try again.");
+      toast.error("The download could not start. Try again.");
     }
     setPending(false);
   };
   return (
-    <>
-      <WorkspaceButton
-        className="btn btn-secondary btn-sm"
-        disabled={pending}
-        onClick={download}
-        type="button"
-      >
-        <DownloadSimple aria-hidden="true" size={14} />
-        {pending ? "Preparing…" : "Download"}
-      </WorkspaceButton>
-      {error ? (
-        <p className="err" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </>
+    <WorkspaceButton
+      className="btn btn-secondary btn-sm"
+      disabled={pending}
+      onClick={download}
+      type="button"
+    >
+      <DownloadSimple aria-hidden="true" size={14} />
+      {pending ? "Preparing…" : "Download"}
+    </WorkspaceButton>
   );
 };
 

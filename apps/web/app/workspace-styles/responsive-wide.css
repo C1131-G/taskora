@@ -83,6 +83,7 @@
   }
   .workspace-app .inbox-workspace {
     grid-template-columns: minmax(0, 1fr);
+    height: auto;
     min-height: 0;
   }
   .workspace-app .inbox-list-panel {

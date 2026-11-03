@@ -4,6 +4,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 
@@ -20,15 +21,13 @@ export const WebhookSecretNotice = ({
 }) => {
   const inputId = useId();
   const [copied, setCopied] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(secret);
       setCopied(true);
-      setFailure(null);
     } catch {
-      setFailure("Copy failed. Select the secret and copy it by hand.");
+      toast.error("Copy failed. Select the secret and copy it by hand.");
     }
   };
 
@@ -46,7 +45,6 @@ export const WebhookSecretNotice = ({
         Copy it now. It is shown only once; if you lose it, generate a new one.
         Use it to verify the signature on each delivery.
       </p>
-      {failure ? <p role="alert">{failure}</p> : null}
       <div className="row">
         <WorkspaceButton
           className="btn btn-secondary btn-sm"

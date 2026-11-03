@@ -111,35 +111,42 @@ const CALENDAR_DAYS = SKELETON_KEYS.slice(0, 42);
 // the month, legend and every day cell are data.
 const CalendarGridSkeleton = () => (
   <section className="panel cal workspace-calendar">
-    <div className="toolbar calendar-toolbar" inert>
-      <span className="skeleton-filter-select skeleton-search">
-        Search tasks
-      </span>
-      <span className="btn btn-sm btn-outline">
-        <FunnelSimple aria-hidden="true" size={16} /> Filter
-      </span>
-      <span className="btn btn-sm btn-ghost">Sort: Manual</span>
-    </div>
-    <div className="toolbar calendar-navigation-toolbar" inert>
-      <span className="btn btn-sm btn-outline">Today</span>
-      <div className="row calendar-nav">
-        <span className="ibtn">
-          <CaretLeft aria-hidden="true" size={16} />
-        </span>
-        <span className="ibtn">
-          <CaretRight aria-hidden="true" size={16} />
-        </span>
+    <div className="cal-bar" inert>
+      <div className="cal-bar-nav">
+        <h2 className="calendar-month-label">
+          <SkeletonBone shape="title" />
+        </h2>
+        <div className="cal-seg">
+          <span className="cal-seg-item cal-seg-icon">
+            <CaretLeft aria-hidden="true" size={16} />
+          </span>
+          <span className="cal-seg-item">Today</span>
+          <span className="cal-seg-item cal-seg-icon">
+            <CaretRight aria-hidden="true" size={16} />
+          </span>
+        </div>
       </div>
-      <h2 className="calendar-month-label">
-        <SkeletonBone shape="title" />
-      </h2>
+      <div className="toolbar calendar-toolbar">
+        <span className="skeleton-filter-select skeleton-search calendar-search">
+          Search tasks
+        </span>
+        <span className="btn btn-sm btn-outline">
+          <FunnelSimple aria-hidden="true" size={16} /> Filter
+        </span>
+        <span className="btn btn-sm btn-ghost">Sort: Manual</span>
+      </div>
+      <div className="cal-seg">
+        <span aria-current="page" className="cal-seg-item">
+          Month
+        </span>
+        <span className="cal-seg-item">Week</span>
+      </div>
+    </div>
+    <div className="cal-filters" inert>
       <div className="calendar-project-legend skeleton-legend">
         <SkeletonBone shape="short" />
         <SkeletonBone shape="short" />
-      </div>
-      <div className="calendar-view-toggle">
-        <span className="btn btn-sm btn-primary">Month</span>
-        <span className="btn btn-sm btn-outline">Week</span>
+        <SkeletonBone shape="short" />
       </div>
     </div>
     <div aria-hidden="true" className="cal-h">

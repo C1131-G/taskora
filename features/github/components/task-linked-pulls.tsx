@@ -25,21 +25,28 @@ export const TaskLinkedPulls = ({
   return (
     <section aria-label="Pull requests" className="stack">
       <h3>Pull requests</h3>
-      <ul className="stack">
+      <ul className="pr-list">
         {pulls.map((pull) => {
           const badge = STATE_BADGES[pull.state];
           const reference = `${pull.repoFullName}#${pull.number}`;
           return (
-            <li className="row" key={pull.id}>
+            <li className="pr-item" key={pull.id}>
               <span className={`badge ${badge.tone}`}>{badge.label}</span>
-              {PULL_PAGE_PATTERN.test(pull.url) ? (
-                <a href={pull.url} rel="noopener noreferrer" target="_blank">
-                  {pull.title}
-                </a>
-              ) : (
-                <span>{pull.title}</span>
-              )}
-              <span className="muted">{reference}</span>
+              <span className="pr-copy">
+                {PULL_PAGE_PATTERN.test(pull.url) ? (
+                  <a
+                    className="pr-title"
+                    href={pull.url}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {pull.title}
+                  </a>
+                ) : (
+                  <span className="pr-title">{pull.title}</span>
+                )}
+                <span className="pr-ref">{reference}</span>
+              </span>
             </li>
           );
         })}

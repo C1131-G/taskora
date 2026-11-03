@@ -1,0 +1,84 @@
+/* Project Table: same look as the Tasks page table (mtt), keeping resizable columns. */
+.workspace-app .project-task-data-table.mtt {
+  min-width: 0;
+  table-layout: auto;
+  width: 100%;
+}
+.workspace-app [data-slot="table-container"]:has(> .project-task-data-table) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin: 12px var(--gutter);
+  overflow-x: auto;
+  width: auto;
+}
+.workspace-app .project-task-data-table.mtt thead th {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 10px 12px;
+}
+.workspace-app .project-task-data-table.mtt thead th:nth-child(2) {
+  text-align: left;
+}
+.workspace-app .project-task-data-table.mtt thead th:first-child,
+.workspace-app .project-task-data-table.mtt .mtt-row td:first-child {
+  padding-inline: 12px;
+  text-align: center;
+  width: 44px;
+}
+.workspace-app .project-task-data-table.mtt .mtt-row td {
+  height: 56px;
+}
+.workspace-app .project-task-data-table.mtt .mtt-row td.mtt-task {
+  max-width: 420px;
+  min-width: 240px;
+  text-align: left;
+}
+.workspace-app .project-task-data-table.mtt .mtt-row td.mtt-task .mtt-title {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.workspace-app .project-task-data-table.mtt .mtt-row td.mtt-task .mtt-title:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.workspace-app .project-task-data-table.mtt .project-task-group-row td {
+  background: var(--sunken);
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  box-shadow: inset 3px 0 0 var(--text-4);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  letter-spacing: 0;
+  padding: 9px 12px;
+  text-align: left;
+  text-transform: none;
+}
+.workspace-app .project-task-data-table.mtt .project-task-group-row td span {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-2xs);
+  margin-left: 6px;
+  padding: 2px 7px;
+}
+/* toolbar above the table: the same boxed controls as the Tasks page filters */
+.workspace-app .project-task-table-tools {
+  margin: 0 var(--gutter);
+}
+.workspace-app .project-task-data-table.mtt [data-slot="checkbox"] {
+  background: var(--surface);
+  border: 1.5px solid var(--text-4);
+  border-radius: 4px;
+}
+.workspace-app .project-task-data-table.mtt [data-slot="checkbox"]:hover {
+  border-color: var(--accent);
+}
+.workspace-app .project-task-data-table.mtt [data-slot="checkbox"][data-state="checked"],
+.workspace-app .project-task-data-table.mtt [data-slot="checkbox"][data-state="indeterminate"] {
+  background: var(--accent);
+  border-color: var(--accent);
+}

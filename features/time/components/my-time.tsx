@@ -12,15 +12,17 @@ import { getUtcToday } from "@/src/lib/utc-today";
 import { getPageSession } from "@/src/server/auth/page-session";
 
 const MyTime = async ({ date }: { readonly date: string | null }) => {
-  const [session, week, timer, options] = await Promise.all([
-    getPageSession(),
+  // The session read comes first: it is request data, so the current date below
+  // is computed at request time rather than while prerendering.
+  const session = await getPageSession();
+  if (session.kind !== "authenticated") {
+    throw new Error("Your time could not be loaded.");
+  }
+  const [week, timer, options] = await Promise.all([
     getWeeklyTime({ date: date ?? getUtcToday() }),
     getRunningTimer({}),
     listAssignedTaskOptions({}),
   ]);
-  if (session.kind !== "authenticated") {
-    throw new Error("Your time could not be loaded.");
-  }
   return (
     <MyTimeView
       currentUserId={session.user.id}

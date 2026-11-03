@@ -4,6 +4,7 @@
 import Link from "next/link";
 
 import { Input } from "@/components/ui/input";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SkeletonBone,
   SkeletonDataGrid,
@@ -32,12 +33,15 @@ const MembersSection = async ({
   const isAdmin =
     session.kind === "authenticated" && session.user.role === "admin";
   return (
-    <MembersDirectory
-      canManageMembers={isAdmin}
-      employees={employees}
-      section={section}
-      teams={teams.ok ? teams.data : []}
-    />
+    <>
+      <ErrorToast message={teams.ok ? null : teams.error.message} />
+      <MembersDirectory
+        canManageMembers={isAdmin}
+        employees={employees}
+        section={section}
+        teams={teams.ok ? teams.data : []}
+      />
+    </>
   );
 };
 
@@ -55,7 +59,7 @@ const MembersActions = async () => {
   if (session.kind !== "authenticated" || session.user.role !== "admin") {
     return null;
   }
-  return <EmployeeCreateForm teams={teams.ok ? teams.data : []} />;
+  return <EmployeeCreateForm teams={readOrThrow(teams, "Teams")} />;
 };
 
 const COLUMNS = [

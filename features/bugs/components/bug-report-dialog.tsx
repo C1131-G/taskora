@@ -4,9 +4,16 @@
 
 /* eslint-disable shadcn/no-restyle, shadcn/no-unknown-classes -- These workspace classes are defined in apps/web/app/workspace-styles to match the reference UI. */
 
-import { Bug, SpinnerGap } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bug,
+  Check,
+  SpinnerGap,
+} from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +48,15 @@ interface BugProjectOption {
   readonly name: string;
 }
 
+const STEPS = [
+  {
+    hint: "Give the bug a name and say how serious it is.",
+    label: "What happened",
+  },
+  { hint: "Tell us where it showed up.", label: "Where it happened" },
+  { hint: "Help someone else see the same thing.", label: "How to reproduce" },
+] as const;
+
 export const BugReportDialog = ({
   initialProjectId,
   projects,
@@ -51,7 +67,8 @@ export const BugReportDialog = ({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [step, setStep] = useState(0);
+  const stepRefs = useRef<(HTMLElement | null)[]>([]);
   const [projectId, setProjectId] = useState(
     initialProjectId ?? projects[0]?.id ?? ""
   );
@@ -59,14 +76,30 @@ export const BugReportDialog = ({
   const [environment, setEnvironment] = useState("production");
   const [discoverySource, setDiscoverySource] = useState("employee_report");
   const { findSimilarBugs, searchingSimilar, similarBugs } =
-    useBugSimilarSearch(setMessage);
+    useBugSimilarSearch((message) => {
+      if (message) {
+        toast.error(message);
+      }
+    });
+
+  // A step moves on only when its own required fields are filled in.
+  const goNext = () => {
+    const fields = stepRefs.current[step]?.querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement
+    >("input, textarea");
+    for (const field of fields ?? []) {
+      if (!field.reportValidity()) {
+        return;
+      }
+    }
+    setStep((current) => Math.min(current + 1, STEPS.length - 1));
+  };
 
   const submit = async (formData: FormData) => {
     setBusy(true);
-    setMessage(null);
     const reproductionSteps = String(formData.get("reproductionSteps") ?? "")
       .split("\n")
-      .map((step) => step.trim())
+      .map((line) => line.trim())
       .filter(Boolean);
     try {
       const result = await reportBugAction({
@@ -88,7 +121,7 @@ export const BugReportDialog = ({
         title: String(formData.get("title") ?? ""),
       });
       if (result.ok === false) {
-        setMessage(result.error.message);
+        toast.error(result.error.message);
       } else {
         setOpen(false);
         router.push(`/bugs/${result.data.id}`, {
@@ -96,13 +129,21 @@ export const BugReportDialog = ({
         });
       }
     } catch {
-      setMessage("The bug report could not be submitted. Please try again.");
+      toast.error("The bug report could not be submitted. Please try again.");
     }
     setBusy(false);
   };
 
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) {
+          setStep(0);
+        }
+      }}
+      open={open}
+    >
       <DialogTrigger asChild>
         <Button disabled={projects.length === 0}>
           <Bug aria-hidden="true" size={16} />
@@ -117,8 +158,40 @@ export const BugReportDialog = ({
             reproduce it.
           </DialogDescription>
         </DialogHeader>
-        <form action={submit} className="bug-report-form">
-          <div className="bug-form-grid">
+        <ol aria-label="Report steps" className="bug-steps">
+          {STEPS.map((item, index) => (
+            <li
+              aria-current={index === step ? "step" : undefined}
+              className={`bug-step${index === step ? " is-current" : ""}${index < step ? " is-done" : ""}`}
+              key={item.label}
+            >
+              <span aria-hidden="true" className="bug-step-dot">
+                {index < step ? <Check size={13} weight="bold" /> : index + 1}
+              </span>
+              <span className="bug-step-label">{item.label}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="bug-step-hint">
+          Step {step + 1} of {STEPS.length}: {STEPS[step]?.hint}
+        </p>
+        <form
+          action={submit}
+          className="bug-report-form"
+          onSubmit={(event) => {
+            if (step < STEPS.length - 1) {
+              event.preventDefault();
+              goNext();
+            }
+          }}
+        >
+          <section
+            className="bug-form-grid bug-step-panel"
+            hidden={step !== 0}
+            ref={(node) => {
+              stepRefs.current[0] = node;
+            }}
+          >
             <div className="bug-form-field bug-form-wide">
               <Label htmlFor="bug-title">Title</Label>
               <Input
@@ -126,6 +199,7 @@ export const BugReportDialog = ({
                 id="bug-title"
                 maxLength={300}
                 name="title"
+                placeholder="A short summary of the problem"
                 required
               />
             </div>
@@ -167,26 +241,7 @@ export const BugReportDialog = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="bug-form-field">
-              <Label htmlFor="bug-environment">Environment</Label>
-              <Select onValueChange={setEnvironment} value={environment}>
-                <SelectTrigger
-                  aria-label="Environment"
-                  className="w-full"
-                  id="bug-environment"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="staging">Staging</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="test">Test</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="bug-form-field">
+            <div className="bug-form-field bug-form-wide">
               <Label htmlFor="bug-source">Found by</Label>
               <Select
                 onValueChange={setDiscoverySource}
@@ -213,6 +268,14 @@ export const BugReportDialog = ({
                 </SelectContent>
               </Select>
             </div>
+          </section>
+          <section
+            className="bug-form-grid bug-step-panel"
+            hidden={step !== 1}
+            ref={(node) => {
+              stepRefs.current[1] = node;
+            }}
+          >
             <div className="bug-form-field">
               <Label htmlFor="bug-component">Page or component</Label>
               <Input
@@ -232,6 +295,35 @@ export const BugReportDialog = ({
                 required
               />
             </div>
+            <div className="bug-form-field bug-form-wide">
+              <Label htmlFor="bug-environment">Environment</Label>
+              <Select onValueChange={setEnvironment} value={environment}>
+                <SelectTrigger
+                  aria-label="Environment"
+                  className="w-full"
+                  id="bug-environment"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="staging">Staging</SelectItem>
+                  <SelectItem value="development">Development</SelectItem>
+                  <SelectItem value="test">Test</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <BugEnvironmentFields />
+          </section>
+          <section
+            className="bug-form-grid bug-step-panel"
+            hidden={step !== 2}
+            ref={(node) => {
+              stepRefs.current[2] = node;
+            }}
+          >
+            <BugReproductionFields />
             <div className="bug-form-field bug-form-wide bug-similar-search">
               <Button
                 disabled={searchingSimilar}
@@ -246,37 +338,49 @@ export const BugReportDialog = ({
                     size={15}
                   />
                 ) : null}
-                Find earlier reports
+                Check for earlier reports
               </Button>
               <SimilarBugResults bugs={similarBugs} />
             </div>
-            <BugReproductionFields />
-            <BugEnvironmentFields />
-          </div>
-          {message ? (
-            <p className="bug-form-error" role="alert">
-              {message}
-            </p>
-          ) : null}
-          <DialogFooter>
+          </section>
+          <DialogFooter className="bug-step-footer">
             <Button
               disabled={busy}
               onClick={() => setOpen(false)}
               type="button"
-              variant="outline"
+              variant="ghost"
             >
               Cancel
             </Button>
-            <Button disabled={busy || !projectId} type="submit">
-              {busy ? (
-                <SpinnerGap
-                  aria-hidden="true"
-                  className="animate-spin"
-                  size={16}
-                />
-              ) : null}
-              Submit report
-            </Button>
+            <span className="bug-step-spacer" />
+            {step > 0 ? (
+              <Button
+                disabled={busy}
+                onClick={() => setStep(step - 1)}
+                type="button"
+                variant="outline"
+              >
+                <ArrowLeft aria-hidden="true" size={15} />
+                Back
+              </Button>
+            ) : null}
+            {step < STEPS.length - 1 ? (
+              <Button onClick={goNext} type="button">
+                Next
+                <ArrowRight aria-hidden="true" size={15} />
+              </Button>
+            ) : (
+              <Button disabled={busy || !projectId} type="submit">
+                {busy ? (
+                  <SpinnerGap
+                    aria-hidden="true"
+                    className="animate-spin"
+                    size={16}
+                  />
+                ) : null}
+                Submit report
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

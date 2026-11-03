@@ -3,8 +3,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition } from "react";
+import { useId, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { pickClientBugAction } from "@/features/bugs/bugs-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 type PickSeverity = "blocker" | "critical" | "major" | "minor" | "trivial";
 type PickPriority = "urgent" | "high" | "medium" | "low" | "none";
@@ -50,10 +52,11 @@ export const BugPickForm = ({
 }) => {
   const id = useId();
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The bug could not be picked up. Try again."
+  );
   const [severity, setSeverity] = useState<PickSeverity>(defaultSeverity);
   const [priority, setPriority] = useState<PickPriority>("medium");
-  const [error, setError] = useState<string | null>(null);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,12 +68,11 @@ export const BugPickForm = ({
         severity,
       });
       if (result.ok) {
-        setError(null);
         onPicked?.();
         return;
       }
       // Losing the race reports who won; refresh so the row reflects it.
-      setError(result.error.message);
+      toast.error(result.error.message);
       if (result.error.code === "CONFLICT") {
         router.refresh();
       }
@@ -117,11 +119,6 @@ export const BugPickForm = ({
           </Select>
         </div>
       </div>
-      {error ? (
-        <p className="bug-form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <Button disabled={pending} type="submit">
         {pending ? "Picking…" : "Pick this bug"}
       </Button>

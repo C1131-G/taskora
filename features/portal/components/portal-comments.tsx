@@ -6,6 +6,7 @@
 
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceTextarea } from "@/components/workspace/workspace-controls";
@@ -30,6 +31,10 @@ const PortalComments = ({
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const keyRef = useRef<string | null>(null);
+  const showError = (message: string) => {
+    setError(message);
+    toast.error(message);
+  };
 
   // A comment just posted shows at once; once the refreshed page includes it,
   // the server copy replaces the local one.
@@ -40,7 +45,7 @@ const PortalComments = ({
     event.preventDefault();
     const text = body.trim();
     if (!text) {
-      setError("Write a message before sending.");
+      showError("Write a message before sending.");
       return;
     }
     setPending(true);
@@ -59,10 +64,10 @@ const PortalComments = ({
         setBody("");
         keyRef.current = null;
       } else {
-        setError(result.error.message);
+        showError(result.error.message);
       }
     } catch {
-      setError("Your comment could not be sent. Try again.");
+      showError("Your comment could not be sent. Try again.");
     }
     setPending(false);
   };
@@ -118,7 +123,7 @@ const PortalComments = ({
               value={body}
             />
             {error ? (
-              <p className="err" id="portal-comment-error" role="alert">
+              <p className="sr-only" id="portal-comment-error">
                 {error}
               </p>
             ) : null}

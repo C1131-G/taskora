@@ -5,12 +5,13 @@
 
 import { Check, Copy } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 
 const COPIED_RESET_MS = 2000;
 
-type CopyState = "idle" | "copied" | "failed";
+type CopyState = "idle" | "copied";
 
 export const TemporaryPasswordReveal = ({
   note,
@@ -35,7 +36,10 @@ export const TemporaryPasswordReveal = ({
         COPIED_RESET_MS
       );
     } catch {
-      setCopyState("failed");
+      setCopyState("idle");
+      toast.error(
+        "Couldn’t copy automatically. Select the password and copy it manually."
+      );
     }
   };
 
@@ -62,11 +66,7 @@ export const TemporaryPasswordReveal = ({
           {copied ? "Copied" : "Copy"}
         </WorkspaceButton>
       </div>
-      <p className="muted">
-        {copyState === "failed"
-          ? "Couldn’t copy automatically. Select the password and copy it manually."
-          : note}
-      </p>
+      <p className="muted">{note}</p>
     </output>
   );
 };

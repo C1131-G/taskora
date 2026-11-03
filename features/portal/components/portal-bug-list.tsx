@@ -91,7 +91,7 @@ const PortalBugList = async ({
   readonly filters: PortalBugFilterValues;
 }) => {
   const projectsResult = await listPortalProjects({});
-  const projects = projectsResult.ok ? projectsResult.data : [];
+  const projects = readOrThrow(projectsResult, "Projects");
   // Only a project the company actually has is passed on as a filter.
   const projectId = projects.find(({ id }) => id === filters.project)?.id;
   const result = await listPortalBugs({

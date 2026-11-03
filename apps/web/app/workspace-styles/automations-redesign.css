@@ -1,0 +1,122 @@
+/* Automations: each rule is a card reading When / If / Then, with its actions at the bottom. */
+.workspace-app [data-project-automations] {
+  gap: 16px;
+}
+.workspace-app [data-project-automations] > .panel {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.workspace-app [data-project-automations] > .panel > .panel-h {
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 4px;
+  padding: 14px 18px;
+}
+.workspace-app [data-project-automations] > .panel > .panel-h h2 {
+  font-size: var(--fs-md);
+  font-weight: 650;
+}
+.workspace-app [data-project-automations] > .panel > .panel-h p {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+  max-width: 70ch;
+}
+.workspace-app [data-project-automations] > .panel > .panel-b {
+  padding: 16px 18px;
+}
+.workspace-app .automation-rules {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.workspace-app .automation-rule {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+}
+.workspace-app .automation-rule:hover {
+  border-color: var(--border-strong);
+}
+.workspace-app .automation-rule-head {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+.workspace-app .automation-rule-head strong {
+  font-size: var(--fs);
+  font-weight: 650;
+}
+.workspace-app .automation-when,
+.workspace-app .automation-then li {
+  align-items: baseline;
+  color: var(--text);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+  gap: 8px;
+  line-height: 1.5;
+  margin: 0;
+}
+.workspace-app .automation-then {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.workspace-app .automation-tag {
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  flex: none;
+  font-size: var(--fs-2xs);
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+.workspace-app .automation-actions {
+  border-top: 1px solid var(--divider);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+}
+.workspace-app .automation-actions [data-slot="button"],
+.workspace-app .automation-actions button {
+  border-radius: var(--r-sm);
+  height: 32px;
+}
+.workspace-app .automation-empty {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text-3);
+  margin: 0;
+  padding: 20px 16px;
+  text-align: center;
+}
+.workspace-app .automation-runs {
+  width: 100%;
+}
+.workspace-app .automation-runs th {
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 10px 14px;
+}
+.workspace-app .automation-runs td {
+  font-size: var(--fs-sm);
+  padding: 11px 14px;
+}
+.workspace-app .automation-runs tbody tr:hover {
+  background: var(--surface-2);
+}

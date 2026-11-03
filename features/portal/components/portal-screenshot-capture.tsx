@@ -11,6 +11,7 @@ import {
   useSyncExternalStore,
   useTransition,
 } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { noSubscription } from "@/features/portal/components/portal-bug-form-mode";
@@ -80,7 +81,6 @@ const PortalScreenshotCapture = ({
     supportServerSnapshot
   );
   const [base, setBase] = useState<HTMLCanvasElement | null>(null);
-  const [problem, setProblem] = useState("");
   const [capturing, startCapture] = useTransition();
 
   if (support === "unknown") {
@@ -97,13 +97,12 @@ const PortalScreenshotCapture = ({
   }
 
   const capture = () => {
-    setProblem("");
     startCapture(async () => {
       try {
         const frame = await grabFrame();
         startCapture(() => setBase(frame));
       } catch (error) {
-        startCapture(() => setProblem(captureError(error)));
+        toast.error(captureError(error));
       }
     });
   };
@@ -139,11 +138,6 @@ const PortalScreenshotCapture = ({
           is taken, then sharing stops.
         </span>
       </div>
-      {problem ? (
-        <p className="portal-form-error" role="alert">
-          {problem}
-        </p>
-      ) : null}
       {captured ? (
         <ul aria-label="Captured screenshot" className="portal-file-list">
           <li>

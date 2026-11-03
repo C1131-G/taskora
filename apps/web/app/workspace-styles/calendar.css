@@ -283,3 +283,186 @@
   font-size: var(--fs-2xs);
   color: var(--text-3);
 }
+
+/* ============================================================
+   CALENDAR READABILITY PASS
+   ============================================================ */
+.workspace-app .cal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.workspace-app .cal-h {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-strong);
+}
+.workspace-app .cal-h div {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 10px 8px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.workspace-app .cal-g {
+  grid-auto-rows: minmax(132px, 1fr);
+}
+.workspace-app .cday {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  gap: 4px;
+  padding: 8px 6px 6px;
+}
+/* weekend columns read as a quieter band */
+.workspace-app .cday:nth-child(7n),
+.workspace-app .cday:nth-child(7n - 1) {
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+.workspace-app .cday.out {
+  background: var(--sunken);
+}
+.workspace-app .cday.out .dn {
+  color: var(--text-4);
+}
+.workspace-app .cday:hover {
+  background: var(--surface-2);
+}
+.workspace-app .cday .dn {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 24px;
+  width: 24px;
+}
+.workspace-app .cday.today {
+  box-shadow: inset 0 0 0 2px var(--accent-line);
+}
+.workspace-app .cday.today .dn {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* chips: taller, larger text, project colour as a solid left edge */
+.workspace-app .cal-chip {
+  min-width: 0;
+  position: relative;
+}
+.workspace-app .cev {
+  border-left: 3px solid var(--c);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px 0 6px;
+}
+.workspace-app .cev .pdot {
+  display: none;
+}
+.workspace-app .cev.event {
+  background: color-mix(in srgb, var(--c) 6%, transparent);
+  border-left-style: solid;
+}
+.workspace-app .cev:focus-visible,
+.workspace-app .cmore:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* the Move control hides until the chip is hovered or focused, instead of stacking under it */
+.workspace-app .cal-chip .cal-chip-move {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xs);
+  color: var(--text-2);
+  display: inline-flex;
+  font-size: var(--fs-2xs);
+  height: 20px !important;
+  min-height: 20px !important;
+  opacity: 0;
+  padding: 0 6px !important;
+  pointer-events: none;
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: auto;
+}
+.workspace-app .cal-chip:hover .cal-chip-move,
+.workspace-app .cal-chip:focus-within .cal-chip-move {
+  opacity: 1;
+  pointer-events: auto;
+}
+.workspace-app .cal-chip:hover .cev .trunc {
+  padding-right: 36px;
+}
+
+/* "+N more" reads as a button */
+.workspace-app .cmore {
+  align-self: flex-start;
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  height: 22px;
+  padding: 0 9px;
+}
+.workspace-app .cmore:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* toolbar rows */
+.workspace-app .calendar-navigation-toolbar {
+  gap: 10px 14px;
+  padding: 4px 12px 12px;
+}
+.workspace-app .calendar-month-label {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.workspace-app .calendar-project-legend {
+  column-gap: 14px;
+  row-gap: 6px;
+}
+.workspace-app .calendar-project-legend-item {
+  color: var(--text);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+/* week view */
+.workspace-app .wcol-h {
+  background: var(--surface-2);
+  border-bottom-color: var(--border-strong);
+}
+.workspace-app .wcard {
+  border-left: 3px solid var(--c, var(--border-strong));
+  font-size: var(--fs);
+  padding: 8px 10px;
+}
+.workspace-app .wcard .m {
+  font-size: var(--fs-xs);
+}
+
+/* titles may wrap to two lines so narrow day cells stay readable */
+.workspace-app .cal-g .cev {
+  align-items: flex-start;
+  height: auto;
+  min-height: 26px;
+  padding-block: 4px;
+  text-align: left;
+}
+.workspace-app .cal-g .cev .trunc {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-height: 1.25;
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-word;
+}

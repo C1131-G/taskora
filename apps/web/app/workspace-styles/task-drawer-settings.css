@@ -1,0 +1,209 @@
+/* Task drawer sections below the details: settings rows, pick lists, comments. */
+[data-task-drawer].workspace-app .setting-row {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+[data-task-drawer].workspace-app .setting-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+[data-task-drawer].workspace-app .setting-title {
+  color: var(--text);
+  font-size: var(--fs);
+  font-weight: 600;
+}
+[data-task-drawer].workspace-app .setting-hint {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+
+/* labels and blockers */
+[data-task-drawer].workspace-app .rel-list {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  max-height: 168px;
+  overflow-y: auto;
+  padding: 4px;
+}
+[data-task-drawer].workspace-app .rel-list > label.row {
+  align-items: center;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 8px;
+}
+[data-task-drawer].workspace-app .rel-list > label.row:hover {
+  background: var(--surface-2);
+}
+[data-task-drawer].workspace-app .rel-list > p {
+  margin: 0;
+  padding: 8px;
+}
+[data-task-drawer].workspace-app .rel-save {
+  align-self: flex-start;
+}
+
+/* repeat editor: weekdays as an even row */
+[data-task-drawer].workspace-app fieldset.field .row:has(> label.row) {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+/* time tracking */
+[data-task-drawer].workspace-app .time-section-head {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+[data-task-drawer].workspace-app .time-totals {
+  font-size: var(--fs-xs);
+  margin: 0;
+}
+
+/* comments */
+[data-task-drawer].workspace-app .comment-submit {
+  align-self: flex-end;
+  height: 36px;
+}
+[data-task-drawer].workspace-app .task-mention-field textarea {
+  min-height: 84px;
+}
+
+/* calendar: search, filter and sort as one aligned, same-height row */
+.workspace-app .cal-filters .calendar-search input {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  height: 36px;
+  padding: 0 12px;
+  width: 100%;
+}
+.workspace-app .cal-filters .calendar-search input:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-line);
+  outline-offset: 1px;
+}
+.workspace-app .cal-filters .calendar-toolbar button {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text);
+  display: inline-flex;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  gap: 6px;
+  height: 36px !important;
+  padding: 0 12px !important;
+}
+.workspace-app .cal-filters .calendar-toolbar button:hover {
+  background: var(--surface-2);
+}
+.workspace-app .cal-filters .calendar-toolbar button svg {
+  color: var(--text-3);
+  height: 16px;
+  width: 16px;
+}
+
+/* the page's vertical scrollbar: always available and easy to see on every workspace page */
+.workspace-app .content {
+  overflow-y: scroll;
+  scrollbar-color: var(--text-4) var(--surface-2);
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+}
+.workspace-app .content::-webkit-scrollbar {
+  width: 12px;
+}
+.workspace-app .content::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+.workspace-app .content::-webkit-scrollbar-thumb {
+  background: var(--text-4);
+  border: 3px solid var(--surface-2);
+  border-radius: var(--r-full);
+}
+.workspace-app .content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+
+/* on/off switch: a clear track and thumb in both states, with a text label */
+[data-task-drawer].workspace-app .switch-wrap {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+[data-task-drawer].workspace-app .switch-state {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-width: 22px;
+  text-align: right;
+  text-transform: uppercase;
+}
+[data-task-drawer].workspace-app .switch-state.is-on {
+  color: var(--st-done);
+}
+[data-task-drawer].workspace-app [data-slot="switch"] {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-full);
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 24px;
+  padding: 0;
+  position: relative;
+  transition:
+    background var(--dur),
+    border-color var(--dur);
+  width: 44px;
+}
+[data-task-drawer].workspace-app [data-slot="switch"][data-state="unchecked"] {
+  background: var(--surface-3);
+}
+[data-task-drawer].workspace-app [data-slot="switch"][data-state="checked"] {
+  background: var(--st-done);
+  border-color: var(--st-done);
+}
+[data-task-drawer].workspace-app [data-slot="switch"] [data-slot="switch-thumb"] {
+  background: #fff;
+  border-radius: var(--r-full);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 40%);
+  height: 18px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transition: transform var(--dur);
+  width: 18px;
+}
+[data-task-drawer].workspace-app [data-slot="switch"][data-state="checked"] [data-slot="switch-thumb"] {
+  transform: translateX(20px);
+}
+[data-task-drawer].workspace-app [data-slot="switch"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+[data-task-drawer].workspace-app [data-slot="switch"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

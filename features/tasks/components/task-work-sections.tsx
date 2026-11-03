@@ -20,6 +20,8 @@ import type { EmployeeOption } from "@/features/tasks/task-details-panel-data";
 type DetailsFormProps = ComponentProps<typeof TaskDetailsForm>;
 
 // The editable sections of an ordinary task: details, subtasks, relations and recurrence.
+export type TaskWorkPart = "client" | "details" | "subtasks";
+
 export const TaskWorkSections = ({
   editable,
   employees,
@@ -27,6 +29,7 @@ export const TaskWorkSections = ({
   onReload,
   onSaved,
   onVersionChange,
+  part,
   projectId,
   subtaskActions,
   subtasks,
@@ -41,6 +44,7 @@ export const TaskWorkSections = ({
   readonly onReload: () => Promise<void>;
   readonly onSaved: DetailsFormProps["onSaved"];
   readonly onVersionChange: (version: number) => void;
+  readonly part: TaskWorkPart;
   readonly projectId: string;
   readonly subtaskActions: ReturnType<typeof useTaskSubtaskActions>;
   readonly subtasks: readonly TaskSubtaskView[];
@@ -59,46 +63,52 @@ export const TaskWorkSections = ({
   } = subtaskActions;
   return (
     <>
-      <section className="stack">
-        <h3>Details</h3>
-        {task ? (
-          <TaskDetailsForm
-            editable={editable}
-            employees={employees}
-            key={task.version}
-            onDirtyChange={onDirtyChange}
-            onReload={() => onReload()}
-            onSaved={onSaved}
-            task={task}
-            version={version}
-            versionIsCurrent={versionIsCurrent}
-          />
-        ) : (
-          <TaskDetailsFormSkeleton />
-        )}
-      </section>
-      <TaskSubtasksSection
-        editable={editable}
-        employees={employees}
-        onAdd={handleAdd}
-        onPromote={handlePromote}
-        onRemove={handleRemove}
-        onReorder={handleReorder}
-        onToggle={handleToggle}
-        onUpdate={handleEdit}
-        pending={subtaskActions.pending}
-        subtasks={subtasks}
-      />
-      {task ? (
+      {part === "details" ? (
+        <section className="stack">
+          <h3>Details</h3>
+          {task ? (
+            <TaskDetailsForm
+              editable={editable}
+              employees={employees}
+              key={task.version}
+              onDirtyChange={onDirtyChange}
+              onReload={() => onReload()}
+              onSaved={onSaved}
+              task={task}
+              version={version}
+              versionIsCurrent={versionIsCurrent}
+            />
+          ) : (
+            <TaskDetailsFormSkeleton />
+          )}
+        </section>
+      ) : null}
+      {part === "subtasks" ? (
+        <TaskSubtasksSection
+          editable={editable}
+          employees={employees}
+          onAdd={handleAdd}
+          onPromote={handlePromote}
+          onRemove={handleRemove}
+          onReorder={handleReorder}
+          onToggle={handleToggle}
+          onUpdate={handleEdit}
+          pending={subtaskActions.pending}
+          subtasks={subtasks}
+        />
+      ) : null}
+      {task && part === "client" ? (
+        <TaskClientVisibility
+          clientVisible={task.clientVisible ?? false}
+          editable={editable}
+          onReload={onReload}
+          onVersionChange={onVersionChange}
+          taskId={taskId}
+          version={version}
+        />
+      ) : null}
+      {task && part === "details" ? (
         <>
-          <TaskClientVisibility
-            clientVisible={task.clientVisible ?? false}
-            editable={editable}
-            onReload={onReload}
-            onVersionChange={onVersionChange}
-            taskId={taskId}
-            version={version}
-          />
           <TaskRelationsEditor
             dependencyIds={task.dependencyIds}
             editable={editable}

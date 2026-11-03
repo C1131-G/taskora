@@ -19,19 +19,19 @@ const RecentActivityPanel = ({
         View all
       </Link>
     </div>
-    <div className="panel-b feed lined">
+    <div className="panel-b feed lined home-activity-list">
       {activities.length ? (
         activities.map((activity) => (
-          <article className="mini" key={activity.id}>
+          <article className="mini home-activity-row" key={activity.id}>
             <span aria-hidden="true" className="av">
               {activity.actorName.slice(0, 1)}
             </span>
-            <div className="grow">
+            <div className="home-activity-copy">
               <strong>{activity.actorName}</strong>
               <p className="muted">{activity.action.replaceAll("_", " ")}</p>
             </div>
             <LocalTime
-              className="muted"
+              className="muted home-activity-time"
               format="relative"
               value={activity.createdAt}
             />

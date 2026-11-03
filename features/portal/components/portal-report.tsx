@@ -2,6 +2,7 @@
 
 import { FolderSimple } from "@phosphor-icons/react/dist/ssr";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -120,11 +121,14 @@ const PortalReport = async ({
     throw new Error("Projects could not be loaded.");
   }
   return (
-    <PortalReportBody
-      projects={result.data}
-      recurrenceOf={recurrenceOf}
-      responseTimes={times.ok ? times.data : null}
-    />
+    <>
+      <ErrorToast message={times.ok ? null : times.error.message} />
+      <PortalReportBody
+        projects={result.data}
+        recurrenceOf={recurrenceOf}
+        responseTimes={times.ok ? times.data : null}
+      />
+    </>
   );
 };
 

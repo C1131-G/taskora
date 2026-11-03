@@ -4,6 +4,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -20,7 +21,6 @@ export const GithubConnectionCard = ({
   readonly connection: GithubConnectionSummary;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [failure, setFailure] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
 
   const update = (changes: {
@@ -28,28 +28,34 @@ export const GithubConnectionCard = ({
     readonly enabled: boolean;
   }) =>
     startTransition(async () => {
-      setFailure(null);
-      const result = await updateGithubConnectionAction({
-        ...changes,
-        connectionId: connection.id,
-        idempotencyKey: crypto.randomUUID(),
-      });
-      if (!result.ok) {
-        setFailure(result.error.message);
+      try {
+        const result = await updateGithubConnectionAction({
+          ...changes,
+          connectionId: connection.id,
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The GitHub connection could not be updated. Try again.");
       }
     });
 
   const rotate = () =>
     startTransition(async () => {
-      setFailure(null);
-      const result = await rotateGithubSecretAction({
-        connectionId: connection.id,
-      });
-      if (!result.ok) {
-        setFailure(result.error.message);
-        return;
+      try {
+        const result = await rotateGithubSecretAction({
+          connectionId: connection.id,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        setSecret(result.data.secret);
+      } catch {
+        toast.error("The GitHub secret could not be generated. Try again.");
       }
-      setSecret(result.data.secret);
     });
 
   return (
@@ -89,7 +95,6 @@ export const GithubConnectionCard = ({
             secret={secret}
           />
         ) : null}
-        {failure ? <p role="alert">{failure}</p> : null}
         <div className="row">
           <WorkspaceButton
             aria-busy={pending || undefined}

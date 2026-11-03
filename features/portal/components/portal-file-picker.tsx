@@ -7,6 +7,7 @@
 import { FilePdf, FileVideo, UploadSimple, X } from "@phosphor-icons/react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { DragEvent } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
@@ -68,6 +69,9 @@ const PortalFilePicker = ({
   const add = (incoming: readonly File[]) => {
     const result = acceptFiles(files, incoming, slots);
     setProblems(result.problems);
+    if (result.problems.length > 0) {
+      toast.error(result.problems.join(" "));
+    }
     onChange(result.files);
   };
 
@@ -127,7 +131,7 @@ const PortalFilePicker = ({
         Images, PDF or MP4. Up to 10 MB each, {slots} more allowed.
       </p>
       {problems.length > 0 ? (
-        <ul className="portal-problems" id={problemsId} role="alert">
+        <ul className="sr-only" id={problemsId}>
           {problems.map((problem) => (
             <li key={problem}>{problem}</li>
           ))}

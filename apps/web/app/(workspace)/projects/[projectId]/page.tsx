@@ -53,7 +53,7 @@ const ProjectPage = ({
             <DynamicMetadataMarker />
           </Suspense>
         </SectionErrorBoundary>
-        <SectionErrorBoundary title="Project details couldn't load">
+        <SectionErrorBoundary title="Project details couldn't load" variant="page">
           <SuspenseReveal fallback={<ProjectHeaderSkeleton />}>
             {/* oxlint-disable-next-line promise/prefer-await-to-then -- Route values resolve inside the boundary. */}
             {route.then(({ projectId, query }) => (

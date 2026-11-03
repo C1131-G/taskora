@@ -1,5 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -34,14 +35,20 @@ const MemberHeader = async ({
     getPageSession(),
   ]);
   return (
-    <MemberProfileHeader
-      canManageMembers={
-        session.kind === "authenticated" && session.user.role === "admin"
-      }
-      employee={employee}
-      projects={projectsResult.ok ? projectsResult.data : []}
-      teams={teamsResult.ok ? teamsResult.data : []}
-    />
+    <>
+      <ErrorToast
+        message={projectsResult.ok ? null : projectsResult.error.message}
+      />
+      <ErrorToast message={teamsResult.ok ? null : teamsResult.error.message} />
+      <MemberProfileHeader
+        canManageMembers={
+          session.kind === "authenticated" && session.user.role === "admin"
+        }
+        employee={employee}
+        projects={projectsResult.ok ? projectsResult.data : []}
+        teams={teamsResult.ok ? teamsResult.data : []}
+      />
+    </>
   );
 };
 
@@ -97,19 +104,27 @@ const MemberWork = async ({
   const employees = employeesResult.ok ? employeesResult.data : [];
 
   return (
-    <MemberProfileWork
-      activities={activityResult.ok ? activityResult.data : []}
-      completedTasks={completedTasks}
-      employee={employee}
-      employees={employees.map(({ id, name }) => ({ id, name }))}
-      isAdmin={
-        session.kind === "authenticated" && session.user.role === "admin"
-      }
-      openTasks={openTasks}
-      projects={projects}
-      tab={tab}
-      viewerId={session.kind === "authenticated" ? session.user.id : null}
-    />
+    <>
+      <ErrorToast
+        message={employeesResult.ok ? null : employeesResult.error.message}
+      />
+      <ErrorToast
+        message={activityResult.ok ? null : activityResult.error.message}
+      />
+      <MemberProfileWork
+        activities={activityResult.ok ? activityResult.data : []}
+        completedTasks={completedTasks}
+        employee={employee}
+        employees={employees.map(({ id, name }) => ({ id, name }))}
+        isAdmin={
+          session.kind === "authenticated" && session.user.role === "admin"
+        }
+        openTasks={openTasks}
+        projects={projects}
+        tab={tab}
+        viewerId={session.kind === "authenticated" ? session.user.id : null}
+      />
+    </>
   );
 };
 

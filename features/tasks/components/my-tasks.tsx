@@ -1,6 +1,7 @@
 /* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import { ErrorToast } from "@/components/workspace/error-toast";
+import { TaskTableSkeleton } from "@/components/workspace/task-table-skeleton";
 import { calendarPeriod } from "@/features/calendar/calendar-params";
 import type { CalendarMode } from "@/features/calendar/calendar-params";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";
@@ -103,6 +104,13 @@ const MyTasks = async ({
           version: task.version,
         }))}
       >
+        <ErrorToast
+          message={employeeResult.ok ? null : employeeResult.error.message}
+        />
+        <ErrorToast
+          message={preferences.ok ? null : preferences.error.message}
+        />
+        <ErrorToast message={personal.ok ? null : personal.error.message} />
         <MyTasksWorkspace
           calendarMode={calendarMode}
           calendarProjects={calendarProjects}
@@ -122,7 +130,7 @@ const MyTasks = async ({
   );
 };
 
-// The subtitle summarizes due tasks, so the skeleton reserves its line.
+// The loading state is the real page frame: header, filter bar and the table with grouped rows.
 const MyTasksSkeleton = () => (
   <>
     <div className="ph my-tasks-header">
@@ -131,7 +139,7 @@ const MyTasksSkeleton = () => (
         <p aria-hidden="true">&nbsp;</p>
       </div>
     </div>
-    <PanelSkeleton variant="tasks" label="Loading your tasks…" rows={5} />
+    <TaskTableSkeleton />
   </>
 );
 

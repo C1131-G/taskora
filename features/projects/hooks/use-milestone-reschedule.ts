@@ -1,6 +1,7 @@
 "use client";
 
 import { useOptimistic, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import type { MilestoneRecord } from "@/features/projects/milestone-dates";
 import { withMilestoneDate } from "@/features/projects/milestone-dates";
@@ -15,7 +16,6 @@ export const useMilestoneReschedule = (
   lanes: readonly TimelineMilestoneLane[]
 ) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const knownVersions = useRef(new Map<string, number>());
   const latestLists = useRef(new Map<string, readonly MilestoneRecord[]>());
@@ -55,26 +55,34 @@ export const useMilestoneReschedule = (
       lane.version,
       knownVersions.current.get(lane.projectId) ?? 0
     );
-    const result = await saveProjectMilestonesAction({
-      expectedVersion,
-      idempotencyKey: crypto.randomUUID(),
-      milestones: list.map(({ completed, dueDate: due, id, name: label }) => ({
-        completed,
-        dueDate: due,
-        id,
-        name: label,
-      })),
-      projectId: lane.projectId,
-    });
-    if (!result.ok) {
+    try {
+      const result = await saveProjectMilestonesAction({
+        expectedVersion,
+        idempotencyKey: crypto.randomUUID(),
+        milestones: list.map(
+          ({ completed, dueDate: due, id, name: label }) => ({
+            completed,
+            dueDate: due,
+            id,
+            name: label,
+          })
+        ),
+        projectId: lane.projectId,
+      });
+      if (!result.ok) {
+        latestLists.current.delete(lane.projectId);
+        toast.error(result.error.message);
+        setAnnouncement(`${name} was not moved. ${result.error.message}`);
+        return;
+      }
+      knownVersions.current.set(lane.projectId, result.data.version);
+      setAnnouncement(`${name} moved to ${dueDate}.`);
+    } catch {
       latestLists.current.delete(lane.projectId);
-      setError(result.error.message);
-      setAnnouncement(`${name} was not moved. ${result.error.message}`);
-      return;
+      const message = "The milestone could not be rescheduled. Try again.";
+      toast.error(message);
+      setAnnouncement(`${name} was not moved. ${message}`);
     }
-    knownVersions.current.set(lane.projectId, result.data.version);
-    setError(null);
-    setAnnouncement(`${name} moved to ${dueDate}.`);
   };
 
   const sendAfter = async (
@@ -130,5 +138,5 @@ export const useMilestoneReschedule = (
     });
   };
 
-  return { announcement, error, lanes: optimisticLanes, move, pending };
+  return { announcement, lanes: optimisticLanes, move, pending };
 };

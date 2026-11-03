@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Notifications | Taskora" };
 const Page = () => (
   <PageTransition>
     <div className="page portal-narrow">
-      <SectionErrorBoundary title="Notifications couldn't load">
+      <SectionErrorBoundary title="Notifications couldn't load" variant="page">
         <SuspenseReveal fallback={<PortalNotificationsSkeleton />}>
           <PortalNotifications />
         </SuspenseReveal>

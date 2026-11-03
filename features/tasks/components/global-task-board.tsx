@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useOptimistic, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { FavoriteToggle } from "@/features/discovery/components/favorite-toggle";
@@ -36,6 +37,18 @@ const TASK_STATUSES = [
   { id: "done", label: "Done" },
 ] as const;
 
+// Keep drag highlights outside React so re-renders do not cancel a drag.
+const clearOver = () => {
+  for (const card of document.querySelectorAll(".gt-card.is-dragging")) {
+    card.classList.remove("is-dragging");
+  }
+  for (const column of document.querySelectorAll(
+    ".global-task-board .is-over"
+  )) {
+    column.classList.remove("is-over");
+  }
+};
+
 export const GlobalTaskBoard = ({
   taskGroups,
   favoriteTaskIds,
@@ -54,9 +67,10 @@ export const GlobalTaskBoard = ({
   readonly onToggle: (taskId: string, checked: boolean) => void;
 }) => {
   const draggedTaskId = useRef<string | null>(null);
+  // The card that was just dropped plays a short settle animation in its new column.
+  const [droppedId, setDroppedId] = useState<string | null>(null);
   const moveInFlight = useRef(false);
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   // A dropped card sits in its new column at once; a refused move falls back.
   const [tasks, showMove] = useOptimistic(
     taskGroups.flatMap((group) => group.tasks),
@@ -71,6 +85,16 @@ export const GlobalTaskBoard = ({
     if (!task || task.status === status) {
       return;
     }
+    const mayMove =
+      isAdmin ||
+      task.createdById === userId ||
+      task.assigneeIds.includes(userId ?? "");
+    if (!mayMove) {
+      toast.error("You don't have access to move this task.");
+      return;
+    }
+    setDroppedId(task.id);
+    window.setTimeout(() => setDroppedId(null), 900);
     moveInFlight.current = true;
     startTransition(async () => {
       showMove({ status, taskId: task.id });
@@ -81,13 +105,11 @@ export const GlobalTaskBoard = ({
           status,
           taskId: task.id,
         });
-        if (result.ok) {
-          setError(null);
-        } else {
-          setError(result.error.message);
+        if (!result.ok) {
+          toast.error(result.error.message);
         }
       } catch {
-        setError("Task could not be moved. Try again.");
+        toast.error("Task could not be moved. Try again.");
       }
       moveInFlight.current = false;
     });
@@ -95,11 +117,6 @@ export const GlobalTaskBoard = ({
 
   return (
     <div className="project-board-wrap global-task-board-wrap">
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <div aria-busy={pending} className="board global-task-board">
         {TASK_STATUSES.map((status) => {
           const statusTasks = tasks.filter((task) => task.status === status.id);
@@ -116,9 +133,23 @@ export const GlobalTaskBoard = ({
               </header>
               <div
                 className="bcol-b"
-                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={(event) => {
+                  if (
+                    !event.currentTarget.contains(event.relatedTarget as Node)
+                  ) {
+                    event.currentTarget.parentElement?.classList.remove(
+                      "is-over"
+                    );
+                  }
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  event.currentTarget.parentElement?.classList.add("is-over");
+                }}
                 onDrop={(event) => {
                   event.preventDefault();
+                  clearOver();
                   moveTask(status.id);
                 }}
               >
@@ -130,16 +161,31 @@ export const GlobalTaskBoard = ({
                   return (
                     <BoardCardTransition key={task.id} taskId={task.id}>
                       <article
-                        className={`kcard${task.status === "done" ? " done" : ""}`}
+                        className={`kcard gt-card${task.status === "done" ? " done" : ""}${droppedId === task.id ? " just-dropped" : ""}${canEdit ? "" : " is-locked"}`}
                         draggable={canEdit && !pending}
-                        onDragEnd={() => {
+                        title={
+                          canEdit
+                            ? undefined
+                            : "You don't have access to move this task"
+                        }
+                        onDragEnd={(event) => {
                           draggedTaskId.current = null;
+                          event.currentTarget.classList.remove("is-dragging");
+                          clearOver();
                         }}
-                        onDragStart={() => {
+                        onDragStart={(event) => {
                           draggedTaskId.current = task.id;
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", task.id);
+                          const card = event.currentTarget;
+                          // After the browser has taken its drag image.
+                          window.setTimeout(
+                            () => card.classList.add("is-dragging"),
+                            0
+                          );
                         }}
                       >
-                        <div className="top">
+                        <div className="gt-card-top">
                           <Checkbox
                             aria-label={`Select ${task.title}`}
                             checked={selectedIds.has(task.id)}
@@ -150,51 +196,77 @@ export const GlobalTaskBoard = ({
                           <span className="key">
                             {task.projectKey}-{task.projectTaskNumber}
                           </span>
-                          <h3 className="title">
-                            <Link
-                              href={`/projects/${task.projectId}?view=board`}
-                            >
-                              {task.title}
-                            </Link>
-                          </h3>
+                          <span className="gt-card-actions">
+                            <FavoriteToggle
+                              id={task.id}
+                              initialFavorite={favoriteTaskIds.has(task.id)}
+                              kind="task"
+                            />
+                            <TaskManageControls
+                              canEdit={canEdit}
+                              currentUserId={userId}
+                              employees={employees}
+                              isAdmin={isAdmin}
+                              task={task}
+                            />
+                          </span>
                         </div>
-                        <div className="meta">
-                          <span className="m">{task.projectName}</span>
-                          <span className="m">{task.priority}</span>
+                        <h3 className="title gt-card-title">
+                          <Link href={`/projects/${task.projectId}?view=board`}>
+                            {task.title}
+                          </Link>
+                        </h3>
+                        <p className="gt-card-project">{task.projectName}</p>
+                        <div className="gt-card-meta">
+                          {task.priority === "none" ? null : (
+                            <span
+                              className={`mtt-priority prio-${task.priority}`}
+                            >
+                              {task.priority}
+                            </span>
+                          )}
                           {task.dueDate ? (
-                            <span className="m">{task.dueDate}</span>
+                            <time
+                              className="gt-card-due"
+                              dateTime={task.dueDate}
+                            >
+                              {task.dueDate}
+                            </time>
                           ) : null}
-                          <span className="m">
-                            {task.assignees
-                              .map(({ name }) => name)
-                              .join(", ") || "Unassigned"}
+                          <span className="sp" />
+                          <span
+                            className="gt-card-people"
+                            title={
+                              task.assignees
+                                .map(({ name }) => name)
+                                .join(", ") || "Unassigned"
+                            }
+                          >
+                            {task.assignees.slice(0, 3).map((assignee) => (
+                              <span
+                                aria-hidden="true"
+                                className="gt-avatar"
+                                key={assignee.id}
+                              >
+                                {assignee.name.slice(0, 1).toUpperCase()}
+                              </span>
+                            ))}
+                            <span className="sr-only">
+                              {task.assignees
+                                .map(({ name }) => name)
+                                .join(", ") || "Unassigned"}
+                            </span>
                           </span>
                         </div>
                         {canEdit ? (
-                          <TaskStatusSelect
-                            status={task.status}
-                            taskId={task.id}
-                            version={task.version}
-                          />
-                        ) : (
-                          <span className={`pstatus ${task.status}`}>
-                            {task.status}
-                          </span>
-                        )}
-                        <div className="c-meta row">
-                          <FavoriteToggle
-                            id={task.id}
-                            initialFavorite={favoriteTaskIds.has(task.id)}
-                            kind="task"
-                          />
-                          <TaskManageControls
-                            canEdit={canEdit}
-                            currentUserId={userId}
-                            employees={employees}
-                            isAdmin={isAdmin}
-                            task={task}
-                          />
-                        </div>
+                          <div className="gt-card-status">
+                            <TaskStatusSelect
+                              status={task.status}
+                              taskId={task.id}
+                              version={task.version}
+                            />
+                          </div>
+                        ) : null}
                       </article>
                     </BoardCardTransition>
                   );

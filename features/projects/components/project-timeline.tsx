@@ -2,6 +2,7 @@
 
 import { CaretDown } from "@phosphor-icons/react/dist/ssr";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -101,6 +102,19 @@ const ProjectTimeline = async ({
         version: task.version,
       }))}
     >
+      <ErrorToast
+        message={peopleResult.ok ? null : peopleResult.error.message}
+      />
+      <ErrorToast
+        message={projectResult.ok ? null : projectResult.error.message}
+      />
+      <ErrorToast
+        message={
+          milestoneResults.some(({ result: milestone }) => !milestone.ok)
+            ? "Some project milestones could not be loaded."
+            : null
+        }
+      />
       <WorkspaceTimeline
         editableTaskIds={editableTaskIds}
         employees={employees}

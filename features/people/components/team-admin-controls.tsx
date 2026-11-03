@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -13,6 +13,7 @@ import {
   deleteTeamAction,
   updateTeamAction,
 } from "@/features/people/people-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface Team {
   readonly id: string;
@@ -29,8 +30,9 @@ export const TeamAdminControls = ({
   readonly team: Team;
   readonly triggerLabel?: string;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The team could not be updated. Try again."
+  );
 
   const save = (formData: FormData) =>
     startTransition(async () => {
@@ -44,10 +46,8 @@ export const TeamAdminControls = ({
         teamId: team.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   const remove = () =>
@@ -57,7 +57,7 @@ export const TeamAdminControls = ({
         teamId: team.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
       }
     });
 
@@ -117,11 +117,6 @@ export const TeamAdminControls = ({
           </WorkspaceButton>
         </form>
         <p className="muted">{team.memberCount} members</p>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
         <WorkspaceConfirmDialog
           confirmLabel="Delete team"
           description={`Delete the ${team.name} team? This cannot be undone.`}

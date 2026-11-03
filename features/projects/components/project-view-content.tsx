@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import type { listActivity } from "@/features/activity/activity-queries";
 import { ProjectActivityFeed } from "@/features/activity/components/project-activity-feed";
 import { ProjectApprovals } from "@/features/approvals/components/project-approvals";
@@ -59,11 +60,7 @@ const ProjectFileView = ({
       />
     );
   }
-  return (
-    <section className="panel panel-b" role="alert">
-      Project files could not be loaded.
-    </section>
-  );
+  return <ErrorToast message="Project files could not be loaded." />;
 };
 
 type ProjectTaskActionResult = Awaited<ReturnType<typeof listProjectTasks>>;
@@ -161,17 +158,10 @@ const renderProjectBoard = ({
   tasks,
 }: ProjectViewContentProps): ReactNode => {
   if (!taskResult?.ok) {
-    return (
-      <section className="panel panel-b" role="alert">
-        Tasks could not be loaded.
-      </section>
-    );
+    return <ErrorToast message="Tasks could not be loaded." />;
   }
   return (
     <>
-      <div className="project-task-create-action">
-        <TaskCreateForm projectId={project.id} />
-      </div>
       <ProjectBoard
         currentUserId={currentUserId}
         employees={employees}
@@ -179,6 +169,7 @@ const renderProjectBoard = ({
         labels={labelResult.ok ? labelResult.data : []}
         projectKey={project.key}
         tasks={tasks}
+        toolbarAction={<TaskCreateForm projectId={project.id} />}
       />
     </>
   );
@@ -193,14 +184,25 @@ const renderProjectFiles = ({
   if (!fileResult) {
     return null;
   }
+  // Same card as a project on the Files page: a title row with the count.
   return (
-    <ProjectFileView
-      canUpload={isAdmin}
-      currentUserId={currentUserId}
-      isAdmin={isAdmin}
-      projectId={project.id}
-      result={fileResult}
-    />
+    <section className="stack file-project">
+      <div className="row">
+        <h2>
+          Files
+          {fileResult.ok ? (
+            <span className="file-count">{fileResult.data.length}</span>
+          ) : null}
+        </h2>
+      </div>
+      <ProjectFileView
+        canUpload={isAdmin}
+        currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        projectId={project.id}
+        result={fileResult}
+      />
+    </section>
   );
 };
 
@@ -241,11 +243,7 @@ const renderProjectAutomations = ({
   runResult,
 }: ProjectViewContentProps): ReactNode => {
   if (!isAdmin || !automationResult || !runResult) {
-    return (
-      <section className="panel panel-b" role="alert">
-        Only administrators can manage automations.
-      </section>
-    );
+    return <ErrorToast message="Only administrators can manage automations." />;
   }
   return (
     <ProjectAutomations

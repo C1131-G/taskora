@@ -4,7 +4,8 @@
 
 import { DotsThree } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ import {
   archiveProjectAction,
   duplicateProjectAction,
 } from "@/features/projects/projects-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import type { ProjectListItem } from "@/src/server/projects/project-contracts";
 
 const ProjectListActions = ({
@@ -30,9 +32,10 @@ const ProjectListActions = ({
   readonly project: Pick<ProjectListItem, "id" | "key" | "name" | "version">;
 }) => {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The project action could not be completed. Try again."
+  );
   const [duplicateOpen, setDuplicateOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const duplicate = (formData: FormData) =>
     startTransition(async () => {
@@ -45,10 +48,9 @@ const ProjectListActions = ({
         sourceProjectId: project.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      setError(null);
       setDuplicateOpen(false);
       router.push(`/projects/${result.data.id}`, {
         transitionTypes: ["nav-forward"],
@@ -63,10 +65,8 @@ const ProjectListActions = ({
         projectId: project.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   return (
@@ -141,11 +141,6 @@ const ProjectListActions = ({
               required
             />
           </label>
-          {error ? (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          ) : null}
           <div className="acts">
             <WorkspaceButton
               className="btn btn-primary"
@@ -157,11 +152,6 @@ const ProjectListActions = ({
           </div>
         </form>
       </WorkspaceModal>
-      {error && !duplicateOpen ? (
-        <p className="error project-action-error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 };

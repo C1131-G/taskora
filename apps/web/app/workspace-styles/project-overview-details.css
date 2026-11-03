@@ -159,3 +159,43 @@
     grid-template-columns: minmax(60px, 0.6fr) minmax(0, 1.4fr);
   }
 }
+
+/* readable recent activity, with room on the left */
+.workspace-app .project-overview-activity {
+  padding: 0 16px 10px;
+}
+.workspace-app .project-overview-activity li {
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+}
+.workspace-app .project-overview-activity li time {
+  color: var(--text-3);
+  grid-column: 2;
+  margin-top: -6px;
+}
+.workspace-app .project-overview-activity .project-overview-avatar {
+  height: 30px;
+  width: 30px;
+}
+.workspace-app .project-overview-activity-copy p {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  margin: 0 0 2px;
+}
+.workspace-app .project-overview-activity-copy .muted {
+  color: var(--text-3);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .project-overview-empty {
+  padding: 14px 16px;
+}
+.workspace-app .project-overview .panel > .panel-h,
+.workspace-app .project-upcoming-list,
+.workspace-app .project-status-breakdown {
+  padding-left: 16px;
+}

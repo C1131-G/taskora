@@ -1,0 +1,179 @@
+/* Project time: budget panel, date-range bar, summary tiles and report tables. */
+.workspace-app .project-time {
+  gap: 16px;
+}
+
+/* date range bar */
+.workspace-app .project-time .time-range {
+  align-items: flex-end;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  gap: 12px;
+  padding: 12px 14px;
+}
+.workspace-app .project-time .time-range .field {
+  gap: 4px;
+  width: 170px;
+}
+.workspace-app .project-time .time-range label {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app .project-time .time-range .input,
+.workspace-app .project-time .time-range .btn,
+.workspace-app .project-time .time-range [data-slot="button"] {
+  border-radius: var(--r-sm);
+  height: 36px;
+  min-height: 36px;
+}
+.workspace-app .project-time .time-range > .btn:first-of-type {
+  margin-left: auto;
+}
+
+/* summary tiles */
+.workspace-app .project-time .time-summary {
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.workspace-app .project-time .time-summary > div {
+  background: var(--surface);
+  border-radius: 0;
+  gap: 6px;
+  margin-left: -1px;
+  padding: 16px 18px;
+}
+.workspace-app .project-time .time-summary > div:first-child {
+  border-radius: var(--r) 0 0 var(--r);
+  margin-left: 0;
+}
+.workspace-app .project-time .time-summary > div:last-child {
+  border-radius: 0 var(--r) var(--r) 0;
+}
+.workspace-app .project-time .time-summary dt {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app .project-time .time-summary dd {
+  font-size: var(--fs-2xl);
+  font-weight: 650;
+}
+.workspace-app .project-time .time-summary > div:nth-child(2) dd {
+  color: var(--st-done);
+}
+
+/* report tables */
+.workspace-app .project-time section[aria-label] > h2 {
+  font-size: var(--fs);
+  font-weight: 650;
+}
+.workspace-app .project-time .tbl-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.workspace-app .project-time .time-table {
+  width: 100%;
+}
+.workspace-app .project-time .time-table th {
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 11px 16px;
+}
+.workspace-app .project-time .time-table td {
+  font-size: var(--fs-sm);
+  padding: 12px 16px;
+}
+.workspace-app .project-time .time-table th:nth-child(n + 2),
+.workspace-app .project-time .time-table td:nth-child(n + 2) {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  width: 130px;
+}
+.workspace-app .project-time .time-table tbody tr:hover {
+  background: var(--surface-2);
+}
+.workspace-app .project-time .time-table td strong {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  margin-right: 6px;
+}
+@media (max-width: 640px) {
+  .workspace-app .project-time .time-range .field {
+    flex: 1 1 140px;
+    width: auto;
+  }
+  .workspace-app .project-time .time-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .project-time .time-summary > div,
+  .workspace-app .project-time .time-summary > div:first-child,
+  .workspace-app .project-time .time-summary > div:last-child {
+    border-radius: var(--r);
+    margin: 0 0 8px;
+  }
+}
+
+/* budget panel above the report */
+.workspace-app .page > [aria-labelledby^="budget-"],
+.workspace-app .page > [aria-labelledby^="budget-"] + * {
+  margin-top: 16px;
+}
+.workspace-app .page > [aria-labelledby^="budget-"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.workspace-app .page > [aria-labelledby^="budget-"] > .panel-h {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+}
+.workspace-app [aria-labelledby^="budget-"] > :not(.panel-h) {
+  margin-inline: 16px;
+}
+.workspace-app [aria-labelledby^="budget-"] > .budget-burn {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+.workspace-app [aria-labelledby^="budget-"] .budget-burn-head {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+.workspace-app [aria-labelledby^="budget-"] .budget-numbers {
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  margin: 0;
+  padding: 12px 14px;
+}
+.workspace-app [aria-labelledby^="budget-"] .budget-numbers dt {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app [aria-labelledby^="budget-"] .budget-numbers dd {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  margin: 2px 0 0;
+}
+.workspace-app [aria-labelledby^="budget-"] .budget-note {
+  margin-block: 0 14px;
+}
+.workspace-app [aria-labelledby^="budget-"] > .muted:not(.budget-note) {
+  margin-block: 14px;
+}

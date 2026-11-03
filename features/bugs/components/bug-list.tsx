@@ -146,6 +146,8 @@ export const BugCard = ({
         <Button
           className="bug-open-drawer"
           onClick={() => drawer.openTask(bug.taskId)}
+          onFocus={() => drawer.prefetchTask(bug.taskId)}
+          onPointerEnter={() => drawer.prefetchTask(bug.taskId)}
           size="sm"
           type="button"
           variant="outline"

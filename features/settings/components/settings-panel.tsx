@@ -2,6 +2,7 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { listAllClientCompanies } from "@/features/clients/clients-queries";
 import { getAvatarDownloadUrl } from "@/features/files/files-queries";
 import { IntakeFormsPanel } from "@/features/intake/components/intake-forms-panel";
@@ -43,8 +44,14 @@ const getIntakePanel = (
   intakeForms: Awaited<ReturnType<typeof listIntakeForms>> | null,
   companies: Awaited<ReturnType<typeof listAllClientCompanies>> | null,
   projects: Awaited<ReturnType<typeof listAllProjects>> | null
-) =>
-  intakeForms?.ok && companies?.ok && projects?.ok ? (
+) => {
+  if (!intakeForms || !companies || !projects) {
+    return null;
+  }
+  if (!intakeForms.ok || !companies.ok || !projects.ok) {
+    return <ErrorToast message="Intake forms could not be loaded." />;
+  }
+  return (
     <IntakeFormsPanel
       companies={companies.data.flatMap(({ active, id, name }) =>
         active ? [{ id, label: name }] : []
@@ -55,9 +62,26 @@ const getIntakePanel = (
         label: `${key} ${name}`,
       }))}
     />
-  ) : (
-    <div className="panel-b muted">Intake forms could not be loaded.</div>
   );
+};
+
+const getSlaPanel = (
+  sla: Awaited<ReturnType<typeof getSlaSettings>> | null
+) => {
+  if (!sla) {
+    return null;
+  }
+  if (!sla.ok) {
+    return <ErrorToast message={sla.error.message} />;
+  }
+  return (
+    <SlaSettingsForm
+      key={JSON.stringify(sla.data)}
+      timeZones={listTimeZones()}
+      values={sla.data}
+    />
+  );
+};
 
 const getNotificationPanel = (
   notificationPrefs: Awaited<ReturnType<typeof getNotificationPreferences>>,
@@ -65,22 +89,18 @@ const getNotificationPanel = (
   calendarFeed: Awaited<ReturnType<typeof getCalendarFeedStatus>>
 ) => (
   <>
-    {notificationPrefs.ok ? (
+    {notificationPrefs.ok && emailSettings.ok ? (
       <NotificationPreferencesForm
-        emailDigest={emailSettings.ok ? emailSettings.data.digest : false}
+        emailDigest={emailSettings.data.digest}
         values={notificationPrefs.data}
       />
     ) : (
-      <div className="panel-b muted">
-        Notification preferences could not be loaded.
-      </div>
+      <ErrorToast message="Notification preferences could not be loaded." />
     )}
     {calendarFeed.ok ? (
       <CalendarFeedCard status={calendarFeed.data} />
     ) : (
-      <div className="panel-b muted">
-        The calendar feed could not be loaded.
-      </div>
+      <ErrorToast message="The calendar feed could not be loaded." />
     )}
   </>
 );
@@ -136,12 +156,15 @@ const SettingsPanel = async ({
         preferences.ok ? (
           <PreferencesForm values={preferences.data} />
         ) : (
-          <div className="panel-b muted">Preferences could not be loaded.</div>
+          <ErrorToast message={preferences.error.message} />
         )
       }
       profile={
         employee ? (
           <div className="stack">
+            <ErrorToast
+              message={avatar && !avatar.ok ? avatar.error.message : null}
+            />
             <div className="panel-b">
               <AvatarUpload
                 initialUrl={avatar?.ok ? avatar.data : null}
@@ -151,34 +174,28 @@ const SettingsPanel = async ({
             <ProfileForm name={employee.name} />
           </div>
         ) : (
-          <div className="panel-b muted">Profile details are unavailable.</div>
-        )
-      }
-      sla={
-        sla?.ok ? (
-          <SlaSettingsForm
-            key={JSON.stringify(sla.data)}
-            timeZones={listTimeZones()}
-            values={sla.data}
+          <ErrorToast
+            message={
+              employees.ok
+                ? "Profile details are unavailable."
+                : employees.error.message
+            }
           />
-        ) : (
-          <div className="panel-b muted">SLA settings could not be loaded.</div>
         )
       }
+      sla={getSlaPanel(sla)}
       sessions={
         sessions.ok ? (
           <SessionList sessions={sessions.data} />
         ) : (
-          <div className="panel-b muted">Sessions could not be loaded.</div>
+          <ErrorToast message={sessions.error.message} />
         )
       }
       workspace={
         company.ok ? (
           <CompanySettingsForm values={company.data} />
         ) : (
-          <div className="panel-b muted">
-            Workspace settings could not be loaded.
-          </div>
+          <ErrorToast message={company.error.message} />
         )
       }
     />

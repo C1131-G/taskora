@@ -7,6 +7,7 @@
 import { PencilSimple, ArrowUUpLeft } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -24,12 +25,10 @@ const PortalBugManage = ({
   readonly children: ReactNode;
 }) => {
   const [editing, setEditing] = useState(false);
-  const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
   const withdraw = () =>
     startTransition(async () => {
-      setError("");
       try {
         const result = await withdrawClientBugAction({
           bugId: bug.id,
@@ -39,13 +38,13 @@ const PortalBugManage = ({
         if (result.ok) {
           return;
         }
-        setError(
+        toast.error(
           result.error.code === "CONFLICT"
             ? "This bug changed while you were looking at it. Reload the page and try again."
             : result.error.message
         );
       } catch {
-        setError("The bug could not be withdrawn. Try again.");
+        toast.error("The bug could not be withdrawn. Try again.");
       }
     });
 
@@ -83,11 +82,6 @@ const PortalBugManage = ({
             </WorkspaceConfirmDialog>
           ) : null}
         </div>
-      ) : null}
-      {error ? (
-        <p className="portal-form-error" role="alert">
-          {error}
-        </p>
       ) : null}
       {editing ? (
         <section aria-label="Edit bug" className="panel portal-panel">

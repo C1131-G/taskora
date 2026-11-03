@@ -1,0 +1,813 @@
+/* My Tasks table: a real <table> with visible row and column rules, grouped by due date. */
+.workspace-app .mtt-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin-top: 12px;
+  overflow-x: auto;
+}
+.workspace-app .mtt {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+.workspace-app .mtt-col-task {
+  width: auto;
+}
+.workspace-app .mtt-col-project {
+  width: 15%;
+}
+.workspace-app .mtt-col-status {
+  width: 128px;
+}
+.workspace-app .mtt-col-priority {
+  width: 96px;
+}
+.workspace-app .mtt-col-due {
+  width: 116px;
+}
+.workspace-app .mtt-col-actions {
+  width: 112px;
+}
+.workspace-app .mtt thead th {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+.workspace-app .mtt thead th + th,
+.workspace-app .mtt .mtt-row td + td {
+  border-left: 1px solid var(--border);
+}
+/* every column but the task title is centred, header and cells alike */
+.workspace-app .mtt thead th:not(:first-child),
+.workspace-app .mtt .mtt-row td:not(.mtt-task) {
+  text-align: center;
+}
+
+/* group header rows */
+.workspace-app .mtt .mtt-group th {
+  background: var(--sunken);
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  box-shadow: inset 3px 0 0 var(--text-4);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 9px 12px;
+  text-align: left;
+}
+.workspace-app .mtt .mtt-group th span {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-2xs);
+  margin-left: 6px;
+  padding: 2px 7px;
+}
+.workspace-app .mtt .is-overdue .mtt-group th {
+  box-shadow: inset 3px 0 0 var(--red);
+  color: var(--red);
+}
+.workspace-app .mtt .is-today .mtt-group th {
+  box-shadow: inset 3px 0 0 var(--st-progress);
+}
+.workspace-app .mtt .is-upcoming .mtt-group th {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.workspace-app .mtt .is-completed .mtt-group th {
+  box-shadow: inset 3px 0 0 var(--st-done);
+}
+.workspace-app .mtt .is-completed .mtt-title {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+/* data rows */
+.workspace-app .mtt .mtt-row td {
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  height: 56px;
+  overflow: hidden;
+  padding: 6px 12px;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.workspace-app .mtt .mtt-row:hover td {
+  background: var(--surface-2);
+}
+.workspace-app .mtt .mtt-row:focus-within td {
+  background: var(--accent-soft);
+}
+.workspace-app .mtt .mtt-task-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.workspace-app .mtt .mtt-key {
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.02em;
+}
+.workspace-app .mtt .mtt-title {
+  color: var(--text);
+  display: block;
+  font-size: var(--fs);
+  font-weight: 600;
+  line-height: 1.35;
+  min-width: 0;
+  overflow: hidden;
+  text-decoration-color: var(--text-4);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .mtt .mtt-title:hover,
+.workspace-app .mtt .mtt-project:hover {
+  text-decoration: underline;
+}
+.workspace-app .mtt .mtt-project {
+  color: var(--text-2);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .mtt .mtt-title:focus-visible,
+.workspace-app .mtt .mtt-project:focus-visible {
+  border-radius: var(--r-xs);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* priority */
+.workspace-app .mtt .mtt-priority {
+  align-items: center;
+  color: var(--text-2);
+  display: inline-flex;
+  font-weight: 500;
+  gap: 7px;
+  text-transform: capitalize;
+}
+.workspace-app .mtt .mtt-priority::before {
+  background: var(--text-4);
+  border-radius: var(--r-full);
+  content: "";
+  height: 8px;
+  width: 8px;
+}
+.workspace-app .mtt .prio-urgent::before,
+.workspace-app .mtt .prio-high::before {
+  background: var(--red);
+}
+.workspace-app .mtt .prio-medium::before {
+  background: var(--st-progress);
+}
+.workspace-app .mtt .prio-low::before {
+  background: var(--st-done);
+}
+
+/* due date */
+.workspace-app .mtt .mtt-due {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.workspace-app .mtt .mtt-due.is-overdue {
+  color: var(--red);
+  font-weight: 600;
+}
+
+/* actions: three equal icon buttons, always visible and grouped */
+.workspace-app .mtt .mtt-actions-inner {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+.workspace-app .mtt .mtt-actions-inner .col,
+.workspace-app .mtt .mtt-actions-inner .task-manage {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+}
+.workspace-app .mtt .mtt-actions-inner .ibtn {
+  align-items: center;
+  border-radius: var(--r);
+  display: inline-flex;
+  height: 30px !important;
+  justify-content: center;
+  min-height: 30px !important;
+  min-width: 30px;
+  padding: 0 !important;
+  width: 30px;
+}
+.workspace-app .mtt .mtt-actions-inner .ibtn:hover {
+  background: var(--surface-3);
+}
+.workspace-app .mtt .mtt-actions-inner .ibtn svg {
+  height: 16px;
+  width: 16px;
+}
+
+/* narrow tablets: drop the project column and give its width to the title */
+@media (max-width: 900px) {
+  .workspace-app .mtt .mtt-col-project {
+    width: 0;
+  }
+  .workspace-app .mtt thead th:nth-child(2),
+  .workspace-app .mtt .mtt-row td:nth-child(2) {
+    display: none;
+  }
+}
+
+/* phone: each task becomes a labelled card */
+@media (max-width: 700px) {
+  .workspace-app .mtt-wrap {
+    background: transparent;
+    border: 0;
+    overflow: visible;
+  }
+  .workspace-app .mtt,
+  .workspace-app .mtt tbody,
+  .workspace-app .mtt tr,
+  .workspace-app .mtt td,
+  .workspace-app .mtt .mtt-group th {
+    display: block;
+  }
+  .workspace-app .mtt thead,
+  .workspace-app .mtt colgroup {
+    display: none;
+  }
+  .workspace-app .mtt .mtt-group th {
+    border-radius: var(--r);
+    margin-top: 12px;
+  }
+  .workspace-app .mtt .mtt-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    margin-top: 8px;
+    padding: 4px 0;
+  }
+  .workspace-app .mtt .mtt-row td,
+  .workspace-app .mtt .mtt-row td + td {
+    align-items: center;
+    border: 0;
+    display: flex;
+    gap: 12px;
+    height: auto;
+    justify-content: space-between;
+    min-height: 40px;
+  }
+  .workspace-app .mtt .mtt-row td:nth-child(2) {
+    display: flex;
+  }
+  .workspace-app .mtt .mtt-row td::before {
+    color: var(--text-3);
+    content: attr(data-label);
+    flex: 0 0 64px;
+    font-size: var(--fs-xs);
+  }
+  .workspace-app .mtt .mtt-row td.mtt-task {
+    border-bottom: 1px solid var(--border);
+  }
+  .workspace-app .mtt .mtt-row td.mtt-task::before {
+    display: none;
+  }
+  .workspace-app .mtt .mtt-task-inner {
+    width: 100%;
+  }
+  .workspace-app .mtt .mtt-row td.mtt-actions::before {
+    display: none;
+  }
+  .workspace-app .mtt .mtt-actions-inner {
+    width: 100%;
+  }
+}
+
+/* status: a clearly bordered dropdown with a coloured dot and chevron */
+.workspace-app .mtt .status-control-wrap,
+.workspace-app .mtt .status-control {
+  display: flex;
+  justify-content: center;
+}
+.workspace-app .mtt [data-slot="select-trigger"] {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  gap: 8px;
+  height: 30px;
+  justify-content: space-between;
+  min-height: 30px;
+  padding: 0 8px 0 10px !important;
+  width: 136px;
+}
+.workspace-app .mtt [data-slot="select-trigger"]::before {
+  background: var(--st-dot, var(--st-backlog));
+  border-radius: var(--r-full);
+  content: "";
+  flex: 0 0 auto;
+  height: 8px;
+  width: 8px;
+}
+.workspace-app .mtt [data-slot="select-trigger"] [data-slot="select-value"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .mtt [data-slot="select-trigger"] svg {
+  color: var(--text-3);
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+.workspace-app .mtt [data-slot="select-trigger"]:hover {
+  background: var(--surface-2);
+  border-color: var(--text-4);
+}
+.workspace-app .mtt [data-slot="select-trigger"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.workspace-app .mtt [data-slot="select-trigger"][data-state="open"] {
+  border-color: var(--accent);
+}
+.workspace-app .mtt [data-status="backlog"] {
+  --st-dot: var(--st-backlog);
+}
+.workspace-app .mtt [data-status="todo"] {
+  --st-dot: var(--st-todo);
+}
+.workspace-app .mtt [data-status="progress"] {
+  --st-dot: var(--st-progress);
+}
+.workspace-app .mtt [data-status="review"] {
+  --st-dot: var(--st-review);
+}
+.workspace-app .mtt [data-status="done"] {
+  --st-dot: var(--st-done);
+}
+.workspace-app .mtt-col-status {
+  width: 156px;
+}
+
+/* skeleton shares the table markup so nothing shifts when data arrives */
+.workspace-app .mtt-skeleton .skeleton-bone {
+  display: inline-block;
+}
+
+
+/* the page scrolls normally in the browser; the table just grows with its rows */
+.workspace-app .mtt-wrap {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.workspace-app .mtt thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.workspace-app .mtt-skeleton .skeleton-bone {
+  display: block;
+  margin-inline: auto;
+}
+.workspace-app .mtt-skeleton .mtt-task-inner .skeleton-bone {
+  margin-inline: 0;
+}
+.workspace-app .mtt-skeleton .mtt-task-inner .skeleton-bone:first-child {
+  width: 70%;
+}
+.workspace-app .mtt-skeleton .mtt-group .skeleton-bone {
+  margin-inline: 0;
+  width: 90px;
+}
+.workspace-app .mtt-skeleton .skeleton-control {
+  width: 136px;
+}
+.workspace-app .mtt-skeleton-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.workspace-app .mtt-skeleton-actions .skeleton-bone {
+  height: 20px;
+  margin: 0;
+  width: 20px;
+}
+
+/* the workspace Tasks page uses the same table with a select column and an assignee column */
+.workspace-app .mtt-col-select {
+  width: 44px;
+}
+.workspace-app .mtt-col-assignee {
+  width: 150px;
+}
+.workspace-app .mtt-global thead th:nth-child(2) {
+  text-align: left;
+}
+.workspace-app .mtt-global .mtt-assignees {
+  color: var(--text-2);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .mtt-global .mtt-row td:first-child,
+.workspace-app .mtt-global thead th:first-child {
+  padding-inline: 8px;
+}
+
+
+@media (max-width: 700px) {
+  .workspace-app .mtt-global .mtt-row td:nth-child(n) {
+    display: flex;
+  }
+  .workspace-app .mtt-global .mtt-row td:nth-child(1) {
+    display: none;
+  }
+}
+
+/* view switch on the Tasks page: a segmented control */
+.workspace-app .task-view-tabs {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: inline-flex;
+  gap: 2px;
+  margin: 10px 0 4px;
+  padding: 2px;
+  width: max-content;
+}
+.workspace-app .task-view-tabs > * {
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  height: 30px !important;
+  padding-inline: 14px !important;
+}
+
+/* narrow widths: the Project column folds into the key line under the title */
+.workspace-app .mtt-key-project {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .workspace-app .mtt-global .mtt-opt {
+    display: none;
+  }
+  .workspace-app .mtt-global .mtt-key-project {
+    display: inline;
+    font-family: inherit;
+  }
+}
+
+/* Tasks page: view switch with icons, and a clear selection bar */
+.workspace-app .task-view-tabs {
+  margin: 12px 0 10px;
+}
+.workspace-app .task-view-tabs > * {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+.workspace-app .global-task-selection-bar {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  gap: 14px;
+  margin: 0 0 12px;
+  min-height: 48px;
+  padding: 6px 14px;
+}
+.workspace-app .global-task-selection-bar label {
+  color: var(--text);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.workspace-app .global-task-selection-bar .selection-count {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding: 3px 10px;
+}
+.workspace-app .global-task-selection-bar.has-selection {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.workspace-app .global-task-selection-bar.has-selection .selection-count {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.workspace-app .global-task-selection-bar .sp {
+  flex: 1 1 auto;
+}
+
+/* one line: view switch, select all and the count share the same bar */
+.workspace-app .global-task-selection-bar {
+  flex-wrap: wrap;
+}
+.workspace-app .global-task-selection-bar .task-view-tabs {
+  background: var(--surface);
+  margin: 0;
+}
+.workspace-app .global-task-selection-bar .task-view-tabs + label {
+  border-left: 1px solid var(--border-strong);
+  margin-left: 4px;
+  padding-left: 16px;
+}
+
+/* Tasks board: clean cards, a clear drop column, and a lifted card while dragging */
+.workspace-app .global-task-board .bcol {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  transition:
+    background var(--dur),
+    border-color var(--dur);
+}
+.workspace-app .global-task-board .bcol.is-over {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.workspace-app .global-task-board .bcol-h {
+  font-weight: 650;
+  padding: 12px 14px 6px;
+}
+.workspace-app .global-task-board .bcol-b {
+  gap: 8px;
+  min-height: 120px;
+  padding: 8px;
+}
+.workspace-app .gt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  transition:
+    border-color var(--dur),
+    box-shadow var(--dur),
+    opacity var(--dur);
+}
+.workspace-app .gt-card:hover {
+  border-color: var(--border-strong);
+}
+.workspace-app .gt-card:active {
+  cursor: grabbing;
+}
+.workspace-app .gt-card.is-dragging {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-drag, 0 8px 20px rgb(0 0 0 / 35%));
+  opacity: 0.9;
+}
+/* after a drop the card is fully opaque again and settles with a short highlight */
+.workspace-app .gt-card.just-dropped {
+  animation: gt-dropped 0.9s ease-out;
+}
+@keyframes gt-dropped {
+  0% {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-line);
+    transform: scale(1.03);
+  }
+  60% {
+    transform: scale(1);
+  }
+  100% {
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-app .gt-card.just-dropped {
+    animation: none;
+  }
+}
+.workspace-app .gt-card.done .gt-card-title a {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+.workspace-app .gt-card-top {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+.workspace-app .gt-card-top .key {
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.02em;
+}
+.workspace-app .gt-card-actions {
+  align-items: center;
+  display: inline-flex;
+  margin-left: auto;
+}
+.workspace-app .gt-card-actions .ibtn {
+  height: 26px !important;
+  min-height: 26px !important;
+  min-width: 26px;
+  padding: 0 !important;
+  width: 26px;
+}
+@media (hover: hover) {
+  .workspace-app .gt-card-actions {
+    opacity: 0;
+    transition: opacity var(--dur);
+  }
+  .workspace-app .gt-card:hover .gt-card-actions,
+  .workspace-app .gt-card:focus-within .gt-card-actions {
+    opacity: 1;
+  }
+}
+.workspace-app .gt-card-title {
+  font-size: var(--fs);
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+.workspace-app .gt-card-title a {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.workspace-app .gt-card-project {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  margin: 0;
+  margin-top: -4px;
+}
+.workspace-app .gt-card-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.workspace-app .gt-card-meta .mtt-priority {
+  font-size: var(--fs-xs);
+}
+.workspace-app .gt-card-due {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+.workspace-app .gt-card-meta .sp {
+  flex: 1 1 auto;
+}
+.workspace-app .gt-card-people {
+  display: inline-flex;
+}
+.workspace-app .gt-avatar {
+  align-items: center;
+  background: var(--accent-soft);
+  border: 2px solid var(--surface);
+  border-radius: var(--r-full);
+  color: var(--text);
+  display: inline-flex;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+.workspace-app .gt-avatar + .gt-avatar {
+  margin-left: -6px;
+}
+/* the status picker is the keyboard alternative to dragging, shown only while a card has focus */
+.workspace-app .gt-card-status {
+  display: none;
+}
+.workspace-app .gt-card:focus-within .gt-card-status {
+  display: block;
+}
+
+/* dragging a card must never start a text selection */
+.workspace-app .gt-card {
+  -webkit-user-drag: element;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.workspace-app .gt-card * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* boards: the board scrolls inside the page, never under the sidebar, and each column header stays put */
+.workspace-app .project-board-wrap {
+  max-width: 100%;
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+.workspace-app .page.flush > .project-board-wrap,
+.workspace-app .page.flush > * {
+  min-width: 0;
+}
+.workspace-app .project-board-wrap > .board,
+.workspace-app .global-task-board {
+  align-items: stretch;
+  contain: paint;
+  height: calc(100dvh - 300px);
+  max-width: 100%;
+  min-height: 420px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.workspace-app .project-board-wrap > .board .bcol,
+.workspace-app .global-task-board .bcol {
+  max-height: 100%;
+}
+.workspace-app .project-board-wrap > .board .bcol-h,
+.workspace-app .global-task-board .bcol-h {
+  background: inherit;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.workspace-app .project-board-wrap > .board .bcol-b,
+.workspace-app .global-task-board .bcol-b {
+  overflow-y: auto;
+}
+
+/* column body fills the column and scrolls inside it, so the header above it stays in place */
+.workspace-app .project-board-wrap > .board .bcol,
+.workspace-app .global-task-board .bcol {
+  height: 100%;
+  overflow: hidden;
+}
+.workspace-app .project-board-wrap > .board .bcol .bcol-b,
+.workspace-app .global-task-board .bcol .bcol-b {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* the board fills the screen, so the page itself scrolls (browser scrollbar) to bring it to the top */
+.workspace-app .project-board-wrap > .board,
+.workspace-app .global-task-board {
+  height: max(520px, calc(100dvh - 110px));
+}
+.workspace-app .project-board-wrap,
+.workspace-app .global-task-board {
+  flex: 0 0 auto;
+}
+.workspace-app .page.flush {
+  min-height: min-content;
+}
+
+/* wheel and touch scrolling pass through to the page when a column or the board has nothing left to scroll */
+.workspace-app .project-board-wrap > .board,
+.workspace-app .global-task-board {
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+}
+.workspace-app .project-board-wrap > .board .bcol-b,
+.workspace-app .global-task-board .bcol-b {
+  overscroll-behavior-y: auto;
+}
+
+/* cards a person cannot move: no grab cursor, a quiet lock look */
+.workspace-app .gt-card.is-locked {
+  cursor: default;
+}
+.workspace-app .gt-card.is-locked:active {
+  cursor: not-allowed;
+}
+.workspace-app .gt-card.is-locked::after {
+  color: var(--text-4);
+  content: "Locked";
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app .kcard.is-locked {
+  cursor: default;
+}

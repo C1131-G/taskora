@@ -1,0 +1,438 @@
+/* Task drawer: pull requests, fields, client approval, comments and attachments. */
+
+/* pull requests */
+[data-task-drawer].workspace-app .pr-list {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  list-style: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .pr-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+}
+[data-task-drawer].workspace-app .pr-item + .pr-item {
+  border-top: 1px solid var(--border);
+}
+[data-task-drawer].workspace-app .pr-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+[data-task-drawer].workspace-app .pr-title {
+  color: var(--text);
+  font-size: var(--fs);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+[data-task-drawer].workspace-app a.pr-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+[data-task-drawer].workspace-app .pr-ref {
+  color: var(--text-3);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fs-xs);
+}
+
+/* custom fields (environment and similar): label above a full-width control */
+[data-task-drawer].workspace-app section[aria-label="Fields"] {
+  gap: 14px;
+}
+[data-task-drawer].workspace-app section[aria-label="Fields"] .field > .row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+[data-task-drawer].workspace-app section[aria-label="Fields"] .field > .row > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+[data-task-drawer].workspace-app section[aria-label="Fields"] .field > label {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+[data-task-drawer].workspace-app section[aria-label="Fields"] .field .btn {
+  height: 32px;
+}
+
+/* client approval */
+[data-task-drawer].workspace-app .approval-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .approval-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+[data-task-drawer].workspace-app .approval-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+[data-task-drawer].workspace-app .approval-company {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  margin-left: auto;
+}
+[data-task-drawer].workspace-app .approval-card p {
+  margin: 0;
+}
+[data-task-drawer].workspace-app .approval-meta {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+[data-task-drawer].workspace-app .approval-message {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+[data-task-drawer].workspace-app .approval-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .approval-files li {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  padding: 3px 10px;
+}
+[data-task-drawer].workspace-app .approval-decision {
+  border-top: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  padding-top: 8px;
+}
+
+/* comments */
+[data-task-drawer].workspace-app .comment-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+[data-task-drawer].workspace-app .comment-head {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+[data-task-drawer].workspace-app .comment-avatar {
+  align-items: center;
+  background: var(--accent-soft);
+  border-radius: var(--r-full);
+  color: var(--text);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+[data-task-drawer].workspace-app .comment-head .sp {
+  flex: 1 1 auto;
+}
+[data-task-drawer].workspace-app .comment-card p {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+[data-task-drawer].workspace-app .comment-reactions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+[data-task-drawer].workspace-app .comment-reactions .ibtn {
+  border-radius: var(--r-full);
+  height: 28px !important;
+  min-height: 28px !important;
+  min-width: 28px;
+  padding: 0 !important;
+}
+[data-task-drawer].workspace-app .comment-visibility-options {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+}
+[data-task-drawer].workspace-app .comment-visibility-option {
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 5px 12px;
+}
+[data-task-drawer].workspace-app .comment-visibility-option[data-checked="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* attachments */
+[data-task-drawer].workspace-app .project-files {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  gap: 10px;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .file-dropzone {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text-2);
+  display: flex;
+  font-size: var(--fs-sm);
+  gap: 10px;
+  justify-content: center;
+  min-height: 64px;
+  padding: 12px;
+  text-align: center;
+}
+[data-task-drawer].workspace-app .file-dropzone:hover {
+  border-color: var(--accent);
+}
+[data-task-drawer].workspace-app .file-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+[data-task-drawer].workspace-app .file-card {
+  border-radius: var(--r);
+}
+[data-task-drawer].workspace-app .file-empty-state {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r);
+  padding: 14px;
+  text-align: center;
+}
+[data-task-drawer].workspace-app .file-empty-state h3 {
+  font-size: var(--fs-sm);
+  margin: 0 0 4px;
+}
+
+/* tabs: one clear view at a time */
+[data-task-drawer].workspace-app .drawer-tabs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 2px;
+  margin: 0 -20px;
+  overflow-x: auto;
+  padding: 0 14px;
+  position: sticky;
+  scrollbar-width: none;
+  top: 0;
+  z-index: 3;
+}
+[data-task-drawer].workspace-app .drawer-tabs::-webkit-scrollbar {
+  display: none;
+}
+[data-task-drawer].workspace-app .drawer-tab {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  gap: 6px;
+  height: 42px;
+  padding: 0 10px;
+  transition: color var(--dur);
+}
+[data-task-drawer].workspace-app .drawer-tab:hover {
+  color: var(--text);
+}
+[data-task-drawer].workspace-app .drawer-tab[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+[data-task-drawer].workspace-app .drawer-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+[data-task-drawer].workspace-app .drawer-tab-count {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-2xs);
+  line-height: 1;
+  padding: 2px 6px;
+}
+/* with tabs, sections don't need their own divider lines or big gaps */
+[data-task-drawer].workspace-app .task-drawer-panel section.stack:first-child {
+  padding-top: 0;
+}
+[data-task-drawer].workspace-app .task-drawer-panel [hidden] {
+  display: none;
+}
+[data-task-drawer].workspace-app .task-drawer-panel > div > section.stack + section.stack,
+[data-task-drawer].workspace-app .task-drawer-panel > div > * + section.stack {
+  margin-top: 20px;
+}
+[data-task-drawer].workspace-app form > .btn-primary {
+  box-shadow: none;
+  position: static;
+}
+[data-task-drawer].workspace-app h3 > .subtasks-count {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0;
+  margin-left: 8px;
+  padding: 2px 7px;
+}
+
+/* save: a solid footer bar fixed to the bottom of the drawer, never over the fields */
+[data-task-drawer].workspace-app form > .btn-primary {
+  align-self: stretch;
+  background-clip: padding-box;
+  border-radius: var(--r);
+  bottom: 0;
+  box-shadow: 0 0 0 12px var(--surface), 0 -1px 0 12px var(--border);
+  margin-top: 8px;
+  position: sticky;
+  z-index: 4;
+}
+[data-task-drawer].workspace-app .task-drawer-body {
+  padding-bottom: 20px;
+}
+
+/* final: save sits in normal flow under the form (no floating); the assignee list is shorter so it stays in view */
+[data-task-drawer].workspace-app form > .btn-primary {
+  bottom: auto;
+  box-shadow: none;
+  margin-top: 4px;
+  position: static;
+}
+[data-task-drawer].workspace-app .assignee-list {
+  max-height: 128px;
+}
+
+/* two plain choices instead of a switch: the selected one is filled */
+[data-task-drawer].workspace-app .setting-row.is-stacked {
+  align-items: stretch;
+  flex-direction: column;
+}
+[data-task-drawer].workspace-app .choice-pair {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  display: grid;
+  gap: 2px;
+  grid-template-columns: 1fr 1fr;
+  padding: 2px;
+}
+[data-task-drawer].workspace-app .choice {
+  background: none;
+  border: 0;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 34px;
+}
+[data-task-drawer].workspace-app .choice:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+[data-task-drawer].workspace-app .choice[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+[data-task-drawer].workspace-app .choice:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+[data-task-drawer].workspace-app .choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* attachments: one clear Upload action, a drop area, then the files; no search/sort clutter */
+[data-task-drawer].workspace-app .project-files {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+[data-task-drawer].workspace-app .file-toolbar {
+  border: 0;
+  margin: 0;
+  order: 2;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .file-toolbar .file-search,
+[data-task-drawer].workspace-app .file-toolbar .file-filter,
+[data-task-drawer].workspace-app .file-toolbar .file-sort,
+[data-task-drawer].workspace-app .file-toolbar .file-layout-switch {
+  display: none;
+}
+[data-task-drawer].workspace-app .file-toolbar > button {
+  gap: 8px;
+  height: 40px;
+  justify-content: center;
+  width: 100%;
+}
+[data-task-drawer].workspace-app .file-dropzone {
+  background: transparent;
+  border-width: 1.5px;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 96px;
+  order: 1;
+}
+[data-task-drawer].workspace-app .file-results,
+[data-task-drawer].workspace-app .file-empty-state {
+  order: 3;
+}
+[data-task-drawer].workspace-app .file-empty-state {
+  background: transparent;
+  border: 0;
+  color: var(--text-3);
+  padding: 6px 0 0;
+}
+[data-task-drawer].workspace-app .file-empty-state h3 {
+  color: var(--text-2);
+}
+[data-task-drawer].workspace-app .file-toolbar {
+  display: flex;
+}
+[data-task-drawer].workspace-app .file-toolbar > button {
+  flex: 1 1 100%;
+}

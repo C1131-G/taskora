@@ -4,6 +4,7 @@
 
 import { useRef, useState } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { BugDetailWorkflow } from "@/features/bugs/components/bug-detail-workflow";
 import type { BugHistorySchema } from "@/src/server/work/bug-history";
 
@@ -32,6 +33,7 @@ export const BugTaskDetail = ({
     }
     refreshInFlight.current = true;
     setPending(true);
+    setRefreshError(null);
     try {
       await onRefresh();
       setRefreshError(null);
@@ -44,18 +46,16 @@ export const BugTaskDetail = ({
 
   if (refreshError) {
     return (
-      <p className="error" role="alert">
-        {refreshError}
-        <button disabled={pending} onClick={refresh} type="button">
-          {pending ? "Retrying…" : "Retry"}
-        </button>
-      </p>
+      <ErrorToast
+        action={{ label: "Retry", onClick: refresh }}
+        message={refreshError}
+      />
     );
   }
   if (!history) {
     return (
       <div className="row">
-        <p className="muted">Bug history is unavailable.</p>
+        <ErrorToast message="Bug history is unavailable." />
         <button disabled={pending} onClick={refresh} type="button">
           {pending ? "Retrying…" : "Retry bug history"}
         </button>

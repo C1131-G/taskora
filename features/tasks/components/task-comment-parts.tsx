@@ -60,8 +60,11 @@ export const CommentCard = ({
   readonly onRemove: (commentId: string) => void;
   readonly pending: boolean;
 }) => (
-  <article className="panel panel-b comment">
-    <div className="row">
+  <article className="comment comment-card">
+    <div className="comment-head">
+      <span aria-hidden="true" className="comment-avatar">
+        {comment.authorName.slice(0, 1).toUpperCase()}
+      </span>
       <strong>{comment.authorName}</strong>
       {comment.visibility === "public" ? (
         <span className="badge accent">Public</span>
@@ -84,7 +87,7 @@ export const CommentCard = ({
       ) : null}
     </div>
     <CommentBody body={comment.body} names={names} />
-    <div className="row">
+    <div className="comment-reactions">
       {comment.reactions.map((reaction) => (
         <WorkspaceButton
           aria-pressed={reaction.reacted}

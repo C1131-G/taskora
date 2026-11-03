@@ -4,6 +4,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -34,8 +35,16 @@ export const WebhookEndpointCard = ({
   readonly deliveries: readonly WebhookDeliverySummary[];
   readonly endpoint: WebhookEndpointSummary;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [failure, setFailure] = useState<string | null>(null);
+  const [pending, beginTransition] = useTransition();
+  const startTransition = (action: () => Promise<void>) => {
+    beginTransition(async () => {
+      try {
+        await action();
+      } catch {
+        toast.error("The webhook could not be changed. Try again.");
+      }
+    });
+  };
   const [secret, setSecret] = useState<string | null>(null);
 
   const update = (
@@ -48,14 +57,13 @@ export const WebhookEndpointCard = ({
     done?: () => void
   ) =>
     startTransition(async () => {
-      setFailure(null);
       const result = await updateWebhookEndpointAction({
         ...changes,
         endpointId: endpoint.id,
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setFailure(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       done?.();
@@ -74,12 +82,11 @@ export const WebhookEndpointCard = ({
 
   const rotate = () =>
     startTransition(async () => {
-      setFailure(null);
       const result = await rotateWebhookSecretAction({
         endpointId: endpoint.id,
       });
       if (!result.ok) {
-        setFailure(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       setSecret(result.data.secret);
@@ -87,13 +94,12 @@ export const WebhookEndpointCard = ({
 
   const remove = () =>
     startTransition(async () => {
-      setFailure(null);
       const result = await removeWebhookEndpointAction({
         endpointId: endpoint.id,
         idempotencyKey: crypto.randomUUID(),
       });
       if (!result.ok) {
-        setFailure(result.error.message);
+        toast.error(result.error.message);
       }
     });
 
@@ -138,7 +144,6 @@ export const WebhookEndpointCard = ({
             secret={secret}
           />
         ) : null}
-        {failure ? <p role="alert">{failure}</p> : null}
         <div className="row">
           <WorkspaceButton
             aria-busy={pending || undefined}

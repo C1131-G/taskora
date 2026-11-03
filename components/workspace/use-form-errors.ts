@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import {
   NO_FORM_ERRORS,
@@ -30,9 +31,8 @@ const focusField = (
   }
 };
 
-// Inline errors for a workspace form. A failed action's field errors land
-// beside the fields the form lists, and focus moves to the first of them;
-// anything else shows as the form-level message.
+// Report failures in a toast and focus the first invalid field. Field messages
+// remain available to assistive technology through aria-describedby.
 const useFormErrors = (formFields: readonly string[]) => {
   const formId = useId();
   const formRef = useRef<HTMLFormElement>(null);
@@ -41,13 +41,19 @@ const useFormErrors = (formFields: readonly string[]) => {
   const showFailure = (failure: ActionFailureMessage): void => {
     const next = formErrorsFrom(failure, formFields);
     setErrors(next);
+    const messages = [
+      ...new Set([next.form, ...Object.values(next.fields)].filter(Boolean)),
+    ];
+    toast.error(messages.join(" ") || failure.message);
     const field = firstErrorField(next, formFields);
     if (field) {
       focusField(formRef.current, formId, field);
     }
   };
-  const showFormError = (message: string): void =>
+  const showFormError = (message: string): void => {
     setErrors({ fields: {}, form: message });
+    toast.error(message);
+  };
   const clearErrors = (): void => setErrors(NO_FORM_ERRORS);
   const fieldProps = (field: string, hintId?: string) =>
     fieldErrorProps(errors, formId, field, hintId);

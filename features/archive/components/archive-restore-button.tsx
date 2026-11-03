@@ -3,7 +3,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { restoreProjectAction } from "@/features/projects/projects-actions";
@@ -19,20 +20,23 @@ const ArchiveRestoreButton = ({
   readonly version: number;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   const restore = () =>
     startTransition(async () => {
-      const input = {
-        expectedVersion: version,
-        idempotencyKey: crypto.randomUUID(),
-      };
-      const result =
-        kind === "project"
-          ? await restoreProjectAction({ ...input, projectId: id })
-          : await restoreTaskAction({ ...input, taskId: id });
-      if (!result.ok) {
-        setError(result.error.message);
+      try {
+        const input = {
+          expectedVersion: version,
+          idempotencyKey: crypto.randomUUID(),
+        };
+        const result =
+          kind === "project"
+            ? await restoreProjectAction({ ...input, projectId: id })
+            : await restoreTaskAction({ ...input, taskId: id });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The item could not be restored. Try again.");
       }
     });
 
@@ -48,11 +52,6 @@ const ArchiveRestoreButton = ({
       >
         {pending ? "Restoring…" : "Restore"}
       </WorkspaceButton>
-      {error ? (
-        <span className="error" role="alert">
-          {error}
-        </span>
-      ) : null}
     </span>
   );
 };

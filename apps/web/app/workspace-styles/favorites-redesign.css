@@ -1,0 +1,174 @@
+/* Favorites: counted section headers, project cards, and tasks as a clear table. */
+.workspace-app .section-heading {
+  align-items: center;
+  display: flex;
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+.workspace-app .section-heading .muted {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 2px 9px;
+}
+
+/* tasks table */
+.workspace-app .fav-table {
+  border-radius: var(--r-xl);
+}
+.workspace-app .fav-head,
+.workspace-app .favorite-task-row.fav-row {
+  align-items: center;
+  column-gap: 12px;
+  display: grid;
+  grid-template-columns:
+    36px minmax(0, 1fr) 120px 96px 110px 96px
+    36px;
+  padding-inline: 14px;
+}
+.workspace-app .fav-head {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  height: 40px;
+}
+.workspace-app .fav-head span:not(:nth-child(2)) {
+  text-align: center;
+}
+.workspace-app .favorite-task-row.fav-row {
+  min-height: 64px;
+  transition: background var(--dur);
+}
+.workspace-app .favorite-task-row.fav-row:hover {
+  background: var(--surface-2);
+}
+.workspace-app .fav-row .favorite-task-main {
+  gap: 2px;
+}
+.workspace-app .fav-row .favorite-task-title {
+  font-size: var(--fs);
+}
+.workspace-app .fav-cell {
+  align-items: center;
+  color: var(--text-2);
+  display: flex;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  justify-content: center;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+.workspace-app .fav-priority {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 500;
+  gap: 7px;
+}
+.workspace-app .fav-priority::before {
+  background: var(--text-4);
+  border-radius: var(--r-full);
+  content: "";
+  height: 8px;
+  width: 8px;
+}
+.workspace-app .fav-priority.prio-urgent::before,
+.workspace-app .fav-priority.prio-high::before {
+  background: var(--red);
+}
+.workspace-app .fav-priority.prio-medium::before {
+  background: var(--st-progress);
+}
+.workspace-app .fav-priority.prio-low::before {
+  background: var(--st-done);
+}
+.workspace-app .favorite-task-assignees.fav-cell {
+  gap: 0;
+  list-style: none;
+}
+.workspace-app .favorite-task-assignees.fav-cell li + li {
+  margin-left: -6px;
+}
+
+/* empty states: centred and inviting */
+.workspace-app .favorite-empty {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-xl);
+  justify-items: center;
+  padding: 28px 16px;
+  text-align: center;
+}
+.workspace-app .favorite-empty-link {
+  background: var(--accent);
+  border-radius: var(--r);
+  color: var(--on-accent);
+  margin-top: 8px;
+  padding: 8px 14px;
+}
+
+/* phone: each task becomes a card with labelled values */
+@media (max-width: 760px) {
+  .workspace-app .fav-head {
+    display: none;
+  }
+  .workspace-app .favorite-task-row.fav-row {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    padding-block: 12px;
+    row-gap: 8px;
+  }
+  .workspace-app .fav-cell {
+    grid-column: 2;
+    justify-content: space-between;
+  }
+  .workspace-app .fav-cell[data-label]::before {
+    color: var(--text-3);
+    content: attr(data-label);
+    font-size: var(--fs-xs);
+  }
+  .workspace-app .favorite-task-row.fav-row > .fav-cell:last-of-type {
+    justify-content: flex-start;
+  }
+}
+
+/* project cards: the star and options sit in the header row's own space, never over the description */
+.workspace-app .pcard-link > .row:first-child {
+  align-items: center;
+  min-height: 34px;
+  padding-right: 42px;
+}
+.workspace-app .pcard:has(> .project-list-actions) .pcard-link > .row:first-child {
+  padding-right: 78px;
+}
+.workspace-app .pcard > .col {
+  right: 10px;
+  top: 12px;
+}
+.workspace-app .pcard:has(> .project-list-actions) > .col {
+  right: 44px;
+}
+.workspace-app .pcard > .col .ibtn,
+.workspace-app .pcard > .col button {
+  height: 30px !important;
+  min-height: 30px !important;
+  min-width: 30px;
+  padding: 0 !important;
+  width: 30px;
+}
+.workspace-app .pcard > .project-list-actions {
+  right: 10px;
+  top: 12px;
+}
+.workspace-app .pcard .desc {
+  margin-top: -2px;
+}
+.workspace-app .pcard-link > .row:first-child .pstatus {
+  flex: 0 0 auto;
+}

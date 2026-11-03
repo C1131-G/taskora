@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { usePersistColumnWidths } from "@/features/tasks/hooks/use-persist-column-widths";
 import type { TaskTableColumnId } from "@/features/tasks/task-table-columns";
 
@@ -83,14 +84,11 @@ export const ProjectViewStoreProvider = ({
 
   return (
     <StoreProvider value={{ projectViewStore }}>
-      {columnWidthPersistence.error ? (
-        <p role="alert">
-          {columnWidthPersistence.error}{" "}
-          <button onClick={columnWidthPersistence.handleRetry} type="button">
-            Retry
-          </button>
-        </p>
-      ) : null}
+      <ErrorToast
+        action={{ label: "Retry", onClick: columnWidthPersistence.handleRetry }}
+        message={columnWidthPersistence.error}
+        resetKey={columnWidthPersistence.errorRevision}
+      />
       {children}
     </StoreProvider>
   );

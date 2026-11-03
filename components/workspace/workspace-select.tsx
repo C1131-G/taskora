@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Children, isValidElement, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -12,6 +12,46 @@ import {
 } from "@/components/ui/select";
 
 const EMPTY_VALUE = "__taskora_empty_select_value__";
+
+const textOf = (node: ReactNode): string => {
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+  if (Array.isArray(node)) {
+    return node.map(textOf).join("");
+  }
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return textOf(node.props.children);
+  }
+  return "";
+};
+
+// The label of the selected item, read from the item elements themselves. The
+// select renders it on the server too, so the closed control shows its value from the
+// first paint instead of staying blank until the page has hydrated.
+const labelOfSelected = (
+  children: ReactNode,
+  selected: string
+): string | undefined => {
+  let found: string | undefined;
+  const visit = (node: ReactNode) => {
+    for (const child of Children.toArray(node)) {
+      if (found !== undefined || !isValidElement(child)) {
+        continue;
+      }
+      const props = child.props as { children?: ReactNode; value?: unknown };
+      if (typeof props.value === "string") {
+        if ((props.value || EMPTY_VALUE) === selected) {
+          found = textOf(props.children).trim() || undefined;
+        }
+      } else {
+        visit(props.children);
+      }
+    }
+  };
+  visit(children);
+  return found;
+};
 
 const WorkspaceSelect = ({
   ariaInvalid,
@@ -87,7 +127,9 @@ const WorkspaceSelect = ({
           data-status={status}
           id={id}
         >
-          <SelectValue>{displayValue}</SelectValue>
+          <SelectValue>
+            {displayValue ?? labelOfSelected(children, currentValue)}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent data-workspace-select="">{children}</SelectContent>
       </Select>

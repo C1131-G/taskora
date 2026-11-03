@@ -7,6 +7,7 @@
 import { ArrowUpRight, Rectangle, PencilSimple } from "@phosphor-icons/react";
 import { useId, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -81,33 +82,35 @@ const PortalScreenshotEditor = ({
   const helpId = useId();
   const descriptionId = useId();
   const [description, setDescription] = useState("");
-  const [error, setError] = useState("");
   const [exporting, startExport] = useTransition();
   const { announcement, canvasHandlers, clear, marks, setTool, tool, undo } =
     useScreenshotMarks(canvasRef, base);
 
   const use = () => {
-    setError("");
     startExport(async () => {
-      const result = await compressScreenshot({
-        encode: encodeScreenshot(base, marks),
-        maxBytes: SAFE_SCREENSHOT_BYTES,
-        size: { height: base.height, width: base.width },
-      });
-      startExport(() => {
-        if (!result) {
-          setError(
-            "This screenshot is too large to attach. Discard it, then capture a smaller window or tab."
+      try {
+        const result = await compressScreenshot({
+          encode: encodeScreenshot(base, marks),
+          maxBytes: SAFE_SCREENSHOT_BYTES,
+          size: { height: base.height, width: base.width },
+        });
+        startExport(() => {
+          if (!result) {
+            toast.error(
+              "This screenshot is too large to attach. Discard it, then capture a smaller window or tab."
+            );
+            return;
+          }
+          onUse(
+            new File([result.blob], `screenshot-${Date.now()}.png`, {
+              type: "image/png",
+            }),
+            description.trim()
           );
-          return;
-        }
-        onUse(
-          new File([result.blob], `screenshot-${Date.now()}.png`, {
-            type: "image/png",
-          }),
-          description.trim()
-        );
-      });
+        });
+      } catch {
+        toast.error("The screenshot could not be prepared. Try again.");
+      }
     });
   };
 
@@ -190,11 +193,6 @@ const PortalScreenshotEditor = ({
           to your report.
         </p>
       </div>
-      {error ? (
-        <p className="portal-form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <div className="portal-form-acts">
         <WorkspaceButton
           aria-busy={exporting}

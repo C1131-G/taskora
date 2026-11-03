@@ -6,7 +6,8 @@
 "use client";
 
 import { Star } from "@phosphor-icons/react";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
@@ -25,7 +26,6 @@ const FavoriteToggle = ({
 }) => {
   const [favorite, setFavorite] = useOptimistic(initialFavorite);
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   const toggle = () => {
     if (pending) {
@@ -33,22 +33,25 @@ const FavoriteToggle = ({
     }
     startTransition(async () => {
       setFavorite(!favorite);
-      const result =
-        kind === "project"
-          ? await toggleProjectFavoriteAction({
-              idempotencyKey: crypto.randomUUID(),
-              projectId: id,
-            })
-          : await toggleTaskFavoriteAction({
-              idempotencyKey: crypto.randomUUID(),
-              taskId: id,
-            });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result =
+          kind === "project"
+            ? await toggleProjectFavoriteAction({
+                idempotencyKey: crypto.randomUUID(),
+                projectId: id,
+              })
+            : await toggleTaskFavoriteAction({
+                idempotencyKey: crypto.randomUUID(),
+                taskId: id,
+              });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        setFavorite(result.data);
+      } catch {
+        toast.error("Favorites could not be updated. Try again.");
       }
-      setError(null);
-      setFavorite(result.data);
     });
   };
 
@@ -68,11 +71,6 @@ const FavoriteToggle = ({
           weight={favorite ? "fill" : "regular"}
         />
       </WorkspaceButton>
-      {error ? (
-        <span className="error" role="alert">
-          {error}
-        </span>
-      ) : null}
     </span>
   );
 };

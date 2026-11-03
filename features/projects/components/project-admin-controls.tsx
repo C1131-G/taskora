@@ -4,7 +4,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -25,6 +26,7 @@ import type {
   ProjectControlsData,
   TeamOption,
 } from "@/features/projects/types/project-admin-contracts";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 // Restore stays available from the archive; the notice offers it for the same
 // window task archives get.
@@ -41,8 +43,9 @@ const ProjectAdminControls = ({
 }) => {
   const router = useRouter();
   const { addUndo } = useWorkspaceUndo();
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The project could not be updated. Try again."
+  );
   const [memberQuery, setMemberQuery] = useState("");
   const selectedMemberIds = new Set(project.memberIds);
 
@@ -57,10 +60,8 @@ const ProjectAdminControls = ({
         projectId: project.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
-        return;
+        toast.error(result.error.message);
       }
-      setError(null);
     });
 
   const duplicate = (formData: FormData) =>
@@ -74,7 +75,7 @@ const ProjectAdminControls = ({
         sourceProjectId: project.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       router.push(`/projects/${result.data.id}`);
@@ -88,7 +89,7 @@ const ProjectAdminControls = ({
         projectId: project.id,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
       const archived = result.data;
@@ -109,11 +110,6 @@ const ProjectAdminControls = ({
 
   return (
     <div className="acts project-controls">
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <ProjectEditForm project={project} teams={teams} />
       <WorkspaceDisclosure
         description="Choose the project lead and members."

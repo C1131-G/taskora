@@ -53,7 +53,8 @@ export const GlobalTaskRows = (props: GlobalTaskRowsProps) => {
   const sortByColumn = (field: string) =>
     update({ sort: search.sort === field ? "due" : field });
 
-  const viewProps: GlobalTaskViewProps = { ...props, onToggle, selectedIds };
+  const { viewSwitch: _viewSwitch, ...rowProps } = props;
+  const viewProps: GlobalTaskViewProps = { ...rowProps, onToggle, selectedIds };
   let content: ReactNode;
   if (props.view === "board") {
     content = (
@@ -86,7 +87,10 @@ export const GlobalTaskRows = (props: GlobalTaskRowsProps) => {
 
   return (
     <>
-      <div className="row global-task-selection-bar">
+      <div
+        className={`row global-task-selection-bar${selectedTasks.length > 0 ? " has-selection" : ""}`}
+      >
+        {props.viewSwitch}
         <label className="row" htmlFor="global-task-select-all">
           <Checkbox
             checked={
@@ -100,10 +104,11 @@ export const GlobalTaskRows = (props: GlobalTaskRowsProps) => {
             ? `Select first ${MAX_BULK_SELECTION} tasks`
             : "Select all tasks"}
         </label>
-        <span aria-live="polite" className="muted">
+        <span aria-live="polite" className="selection-count">
           {selectedTasks.length} selected
           {selectionLimitReached ? " (maximum)" : ""}
         </span>
+        <span className="sp" />
         {selectedTasks.length > 0 ? (
           <GlobalTaskBulkDialog
             employees={props.employees}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useSyncExternalStore } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { AuthAlert } from "@/features/user/components/auth-alert";
@@ -53,11 +54,12 @@ const LoginForm = ({ notice = "" }: { readonly notice?: string }) => {
       });
 
       if (result.error) {
-        setError(
+        const message =
           result.error.status === 429
             ? "Too many sign-in attempts. Wait a moment, then try again."
-            : "We couldn't sign you in. Check your email and password, then try again."
-        );
+            : "We couldn't sign you in. Check your email and password, then try again.";
+        setError(message);
+        toast.error(message);
         passwordRef.current?.focus();
       } else {
         // The sign-in page routes a signed-in account to its own home
@@ -68,6 +70,7 @@ const LoginForm = ({ notice = "" }: { readonly notice?: string }) => {
       }
     } catch {
       setError("Sign-in is temporarily unavailable. Try again in a moment.");
+      toast.error("Sign-in is temporarily unavailable. Try again in a moment.");
       passwordRef.current?.focus();
     }
 

@@ -26,16 +26,16 @@ const TeamList = async () => {
         <TeamCreateForm />
       ) : null}
       {result.data.length ? (
-        <div className="pgrid">
+        <div className="pgrid teams-grid">
           {result.data.map((team) => (
-            <article className="pcard" key={team.id}>
+            <article className="pcard team-card" key={team.id}>
               <div className="row">
                 <span
                   aria-hidden="true"
                   className="pico"
                   style={{ "--c": team.color }}
                 >
-                  ●
+                  {team.name.slice(0, 1).toUpperCase()}
                 </span>
                 <Link
                   className="team-card-link grow"
@@ -68,9 +68,9 @@ const TEAM_CARDS = SKELETON_KEYS.slice(0, 3);
 // Mirrors the team card: dot, name and member count, then the description.
 const TeamListSkeleton = () => (
   <SkelterSurface label="Loading teams…">
-    <div className="pgrid">
+    <div className="pgrid teams-grid">
       {TEAM_CARDS.map((key) => (
-        <article className="pcard" key={key}>
+        <article className="pcard team-card" key={key}>
           <div className="row">
             <SkeletonBone shape="avatar" />
             <div className="team-card-link grow">

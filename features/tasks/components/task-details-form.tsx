@@ -5,6 +5,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import { SkelterSurface } from "@/components/workspace/skelter-surface";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -76,6 +77,7 @@ export const TaskDetailsForm = ({
     readonly conflict: boolean;
     readonly message: string;
   } | null>(null);
+  const [errorRevision, setErrorRevision] = useState(0);
   const submissionInFlight = useRef(false);
   const dirty = isDraftDirty(draft, task);
 
@@ -126,12 +128,14 @@ export const TaskDetailsForm = ({
             conflict: result.error.code === "CONFLICT",
             message: result.error.message,
           });
+          setErrorRevision((revision) => revision + 1);
         }
       } catch {
         setError({
           conflict: false,
           message: "Task details could not be saved. Try again.",
         });
+        setErrorRevision((revision) => revision + 1);
       }
       submissionInFlight.current = false;
       return null;
@@ -140,6 +144,13 @@ export const TaskDetailsForm = ({
   );
 
   const fieldId = (name: string) => `task-${task.id}-${name}`;
+
+  let saveLabel = "No changes to save";
+  if (pending) {
+    saveLabel = "Saving…";
+  } else if (dirty) {
+    saveLabel = "Save changes";
+  }
 
   return (
     <form action={saveAction} className="stack">
@@ -165,7 +176,8 @@ export const TaskDetailsForm = ({
           onChange={(event) =>
             patch({ description: event.currentTarget.value })
           }
-          rows={3}
+          placeholder="Add more detail so others know what to do…"
+          rows={4}
           value={draft.description}
         />
       </label>
@@ -248,6 +260,7 @@ export const TaskDetailsForm = ({
             id={fieldId("estimate")}
             maxLength={40}
             onChange={(event) => patch({ estimate: event.currentTarget.value })}
+            placeholder="e.g. 2h"
             value={draft.estimate}
           />
         </label>
@@ -261,43 +274,30 @@ export const TaskDetailsForm = ({
         selectedIds={draft.assigneeIds}
         taskId={task.id}
       />
-      {error ? (
-        <p className="error" role="alert">
-          {error.message}
-          {error.conflict ? (
-            <>
-              {" "}
-              <WorkspaceButton
-                className="btn btn-sm btn-ghost"
-                onClick={onReload}
-                type="button"
-              >
-                Reload task
-              </WorkspaceButton>
-            </>
-          ) : null}
-        </p>
-      ) : null}
-      {versionIsCurrent ? null : (
-        <p className="error" role="alert">
-          This task changed while you were editing it. Reload the task before
-          saving.
-          <WorkspaceButton
-            className="btn btn-sm btn-ghost"
-            onClick={onReload}
-            type="button"
-          >
-            Reload task
-          </WorkspaceButton>
-        </p>
-      )}
+      <ErrorToast
+        action={
+          error?.conflict
+            ? { label: "Reload task", onClick: onReload }
+            : undefined
+        }
+        message={error?.message}
+        resetKey={errorRevision}
+      />
+      <ErrorToast
+        action={{ label: "Reload task", onClick: onReload }}
+        message={
+          versionIsCurrent
+            ? null
+            : "This task changed while you were editing it. Reload the task before saving."
+        }
+      />
       {editable ? (
         <WorkspaceButton
           className="btn btn-primary"
           disabled={pending || !dirty || !versionIsCurrent}
           type="submit"
         >
-          {pending ? "Saving…" : "Save details"}
+          {saveLabel}
         </WorkspaceButton>
       ) : null}
     </form>

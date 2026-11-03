@@ -7,6 +7,7 @@
 import { Paperclip } from "@phosphor-icons/react";
 import { useState } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { PortalFilePicker } from "@/features/portal/components/portal-file-picker";
 import {
@@ -31,7 +32,6 @@ const FailedUploads = ({
   readonly canAttach: boolean;
 }) => {
   const failed = useFailedUploads(bugId);
-  const [retrying, setRetrying] = useState<string>();
 
   if (failed.length === 0) {
     return null;
@@ -42,53 +42,36 @@ const FailedUploads = ({
     if (!entry) {
       return;
     }
-    setRetrying(id);
-    const result = await uploadPortalFile(bugId, entry.file);
-    setRetrying(undefined);
-    clearFailedUpload(bugId, id);
-    if (!result.ok) {
+    try {
+      const result = await uploadPortalFile(bugId, entry.file);
+      clearFailedUpload(bugId, id);
+      if (!result.ok) {
+        recordFailedUploads(bugId, [
+          { file: entry.file, message: result.message },
+        ]);
+      }
+    } catch {
+      clearFailedUpload(bugId, id);
       recordFailedUploads(bugId, [
-        { file: entry.file, message: result.message },
+        { file: entry.file, message: "The upload failed. Try again." },
       ]);
     }
   };
 
   return (
-    <div className="portal-failed" role="alert">
-      <strong>
-        {failed.length === 1
-          ? "1 file could not be uploaded"
-          : `${failed.length} files could not be uploaded`}
-      </strong>
-      <ul>
-        {failed.map((entry) => (
-          <li key={entry.id}>
-            <span className="portal-file-name">
-              <strong>{entry.file.name}</strong>
-              <span>{entry.message}</span>
-            </span>
-            {canAttach ? (
-              <WorkspaceButton
-                className="btn btn-secondary btn-sm"
-                disabled={retrying !== undefined}
-                onClick={() => retry(entry.id)}
-                type="button"
-              >
-                {retrying === entry.id ? "Retrying…" : "Retry"}
-              </WorkspaceButton>
-            ) : null}
-            <WorkspaceButton
-              className="btn btn-ghost btn-sm"
-              disabled={retrying === entry.id}
-              onClick={() => clearFailedUpload(bugId, entry.id)}
-              type="button"
-            >
-              Dismiss
-            </WorkspaceButton>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      {failed.map((entry) => (
+        <ErrorToast
+          action={
+            canAttach
+              ? { label: "Retry", onClick: () => retry(entry.id) }
+              : undefined
+          }
+          key={entry.id}
+          message={`${entry.file.name}: ${entry.message}`}
+        />
+      ))}
+    </>
   );
 };
 
@@ -110,9 +93,7 @@ const AddAttachments = ({
       setStatus(`Uploading file ${index + 1} of ${files.length}: ${file.name}`)
     );
     recordFailedUploads(bugId, failures);
-    setStatus(
-      failures.length === 0 ? "Files uploaded." : "Some files did not upload."
-    );
+    setStatus(failures.length === 0 ? "Files uploaded." : "");
     setFiles([]);
     setPending(false);
     setOpen(false);

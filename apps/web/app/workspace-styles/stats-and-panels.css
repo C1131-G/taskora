@@ -46,6 +46,48 @@
 .workspace-app .stat .d.bad {
   color: var(--red);
 }
+.workspace-app .stats {
+  grid-auto-rows: 1fr;
+}
+.workspace-app .stat .d,
+.workspace-app .stat .stat-chip {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 22px;
+}
+.workspace-app .stat .d {
+  align-self: flex-start;
+}
+.workspace-app .stat .stat-chip {
+  align-self: flex-start;
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 9px;
+}
+.workspace-app .stat-done .v {
+  color: var(--st-done);
+}
+.workspace-app .stat-done .stat-chip {
+  background: color-mix(in srgb, var(--st-done) 16%, transparent);
+  color: var(--st-done);
+}
+.workspace-app .stat-overdue .stat-chip {
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+.workspace-app .stat-overdue.alert {
+  background: var(--red-soft);
+}
+.workspace-app .stat-overdue.alert .v {
+  color: var(--red);
+}
+.workspace-app .stat-overdue.alert .stat-chip {
+  background: var(--red);
+  color: var(--text-inv);
+}
 .workspace-app .grid2 {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
@@ -58,18 +100,28 @@
 }
 .workspace-app .home-progress-table {
   table-layout: fixed;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+.workspace-app .home-progress-panel [data-slot="table-container"] {
+  overflow-x: hidden;
+}
+.workspace-app .home-progress-table th,
+.workspace-app .home-progress-table td {
+  padding-inline: 8px;
 }
 .workspace-app .home-progress-table th:nth-child(1),
 .workspace-app .home-progress-table td:nth-child(1) {
-  width: 37%;
+  width: 33%;
 }
 .workspace-app .home-progress-table th:nth-child(2),
 .workspace-app .home-progress-table td:nth-child(2) {
-  width: 17%;
+  width: 20%;
 }
 .workspace-app .home-progress-table th:nth-child(3),
 .workspace-app .home-progress-table td:nth-child(3) {
-  width: 21%;
+  width: 20%;
 }
 .workspace-app .home-progress-table th:nth-child(4),
 .workspace-app .home-progress-table td:nth-child(4) {
@@ -77,7 +129,51 @@
 }
 .workspace-app .home-progress-table th:nth-child(5),
 .workspace-app .home-progress-table td:nth-child(5) {
-  width: 13%;
+  width: 15%;
+}
+.workspace-app .home-progress-table th:nth-child(1),
+.workspace-app .home-progress-table td:nth-child(1) {
+  width: 30%;
+}
+.workspace-app .home-progress-table th:nth-child(5),
+.workspace-app .home-progress-table td:nth-child(5) {
+  width: 18%;
+}
+/* team: larger, tinted avatars that overlap on a surface ring, with a count chip for the rest */
+.workspace-app .home-progress-table .project-member-avatar,
+.workspace-app .home-progress-table .project-member-overflow {
+  border-width: 2px;
+  height: 28px;
+  margin-left: -8px;
+  width: 28px;
+}
+.workspace-app
+  .home-progress-table
+  .project-members
+  li:first-child
+  .project-member-avatar {
+  margin-left: 0;
+}
+.workspace-app .home-progress-table .project-member-avatar [data-slot="avatar-fallback"],
+.workspace-app .home-progress-table .project-member-overflow {
+  font-size: 10px;
+  font-weight: 600;
+}
+.workspace-app .home-progress-table li:nth-child(1) [data-slot="avatar-fallback"] {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  color: var(--text);
+}
+.workspace-app .home-progress-table li:nth-child(2) [data-slot="avatar-fallback"] {
+  background: color-mix(in srgb, var(--st-review) 24%, var(--surface));
+  color: var(--text);
+}
+.workspace-app .home-progress-table li:nth-child(3) [data-slot="avatar-fallback"] {
+  background: color-mix(in srgb, var(--st-done) 24%, var(--surface));
+  color: var(--text);
+}
+.workspace-app .home-progress-table .project-member-overflow {
+  background: var(--surface-3);
+  color: var(--text-2);
 }
 .workspace-app .home-progress-table td:first-child > .row {
   min-width: 0;

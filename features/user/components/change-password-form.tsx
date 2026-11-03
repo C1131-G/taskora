@@ -6,6 +6,7 @@ import { CheckCircle } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { AuthAlert } from "@/features/user/components/auth-alert";
 import {
@@ -56,6 +57,7 @@ const ChangePasswordForm = () => {
 
   const fail = (message: string, field: ErrorField) => {
     setError(message);
+    toast.error(message);
     setErrorField(field);
     const target =
       field === "confirmPassword" ? confirmPasswordRef : currentPasswordRef;

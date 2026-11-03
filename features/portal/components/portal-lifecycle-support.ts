@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 export type Satisfaction = "up" | "down";
 
@@ -22,6 +23,12 @@ export const failureText = (failure: ActionFailure) =>
 export const useLifecycleAction = () => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const showError = (message: string) => {
+    setError(message);
+    if (message) {
+      toast.error(message);
+    }
+  };
   const keyRef = useRef<string | null>(null);
 
   const touch = () => {
@@ -47,13 +54,13 @@ export const useLifecycleAction = () => {
         setPending(false);
         return true;
       }
-      setError(failureText(result));
+      showError(failureText(result));
     } catch {
-      setError(fallback);
+      showError(fallback);
     }
     setPending(false);
     return false;
   };
 
-  return { error, pending, run, setError, touch };
+  return { error, pending, run, setError: showError, touch };
 };

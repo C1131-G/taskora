@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FavoriteToggle } from "@/features/discovery/components/favorite-toggle";
+import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
 import { TaskManageControls } from "@/features/tasks/components/task-manage-controls";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { TaskTableHeaderCell } from "@/features/tasks/components/task-table-header-cell";
@@ -219,73 +220,129 @@ export const GlobalTaskList = ({
   isAdmin,
   selectedIds,
   onToggle,
-}: GlobalTaskViewProps) => (
-  <div className="list-wrap">
-    <div className="tlist task-table-global">
-      <div className="thead">
-        <div>
-          <span className="sr-only">Select</span>
-        </div>
-        <div>Task</div>
-        <div>Status</div>
-        <div>Assignee</div>
-        <div>Priority</div>
-        <div>Due date</div>
-        <div>Project</div>
-        <div>Actions</div>
-      </div>
-      {taskGroups.map((group) => (
-        <div className="task-group" key={group.key}>
-          <h2 className="task-group-heading">
-            {group.label} <span>{group.tasks.length}</span>
-          </h2>
-          {group.tasks.map((task) => {
-            const canEdit = canEditTask(task, userId, isAdmin);
-
-            return (
-              <div className="trow" key={task.id}>
-                <div className="ttl">
-                  <Checkbox
-                    aria-label={`Select ${task.title}`}
-                    checked={selectedIds.has(task.id)}
-                    onCheckedChange={(checked) =>
-                      onToggle(task.id, checked === true)
-                    }
-                  />
-                  <span className="mono faint">
-                    {task.projectKey}-{task.projectTaskNumber}
-                  </span>
-                  <Link
-                    className="trunc"
-                    href={`/projects/${task.projectId}?view=board`}
+}: GlobalTaskViewProps) => {
+  const drawer = useTaskDrawer();
+  return (
+    <div className="mtt-wrap">
+      <table className="mtt mtt-global">
+        <caption className="sr-only">Workspace tasks grouped by status</caption>
+        <colgroup>
+          <col className="mtt-col-select" />
+          <col className="mtt-col-task" />
+          <col className="mtt-col-project mtt-opt" />
+          <col className="mtt-col-status" />
+          <col className="mtt-col-assignee mtt-opt" />
+          <col className="mtt-col-priority" />
+          <col className="mtt-col-due" />
+          <col className="mtt-col-actions" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">
+              <span className="sr-only">Select</span>
+            </th>
+            <th scope="col">Task</th>
+            <th className="mtt-opt" scope="col">
+              Project
+            </th>
+            <th scope="col">Status</th>
+            <th className="mtt-opt" scope="col">
+              Assignee
+            </th>
+            <th scope="col">Priority</th>
+            <th scope="col">Due date</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        {taskGroups.map((group) => (
+          <tbody className="mtt-group-body" key={group.key}>
+            <tr className="mtt-group">
+              <th colSpan={6} scope="colgroup">
+                {group.label} <span>{group.tasks.length}</span>
+              </th>
+              <th aria-hidden="true" className="mtt-opt" colSpan={2} />
+            </tr>
+            {group.tasks.map((task) => {
+              const canEdit = canEditTask(task, userId, isAdmin);
+              return (
+                <tr className="mtt-row" key={task.id}>
+                  <td data-label="Select">
+                    <Checkbox
+                      aria-label={`Select ${task.title}`}
+                      checked={selectedIds.has(task.id)}
+                      onCheckedChange={(checked) =>
+                        onToggle(task.id, checked === true)
+                      }
+                    />
+                  </td>
+                  <td className="mtt-task" data-label="Task">
+                    <div className="mtt-task-inner">
+                      <button
+                        className="mtt-title"
+                        onClick={() => drawer?.openTask(task.id)}
+                        onFocus={() => drawer?.prefetchTask(task.id)}
+                        onPointerEnter={() => drawer?.prefetchTask(task.id)}
+                        title={`Open ${task.title}`}
+                        type="button"
+                      >
+                        {task.title}
+                      </button>
+                      <span className="mono mtt-key">
+                        {task.projectKey}-{task.projectTaskNumber}
+                        <span className="mtt-key-project">
+                          {" · "}
+                          {task.projectName}
+                        </span>
+                      </span>
+                    </div>
+                  </td>
+                  <td className="mtt-opt" data-label="Project">
+                    <Link
+                      className="mtt-project"
+                      href={`/projects/${task.projectId}`}
+                      title={task.projectName}
+                    >
+                      {task.projectName}
+                    </Link>
+                  </td>
+                  <td data-label="Status">
+                    <TaskStatus canEdit={canEdit} task={task} />
+                  </td>
+                  <td className="mtt-opt" data-label="Assignee">
+                    <span
+                      className="mtt-assignees"
+                      title={task.assignees.map(({ name }) => name).join(", ")}
+                    >
+                      {task.assignees.length
+                        ? task.assignees.map(({ name }) => name).join(", ")
+                        : "Unassigned"}
+                    </span>
+                  </td>
+                  <td data-label="Priority">
+                    <span className={`mtt-priority prio-${task.priority}`}>
+                      {task.priority}
+                    </span>
+                  </td>
+                  <td
+                    className={`mtt-due${group.key === "overdue" ? " is-overdue" : ""}`}
+                    data-label="Due"
                   >
-                    {task.title}
-                  </Link>
-                </div>
-                <div className="c-meta">
-                  <TaskStatus task={task} canEdit={canEdit} />
-                </div>
-                <div className="c-meta">
-                  {task.assignees.length
-                    ? task.assignees.map(({ name }) => name).join(", ")
-                    : "Unassigned"}
-                </div>
-                <div className="c-meta">{task.priority}</div>
-                <div className="c-meta num">{task.dueDate ?? "—"}</div>
-                <div className="c-meta">
-                  <Link href={`/projects/${task.projectId}`}>
-                    {task.projectName}
-                  </Link>
-                </div>
-                <TaskActions
-                  {...{ employees, favoriteTaskIds, isAdmin, userId }}
-                  task={task}
-                />
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                    {task.dueDate ?? "—"}
+                  </td>
+                  <td className="mtt-actions" data-label="Actions">
+                    <div className="mtt-actions-inner">
+                      <TaskActions
+                        {...{ employees, favoriteTaskIds, isAdmin, userId }}
+                        task={task}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        ))}
+      </table>
     </div>
-  </div>
-);
+  );
+};

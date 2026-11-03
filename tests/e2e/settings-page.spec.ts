@@ -204,7 +204,9 @@ test.describe("Settings (/settings)", () => {
       });
       await toggle.click();
       await expect(
-        page.getByRole("alert").filter({ hasText: "could not be saved" })
+        page
+          .locator("[data-sonner-toast]")
+          .filter({ hasText: "could not be saved" })
       ).toBeVisible();
       await expect(toggle).toHaveAttribute("aria-checked", before ?? "true");
       await page.unroute("**/settings**");

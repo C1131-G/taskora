@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ViewSwitchTransition } from "@/components/ui/view-switch-transition";
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import { ErrorToast } from "@/components/workspace/error-toast";
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import { BUG_STATUS_FILTERS } from "@/features/bugs/bug-filters";
 import type { BugFilters } from "@/features/bugs/bug-filters";
 import { listBugs } from "@/features/bugs/bugs-queries";
@@ -99,6 +100,9 @@ const BugTracker = async ({ filters }: { readonly filters: BugFilters }) => {
   const drawer = drawerData(bugs, currentUserId, isAdmin);
   return (
     <>
+      <ErrorToast
+        message={employeeResult.ok ? null : employeeResult.error.message}
+      />
       <search>
         <form action="/bugs" className="bug-filter-form">
           <label className="sr-only" htmlFor="bug-search">
@@ -202,8 +206,74 @@ const BugReportAction = async () => {
 // the real one.
 const BugReportActionSkeleton = () => <BugReportDialog projects={[]} />;
 
+const SKELETON_PILLS = [
+  "All",
+  "Reported",
+  "Triaged",
+  "In progress",
+  "Needs info",
+  "Awaiting client",
+  "Verification",
+] as const;
+const SKELETON_VIEWS = ["List", "Board", "Client queue"] as const;
+const SKELETON_ROWS = ["a", "b", "c", "d"] as const;
+
+// Mirrors BugTracker: the search row, status pills and view switch are the real
+// labels at the real sizes; only the report cards are placeholders.
 const BugTrackerSkeleton = () => (
-  <PanelSkeleton variant="bugs" label="Loading bug reports…" rows={5} />
+  <>
+    <div className="bug-filter-form" inert>
+      <span className="skeleton-filter-select skeleton-search bug-search">
+        Search reports, components, and past fixes
+      </span>
+      <span className="btn">Search</span>
+      <span className="btn btn-ghost">Include archived</span>
+    </div>
+    <div aria-hidden="true" className="bug-status-filters">
+      {SKELETON_PILLS.map((label) => (
+        <span
+          className={`bug-status-filter${label === "All" ? " selected" : ""}`}
+          key={label}
+        >
+          {label}
+        </span>
+      ))}
+    </div>
+    <div aria-hidden="true" className="bug-view-switch">
+      {SKELETON_VIEWS.map((label) => (
+        <span className={label === "List" ? "selected" : ""} key={label}>
+          {label}
+        </span>
+      ))}
+    </div>
+    <div aria-busy="true" className="bug-list" role="status">
+      <span className="sr-only">Loading bug reports…</span>
+      {SKELETON_ROWS.map((key) => (
+        <article
+          aria-hidden="true"
+          className="panel panel-b bug-list-item"
+          key={key}
+        >
+          <div className="bug-list-link">
+            <span className="bug-severity" />
+            <div className="bug-list-main">
+              <div className="bug-list-title-row">
+                <SkeletonBone shape="short" />
+                <SkeletonBone />
+              </div>
+              <SkeletonBone shape="short" />
+              <div className="bug-list-meta">
+                <SkeletonBone shape="short" />
+                <SkeletonBone shape="short" />
+                <SkeletonBone shape="short" />
+              </div>
+            </div>
+          </div>
+          <SkeletonBone shape="control" />
+        </article>
+      ))}
+    </div>
+  </>
 );
 
 export {

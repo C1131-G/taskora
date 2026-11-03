@@ -1,0 +1,202 @@
+/* Task drawer: a clear header, labelled fields in aligned rows, grouped sections. */
+[data-task-drawer].workspace-app {
+  background: var(--surface);
+}
+[data-task-drawer].workspace-app [data-slot="sheet-header"] {
+  border-bottom: 1px solid var(--border);
+  gap: 4px;
+  padding: 20px 56px 16px 20px;
+}
+[data-task-drawer].workspace-app [data-slot="sheet-title"] {
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+[data-task-drawer].workspace-app [data-slot="sheet-description"] {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+
+/* sections */
+[data-task-drawer].workspace-app section.stack {
+  border-top: 1px solid var(--border);
+  gap: 12px;
+  padding-top: 18px;
+}
+[data-task-drawer].workspace-app section.stack:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+[data-task-drawer].workspace-app section.stack > h3 {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* fields */
+[data-task-drawer].workspace-app form.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+[data-task-drawer].workspace-app form .row {
+  align-items: flex-start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+[data-task-drawer].workspace-app .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+[data-task-drawer].workspace-app .field > span,
+[data-task-drawer].workspace-app fieldset.field > legend {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+[data-task-drawer].workspace-app form .input,
+[data-task-drawer].workspace-app form [data-slot="select-trigger"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text);
+  font-size: var(--fs);
+  min-height: 36px;
+  width: 100%;
+}
+[data-task-drawer].workspace-app form textarea.input {
+  line-height: 1.5;
+  padding: 8px 10px;
+  resize: vertical;
+}
+[data-task-drawer].workspace-app form .input:focus-visible,
+[data-task-drawer].workspace-app form [data-slot="select-trigger"]:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-line);
+  outline-offset: 1px;
+}
+[data-task-drawer].workspace-app form [data-slot="select-trigger"] {
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+/* assignees: a bordered, scrollable pick list */
+[data-task-drawer].workspace-app fieldset.field {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .assignee-list {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  max-height: 176px;
+  overflow-y: auto;
+  padding: 4px;
+}
+[data-task-drawer].workspace-app .assignee-list > label.row {
+  align-items: center;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 8px;
+}
+[data-task-drawer].workspace-app .assignee-list > label.row:hover {
+  background: var(--surface-2);
+}
+[data-task-drawer].workspace-app .assignee-name {
+  font-size: var(--fs-sm);
+}
+
+/* primary action */
+[data-task-drawer].workspace-app form > .btn-primary {
+  align-self: stretch;
+  height: 38px;
+  justify-content: center;
+}
+
+/* loading state shares the form layout, so nothing shifts when it fills in */
+[data-task-drawer].workspace-app .skeleton-copy.field {
+  gap: 8px;
+}
+[data-task-drawer].workspace-app .skeleton-copy.field .skeleton-control {
+  height: 36px;
+  width: 100%;
+}
+[data-task-drawer].workspace-app .skeleton-copy.field .skeleton-block {
+  height: 80px;
+  width: 100%;
+}
+[data-task-drawer].workspace-app .stack > .row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+/* thin indeterminate line shown while a task's data is on its way */
+.task-drawer-progress {
+  background: var(--accent-soft);
+  height: 3px;
+  margin: 0 20px;
+  overflow: hidden;
+  position: relative;
+}
+.task-drawer-progress::after {
+  animation: task-drawer-progress 1s ease-in-out infinite;
+  background: var(--accent);
+  content: "";
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: 35%;
+}
+@keyframes task-drawer-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .task-drawer-progress::after {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* clickable task title in tables */
+.workspace-app button.mtt-title {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+/* the save button stays in reach while the long form scrolls */
+[data-task-drawer].workspace-app form > .btn-primary {
+  background-clip: padding-box;
+  bottom: 0;
+  box-shadow: 0 -10px 12px -4px var(--surface);
+  position: sticky;
+  z-index: 2;
+}
+[data-task-drawer].workspace-app form > .btn-primary:disabled {
+  opacity: 0.6;
+}

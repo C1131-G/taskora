@@ -35,6 +35,20 @@
 .workspace-app .task-filter .field:first-child {
   flex: 1 1 190px;
 }
+/* header actions share one size so New task, List and Calendar line up */
+.workspace-app .my-tasks-header button,
+.workspace-app .my-tasks-header nav a {
+  align-items: center;
+  font-size: var(--fs-sm);
+  gap: 6px;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding-inline: 12px !important;
+}
+.workspace-app .my-tasks-header button svg {
+  height: 14px;
+  width: 14px;
+}
 .workspace-app .my-tasks-header > nav {
   flex-wrap: wrap;
   gap: 8px;

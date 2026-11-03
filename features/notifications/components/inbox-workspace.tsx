@@ -2,12 +2,11 @@
 
 "use client";
 
-import { Bell, Check, EnvelopeOpen, Tray } from "@phosphor-icons/react";
+import { Bell, Checks, EnvelopeOpen, Tray } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sheet,
   SheetContent,
@@ -15,15 +14,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/workspace/empty-state";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { InboxDetailContent } from "@/features/notifications/components/inbox-detail-content";
+import {
+  getTypeLabel,
+  InboxTypeIcon,
+} from "@/features/notifications/components/inbox-type-icon";
 import { useInboxReadState } from "@/features/notifications/hooks/use-inbox-read-state";
 import {
   DATE_FORMATTER,
   FILTERS,
   formatRelativeTime,
+  getDayGroup,
   getInitials,
   typeMatchesFilter,
 } from "@/features/notifications/inbox-format";
@@ -52,7 +56,7 @@ export const InboxWorkspace = ({
   const unreadOnly = searchParams.get("unread") === "1";
   const selectedId = searchParams.get("notification") ?? items[0]?.id ?? null;
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
-  const { error, markAllRead, markRead, pending, shownItems, shownUnread } =
+  const { markAllRead, markRead, pending, shownItems, shownUnread } =
     useInboxReadState(items, unreadCount);
   const visibleItems = useMemo(
     () =>
@@ -76,6 +80,14 @@ export const InboxWorkspace = ({
       ),
     [items]
   );
+  const groups = useMemo(() => {
+    const byDay = new Map<string, NotificationItem[]>();
+    for (const notification of visibleItems) {
+      const label = getDayGroup(notification.createdAt);
+      byDay.set(label, [...(byDay.get(label) ?? []), notification]);
+    }
+    return [...byDay.entries()];
+  }, [visibleItems]);
 
   const selectNotification = (notificationId: string) => {
     updateUrl("notification", notificationId);
@@ -87,20 +99,27 @@ export const InboxWorkspace = ({
   return (
     <section aria-label="Inbox notifications" className="inbox-workspace">
       <div className="panel inbox-list-panel">
-        <div className="inbox-filters">
-          <div className="row inbox-filter-actions">
-            <label
-              className="row inbox-unread-toggle"
-              htmlFor="inbox-unread-only"
-            >
-              <Checkbox
+        <header className="inbox-head">
+          <div className="inbox-head-title">
+            <h2>
+              {shownUnread > 0 ? `${shownUnread} unread` : "All caught up"}
+            </h2>
+            <span className="inbox-head-count">
+              {visibleItems.length} shown
+            </span>
+          </div>
+          <div className="inbox-head-actions">
+            <label className="inbox-unread-toggle" htmlFor="inbox-unread-only">
+              <Switch
                 checked={unreadOnly}
+                className="inbox-unread-switch"
                 id="inbox-unread-only"
                 onCheckedChange={(checked) =>
                   updateUrl("unread", checked === true ? "1" : null)
                 }
+                size="sm"
               />
-              Unread
+              Unread only
             </label>
             {shownUnread > 0 ? (
               <WorkspaceButton
@@ -108,117 +127,129 @@ export const InboxWorkspace = ({
                 className="inbox-mark-all"
                 disabled={pending}
                 onClick={markAllRead}
-                size="icon-sm"
+                size="sm"
                 type="button"
                 variant="ghost"
               >
-                <Check aria-hidden="true" />
-                <span className="sr-only">Mark all as read</span>
+                <Checks aria-hidden="true" />
+                Mark all read
               </WorkspaceButton>
             ) : null}
           </div>
-          <Tabs
-            onValueChange={(value) => {
-              const nextFilter = FILTERS.find(
-                ({ id: filterId }) => filterId === value
-              );
-              if (nextFilter) {
-                updateUrl(
-                  "type",
-                  nextFilter.id === "all" ? null : nextFilter.id
-                );
-              }
-            }}
-            value={filter}
-          >
-            <TabsList aria-label="Filter inbox by type" className="inbox-tabs">
-              {FILTERS.map(({ id, label }) => (
-                <TabsTrigger aria-controls={undefined} key={id} value={id}>
-                  {label} <span>{counts.get(id) ?? 0}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+        </header>
+        <div
+          aria-label="Filter inbox by type"
+          className="inbox-tabs"
+          role="group"
+        >
+          {FILTERS.map(({ id, label }) => (
+            <button
+              aria-pressed={filter === id}
+              className="inbox-tab"
+              key={id}
+              onClick={() => updateUrl("type", id === "all" ? null : id)}
+              type="button"
+            >
+              {label}
+              <span className="inbox-tab-count">{counts.get(id) ?? 0}</span>
+            </button>
+          ))}
         </div>
-        {error ? (
-          <p className="panel-b error" role="alert">
-            {error}
-          </p>
-        ) : null}
         {visibleItems.length > 0 ? (
-          <ul aria-label="Notifications" className="inbox-items">
-            {visibleItems.map((notification) => {
-              const isSelected = selectedItem?.id === notification.id;
-              return (
-                <li
-                  className={`inbox-item${notification.readAt ? " read" : " unread"}${isSelected ? " selected" : ""}`}
-                  key={notification.id}
-                >
-                  <WorkspaceButton
-                    aria-pressed={isSelected}
-                    data-inbox-item-select=""
-                    onClick={() => selectNotification(notification.id)}
-                    size="lg"
-                    type="button"
-                    variant="ghost"
-                    workspace
-                  >
-                    <span aria-hidden="true" className="ndot" />
-                    {notification.actorName ? (
-                      <Avatar className="inbox-avatar">
-                        <AvatarFallback>
-                          {getInitials(notification.actorName)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <span aria-hidden="true" className="inbox-system-icon">
-                        <Bell />
-                      </span>
-                    )}
-                    <span className="inbox-item-copy">
-                      <span className="inbox-item-title">
-                        {notification.text}
-                      </span>
-                      {notification.snippet ? (
-                        <span className="inbox-item-snippet">
-                          {notification.snippet}
-                        </span>
-                      ) : null}
-                      <span className="inbox-item-meta">
-                        {notification.projectName ? (
-                          <span className="inbox-item-project">
-                            {notification.projectName}
-                          </span>
-                        ) : null}
-                        <time
-                          className="inbox-item-time"
-                          dateTime={notification.createdAt}
-                          title={DATE_FORMATTER.format(
-                            new Date(notification.createdAt)
-                          )}
+          <div className="inbox-items">
+            {groups.map(([label, group]) => (
+              <section aria-label={label} className="inbox-group" key={label}>
+                <h3 className="inbox-group-label">{label}</h3>
+                <ul className="inbox-group-list">
+                  {group.map((notification) => {
+                    const isSelected = selectedItem?.id === notification.id;
+                    return (
+                      <li
+                        className={`inbox-item${notification.readAt ? " read" : " unread"}${isSelected ? " selected" : ""}`}
+                        key={notification.id}
+                      >
+                        <button
+                          aria-pressed={isSelected}
+                          data-inbox-item-select=""
+                          onClick={() => selectNotification(notification.id)}
+                          type="button"
                         >
-                          {formatRelativeTime(notification.createdAt)}
-                        </time>
-                      </span>
-                    </span>
-                  </WorkspaceButton>
-                  {notification.readAt === null ? (
-                    <WorkspaceButton
-                      aria-label={`Mark as read: ${notification.text}`}
-                      className="inbox-item-read"
-                      disabled={pending}
-                      onClick={() => markRead(notification.id)}
-                      size="icon-sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <EnvelopeOpen aria-hidden="true" />
-                    </WorkspaceButton>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
+                          <span className="inbox-avatar-wrap">
+                            {notification.actorName ? (
+                              <Avatar className="inbox-avatar">
+                                <AvatarFallback>
+                                  {getInitials(notification.actorName)}
+                                </AvatarFallback>
+                              </Avatar>
+                            ) : (
+                              <span
+                                aria-hidden="true"
+                                className="inbox-system-icon"
+                              >
+                                <Bell />
+                              </span>
+                            )}
+                            <span
+                              className={`inbox-type-badge type-${notification.type}`}
+                              title={getTypeLabel(notification.type)}
+                            >
+                              <InboxTypeIcon type={notification.type} />
+                            </span>
+                          </span>
+                          <span className="inbox-item-copy">
+                            <span className="inbox-item-title">
+                              {notification.text}
+                            </span>
+                            {notification.snippet ? (
+                              <span className="inbox-item-snippet">
+                                {notification.snippet}
+                              </span>
+                            ) : null}
+                            <span className="inbox-item-meta">
+                              {notification.projectName ? (
+                                <span className="inbox-item-project">
+                                  {notification.projectName}
+                                </span>
+                              ) : null}
+                              <time
+                                className="inbox-item-time"
+                                dateTime={notification.createdAt}
+                                title={DATE_FORMATTER.format(
+                                  new Date(notification.createdAt)
+                                )}
+                              >
+                                {formatRelativeTime(notification.createdAt)}
+                              </time>
+                            </span>
+                          </span>
+                          {notification.readAt === null ? (
+                            <span
+                              className="inbox-unread-dot"
+                              role="img"
+                              aria-label="Unread"
+                            />
+                          ) : null}
+                        </button>
+                        {notification.readAt === null ? (
+                          <WorkspaceButton
+                            aria-label={`Mark as read: ${notification.text}`}
+                            className="inbox-item-read"
+                            disabled={pending}
+                            onClick={() => markRead(notification.id)}
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <EnvelopeOpen aria-hidden="true" />
+                          </WorkspaceButton>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
         ) : (
           <EmptyState
             action={
@@ -242,16 +273,11 @@ export const InboxWorkspace = ({
         )}
       </div>
       <aside aria-label="Selected notification" className="panel inbox-detail">
-        <div className="panel-h">
-          <h2>Notification details</h2>
-        </div>
-        <div className="panel-b">
-          <InboxDetailContent
-            item={selectedItem}
-            onMarkRead={markRead}
-            pending={pending}
-          />
-        </div>
+        <InboxDetailContent
+          item={selectedItem}
+          onMarkRead={markRead}
+          pending={pending}
+        />
       </aside>
       <Sheet onOpenChange={setMobileDetailOpen} open={mobileDetailOpen}>
         <SheetContent

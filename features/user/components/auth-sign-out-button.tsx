@@ -5,6 +5,7 @@
 import { SignOut } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/src/client/auth-client";
@@ -12,11 +13,9 @@ import { authClient } from "@/src/client/auth-client";
 const AuthSignOutButton = () => {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [failed, setFailed] = useState(false);
 
   const signOut = async () => {
     setPending(true);
-    setFailed(false);
     try {
       const result = await authClient.signOut();
       if (!result.error) {
@@ -25,17 +24,15 @@ const AuthSignOutButton = () => {
         return;
       }
     } catch {
-      // Reported through the label below.
+      // The failure is reported below.
     }
-    setFailed(true);
+    toast.error("Sign-out failed. Try again.");
     setPending(false);
   };
 
   let label = "Sign out";
   if (pending) {
     label = "Signing out…";
-  } else if (failed) {
-    label = "Sign-out failed. Retry";
   }
 
   return (

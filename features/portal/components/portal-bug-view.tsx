@@ -4,6 +4,7 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -134,7 +135,7 @@ const PortalResponseNotice = async ({ bugId }: { readonly bugId: string }) => {
   }
   const times = await getPortalResponseTimes({});
   if (!times.ok) {
-    return null;
+    return <ErrorToast message={times.error.message} />;
   }
   return (
     <output className="portal-notice portal-response-note">

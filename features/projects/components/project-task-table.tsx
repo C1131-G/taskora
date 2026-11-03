@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCustomFieldValue } from "@/features/custom-fields/custom-field-format";
+import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
 import { TaskManageControls } from "@/features/tasks/components/task-manage-controls";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { TaskTableHeaderCell } from "@/features/tasks/components/task-table-header-cell";
@@ -131,6 +132,8 @@ export const ProjectTaskTable = ({
   readonly selectedTaskIds: ReadonlySet<string>;
   readonly tasks: readonly ProjectTaskTableItem[];
 }) => {
+  const drawer = useTaskDrawer();
+  const todayKey = new Date().toISOString().slice(0, 10);
   const labelsById = new Map(labels.map((label) => [label.id, label]));
   const fieldsByColumnId = new Map(
     customFields.map((field) => [customFieldColumn(field).id, field])
@@ -175,12 +178,21 @@ export const ProjectTaskTable = ({
     switch (column.id) {
       case "task": {
         return (
-          <>
-            <span className="mono faint">
+          <div className="mtt-task-inner">
+            <button
+              className="mtt-title"
+              onClick={() => drawer?.openTask(task.id)}
+              onFocus={() => drawer?.prefetchTask(task.id)}
+              onPointerEnter={() => drawer?.prefetchTask(task.id)}
+              title={`Open ${task.title}`}
+              type="button"
+            >
+              {task.title}
+            </button>
+            <span className="mono mtt-key">
               {projectKey}-{task.projectTaskNumber}
             </span>
-            <span className="project-task-name">{task.title}</span>
-          </>
+          </div>
         );
       }
       case "status": {
@@ -195,7 +207,11 @@ export const ProjectTaskTable = ({
         );
       }
       case "priority": {
-        return task.priority;
+        return (
+          <span className={`mtt-priority prio-${task.priority}`}>
+            {task.priority}
+          </span>
+        );
       }
       case "assignees": {
         return task.assignees.length
@@ -206,7 +222,15 @@ export const ProjectTaskTable = ({
         return formatDate(task.startDate);
       }
       case "due": {
-        return formatDate(task.dueDate);
+        const overdue =
+          task.status !== "done" &&
+          task.dueDate !== null &&
+          task.dueDate < todayKey;
+        return (
+          <span className={`mtt-due${overdue ? " is-overdue" : ""}`}>
+            {formatDate(task.dueDate)}
+          </span>
+        );
       }
       case "estimate": {
         return task.estimate ?? "—";
@@ -256,7 +280,7 @@ export const ProjectTaskTable = ({
   };
 
   return (
-    <Table className="project-task-data-table">
+    <Table className="mtt project-task-data-table">
       <TableCaption className="sr-only">
         Tasks in the {projectKey} project
       </TableCaption>
@@ -286,17 +310,16 @@ export const ProjectTaskTable = ({
         {groups.map((group) => (
           <Fragment key={group.id}>
             {group.label ? (
-              <TableRow className="project-task-group-row">
+              <TableRow className="mtt-group project-task-group-row">
                 <TableCell colSpan={visibleColumns.length + 1}>
-                  {group.label}{" "}
-                  <span className="muted">{group.tasks.length}</span>
+                  {group.label} <span>{group.tasks.length}</span>
                 </TableCell>
               </TableRow>
             ) : null}
             {group.tasks.map((task) => {
               const editable = editableTaskIds.has(task.id);
               return (
-                <TableRow key={task.id}>
+                <TableRow className="mtt-row" key={task.id}>
                   <TableCell>
                     <Checkbox
                       aria-label={`Select ${projectKey}-${task.projectTaskNumber} ${task.title}`}
@@ -315,7 +338,7 @@ export const ProjectTaskTable = ({
                     <TableCell
                       className={
                         column.id === "task"
-                          ? "project-task-name-cell"
+                          ? "mtt-task project-task-name-cell"
                           : undefined
                       }
                       data-label={column.label}

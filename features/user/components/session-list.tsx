@@ -4,7 +4,8 @@
 "use client";
 
 import { Devices } from "@phosphor-icons/react";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/workspace/empty-state";
 import { LocalTime } from "@/components/workspace/local-time";
@@ -26,16 +27,17 @@ export const SessionList = ({
   readonly sessions: readonly SessionSummary[];
 }) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   const revoke = (sessionId: string) =>
     startTransition(async () => {
-      const result = await revokeSessionAction({ sessionId });
-      if (!result.ok) {
-        setError(result.error.message);
-        return;
+      try {
+        const result = await revokeSessionAction({ sessionId });
+        if (!result.ok) {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("The session could not be revoked. Try again.");
       }
-      setError(null);
     });
 
   return (
@@ -43,11 +45,6 @@ export const SessionList = ({
       <div className="panel-h">
         <h2>Active sessions</h2>
       </div>
-      {error ? (
-        <p className="panel-b error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {sessions.length ? (
         sessions.map((session) => (
           <article className="mini" key={session.id}>

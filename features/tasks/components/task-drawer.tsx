@@ -3,12 +3,20 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { createContext, Suspense, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  Suspense,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useHydrated } from "@/components/workspace/use-hydrated";
-import { TaskDetailsFormSkeleton } from "@/features/tasks/components/task-details-form";
+import { TaskDetailsHeading } from "@/features/tasks/components/task-details-heading";
 import { TaskDetailsPanel } from "@/features/tasks/components/task-details-panel";
 import type { TaskBundle } from "@/features/tasks/task-details-panel-data";
 import { getTaskBundleAction } from "@/features/tasks/tasks-actions";
@@ -42,6 +50,8 @@ export interface TaskDrawerProviderProps {
 
 interface TaskDrawerValue {
   readonly openTask: (taskId: string) => void;
+  // Starts reading a task before it is opened, so a click finds the data ready.
+  readonly prefetchTask: (taskId: string) => void;
 }
 
 const TaskDrawerContext = createContext<TaskDrawerValue | null>(null);
@@ -68,6 +78,36 @@ const writeTaskParam = (taskId: string | null) => {
     window.history.replaceState(null, "", next);
   }
 };
+
+// Shown for the instant before a task's data arrives: the real drawer frame and
+// title with a thin progress line, not placeholder bones.
+const TaskDrawerShell = ({
+  onClose,
+  title,
+}: {
+  readonly onClose: () => void;
+  readonly title: string;
+}) => (
+  <Sheet
+    onOpenChange={(next) => {
+      if (!next) {
+        onClose();
+      }
+    }}
+    open
+  >
+    <SheetContent
+      aria-busy="true"
+      className="workspace-app"
+      data-task-drawer=""
+      data-workspace-sheet=""
+      side="right"
+    >
+      <TaskDetailsHeading isBug={false} title={title} />
+      <div aria-hidden="true" className="task-drawer-progress" />
+    </SheetContent>
+  </Sheet>
+);
 
 // One drawer per page. The task list comes from the server page, so the drawer
 // can open any task on the page, including from a deep link.
@@ -100,22 +140,37 @@ export const TaskDrawerProvider = ({
     readonly taskId: string;
     readonly value: number;
   } | null>(null);
-  const value = useMemo<TaskDrawerValue>(
-    () => ({
+  const prefetched = useRef(new Map<string, Promise<TaskBundle>>());
+  const value = useMemo<TaskDrawerValue>(() => {
+    const readBundle = (task: DrawerTask) => {
+      const cached = prefetched.current.get(task.id);
+      if (cached) {
+        return cached;
+      }
+      const request = getTaskBundleAction(task.projectId, task.id, task.bugId);
+      prefetched.current.set(task.id, request);
+      return request;
+    };
+    return {
       openTask: (taskId) => {
         const task = tasks.find((item) => item.id === taskId);
         if (!task) {
           return;
         }
         setBundleTaskId(task.id);
-        setInitialBundlePromise(
-          getTaskBundleAction(task.projectId, task.id, task.bugId)
-        );
+        setInitialBundlePromise(readBundle(task));
+        // A reopened task reads fresh data rather than a stale prefetch.
+        prefetched.current.delete(task.id);
         writeTaskParam(taskId);
       },
-    }),
-    [setBundleTaskId, setInitialBundlePromise, tasks]
-  );
+      prefetchTask: (taskId) => {
+        const task = tasks.find((item) => item.id === taskId);
+        if (task) {
+          readBundle(task);
+        }
+      },
+    };
+  }, [setBundleTaskId, setInitialBundlePromise, tasks]);
 
   const editable = selected ? editableTaskIds.includes(selected.id) : false;
   const version =
@@ -130,7 +185,18 @@ export const TaskDrawerProvider = ({
       {children}
       {hydrated && selected ? (
         <SectionErrorBoundary title="Task details couldn't load">
-          <Suspense fallback={<TaskDetailsFormSkeleton />}>
+          <Suspense
+            fallback={
+              <TaskDrawerShell
+                onClose={() => {
+                  setInitialBundlePromise(null);
+                  setBundleTaskId(null);
+                  writeTaskParam(null);
+                }}
+                title={selected.title}
+              />
+            }
+          >
             <TaskDetailsPanel
               currentUserId={currentUserId}
               editable={editable}

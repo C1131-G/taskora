@@ -2,8 +2,9 @@
 
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useId, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import {
   closeClientBugNotABugAction,
   requestClientInfoAction,
 } from "@/features/bugs/bugs-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface DialogConfig {
   readonly action: (input: {
@@ -52,7 +54,9 @@ const ClientMessageDialog = ({
 }) => {
   const id = useId();
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The bug could not be updated. Try again."
+  );
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +64,9 @@ const ClientMessageDialog = ({
     event.preventDefault();
     const value = text.trim();
     if (!value) {
-      setError(`${config.label} is required.`);
+      const message = `${config.label} is required.`;
+      setError(message);
+      toast.error(message);
       return;
     }
     startTransition(async () => {
@@ -76,6 +82,7 @@ const ClientMessageDialog = ({
         return;
       }
       setError(result.error.message);
+      toast.error(result.error.message);
     });
   };
 
@@ -115,11 +122,6 @@ const ClientMessageDialog = ({
               {config.help}
             </p>
           </div>
-          {error ? (
-            <p className="bug-form-error" role="alert">
-              {error}
-            </p>
-          ) : null}
           <Button disabled={pending} type="submit">
             {pending ? config.pendingLabel : config.submitLabel}
           </Button>

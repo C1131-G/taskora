@@ -1,0 +1,165 @@
+/* Subtasks in the task drawer: progress, a tidy checklist, quiet icon actions, one add box. */
+[data-task-drawer].workspace-app .subtasks > h3 {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+[data-task-drawer].workspace-app .subtasks-count {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+[data-task-drawer].workspace-app .subtasks-bar {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  height: 6px;
+  overflow: hidden;
+}
+[data-task-drawer].workspace-app .subtasks-bar::after {
+  background: var(--st-done);
+  border-radius: inherit;
+  content: "";
+  display: block;
+  height: 100%;
+  transition: width var(--dur);
+  width: var(--done);
+}
+[data-task-drawer].workspace-app .subtasks-empty {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+  padding: 12px;
+  text-align: center;
+}
+[data-task-drawer].workspace-app .subtasks-list {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  list-style: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+[data-task-drawer].workspace-app .subtasks-list:empty {
+  display: none;
+}
+[data-task-drawer].workspace-app .subtask {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 8px 6px 12px;
+}
+[data-task-drawer].workspace-app .subtask + .subtask {
+  border-top: 1px solid var(--border);
+}
+[data-task-drawer].workspace-app .subtask:hover {
+  background: var(--surface-2);
+}
+[data-task-drawer].workspace-app .subtask-title {
+  color: var(--text);
+  flex: 1 1 auto;
+  font-size: var(--fs);
+  line-height: 1.35;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+[data-task-drawer].workspace-app .subtask.is-done .subtask-title {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+[data-task-drawer].workspace-app .subtask-due {
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  flex: 0 0 auto;
+  font-size: var(--fs-2xs);
+  padding: 2px 8px;
+}
+[data-task-drawer].workspace-app .subtask-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+[data-task-drawer].workspace-app .subtask-actions .ibtn {
+  align-items: center;
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  display: inline-flex;
+  height: 28px !important;
+  justify-content: center;
+  min-height: 28px !important;
+  min-width: 28px;
+  padding: 0 !important;
+  width: 28px;
+}
+[data-task-drawer].workspace-app .subtask-actions .ibtn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text);
+}
+[data-task-drawer].workspace-app
+  .subtask-actions
+  .subtask-remove:hover:not(:disabled) {
+  background: var(--red-soft);
+  color: var(--red);
+}
+@media (hover: hover) {
+  [data-task-drawer].workspace-app .subtask-actions {
+    opacity: 0.4;
+    transition: opacity var(--dur);
+  }
+  [data-task-drawer].workspace-app .subtask:hover .subtask-actions,
+  [data-task-drawer].workspace-app .subtask:focus-within .subtask-actions {
+    opacity: 1;
+  }
+}
+[data-task-drawer].workspace-app .subtask-add {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+[data-task-drawer].workspace-app .subtask-add .btn {
+  gap: 4px;
+  height: 36px;
+}
+
+/* alignment: every row has the same columns, so dates and actions line up */
+[data-task-drawer].workspace-app .subtask {
+  align-items: center;
+  gap: 12px;
+}
+[data-task-drawer].workspace-app .subtask > [role="checkbox"] {
+  border: 1.5px solid var(--text-4);
+  border-radius: var(--r-xs);
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+[data-task-drawer].workspace-app .subtask > [role="checkbox"][data-state="checked"] {
+  background: var(--st-done);
+  border-color: var(--st-done);
+}
+[data-task-drawer].workspace-app .subtask-title {
+  align-self: center;
+}
+[data-task-drawer].workspace-app .subtask-due {
+  flex: 0 0 92px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+[data-task-drawer].workspace-app .subtask-actions {
+  flex: 0 0 140px;
+  justify-content: flex-end;
+  width: 140px;
+}
+[data-task-drawer].workspace-app .subtask-actions .ibtn:disabled {
+  opacity: 0.25;
+}
+[data-task-drawer].workspace-app .subtask-due.is-empty {
+  background: transparent;
+}

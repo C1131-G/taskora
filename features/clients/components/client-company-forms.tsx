@@ -5,6 +5,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -21,6 +22,7 @@ import {
   reactivateClientCompanyAction,
   updateClientCompanyAction,
 } from "@/features/clients/clients-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface CompanyRef {
   readonly id: string;
@@ -184,16 +186,16 @@ const ClientCompanyRenameForm = ({
 
 const ClientCompanyStatusControl = ({
   company,
-  onError,
   onVersion,
   version,
 }: {
   readonly company: CompanyRef;
-  readonly onError: (message: string | null) => void;
   readonly onVersion: VersionSink;
   readonly version: number;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useToastTransition(
+    "The client company could not be updated. Try again."
+  );
   const change = (activate: boolean) =>
     startTransition(async () => {
       const input = {
@@ -205,10 +207,9 @@ const ClientCompanyStatusControl = ({
         ? await reactivateClientCompanyAction(input)
         : await deactivateClientCompanyAction(input);
       if (!result.ok) {
-        onError(result.error.message);
+        toast.error(result.error.message);
         return;
       }
-      onError(null);
       onVersion(result.data.version);
     });
 

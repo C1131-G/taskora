@@ -41,55 +41,62 @@ export const TaskRelationsSection = ({
         <form action={onSave} className="stack">
           <fieldset className="field">
             <legend>Labels</legend>
-            {labels.length ? (
-              labels.map((label) => (
-                <label
-                  className="row"
-                  key={label.id}
-                  htmlFor={`label-${label.id}-field-81`}
-                >
-                  <Checkbox
-                    defaultChecked={selectedLabels.has(label.id)}
-                    name="labelIds"
-                    value={label.id}
-                    id={`label-${label.id}-field-81`}
-                  />
-                  <span className="pdot" style={{ "--c": label.color }} />
-                  <span>{label.name}</span>
-                </label>
-              ))
-            ) : (
-              <p className="muted">No labels are available.</p>
-            )}
+            <div className="rel-list rel-chips">
+              {labels.length ? (
+                labels.map((label) => (
+                  <label
+                    className="row"
+                    key={label.id}
+                    htmlFor={`label-${label.id}-field-81`}
+                  >
+                    <Checkbox
+                      defaultChecked={selectedLabels.has(label.id)}
+                      name="labelIds"
+                      value={label.id}
+                      id={`label-${label.id}-field-81`}
+                    />
+                    <span className="pdot" style={{ "--c": label.color }} />
+                    <span>{label.name}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="muted">No labels are available.</p>
+              )}
+            </div>
           </fieldset>
           <fieldset className="field">
             <legend>Blocked by</legend>
-            {dependencies.length ? (
-              dependencies.map((dependency) => (
-                <label
-                  className="row"
-                  key={dependency.id}
-                  htmlFor={`dependency-${dependency.id}-field-102`}
-                >
-                  <Checkbox
-                    defaultChecked={selectedDependencies.has(dependency.id)}
-                    name="dependencyTaskIds"
-                    value={dependency.id}
-                    id={`dependency-${dependency.id}-field-102`}
-                  />
-                  <span>{dependency.name}</span>
-                </label>
-              ))
-            ) : (
-              <p className="muted">No other project tasks are available.</p>
-            )}
+            <p className="setting-hint">
+              This task can&apos;t start until the ticked tasks are done.
+            </p>
+            <div className="rel-list">
+              {dependencies.length ? (
+                dependencies.map((dependency) => (
+                  <label
+                    className="row"
+                    key={dependency.id}
+                    htmlFor={`dependency-${dependency.id}-field-102`}
+                  >
+                    <Checkbox
+                      defaultChecked={selectedDependencies.has(dependency.id)}
+                      name="dependencyTaskIds"
+                      value={dependency.id}
+                      id={`dependency-${dependency.id}-field-102`}
+                    />
+                    <span>{dependency.name}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="muted">No other project tasks are available.</p>
+              )}
+            </div>
           </fieldset>
           <WorkspaceButton
-            className="btn btn-sm btn-secondary"
+            className="btn btn-secondary rel-save"
             disabled={pending}
             type="submit"
           >
-            Save labels and dependencies
+            Save labels and blockers
           </WorkspaceButton>
         </form>
       ) : (

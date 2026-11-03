@@ -6,8 +6,8 @@
 
 import { ArrowLeft } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,15 +25,32 @@ import { BugRelatedHistorySection } from "@/features/bugs/components/bug-related
 import { BugSubmissionSection } from "@/features/bugs/components/bug-submission-section";
 import { BugTriageSection } from "@/features/bugs/components/bug-triage-section";
 import { BugVerificationSection } from "@/features/bugs/components/bug-verification-section";
+import { BugWorkflowProgress } from "@/features/bugs/components/bug-workflow-progress";
 import {
   getFileDownloadUrlAction,
   getFilePreviewUrlAction,
 } from "@/features/files/files-actions";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 
 import { formatDate, statusLabels } from "./bug-detail-labels";
 import type { BugHistory } from "./bug-detail-labels";
 
 type BugActionResult = Awaited<ReturnType<typeof addBugFixAttemptAction>>;
+
+const openFile = async (fileId: string, preview: boolean) => {
+  try {
+    const result = preview
+      ? await getFilePreviewUrlAction({ fileId })
+      : await getFileDownloadUrlAction({ fileId });
+    if (!result.ok) {
+      toast.error(result.error.message);
+      return;
+    }
+    window.open(result.data, "_blank", "noopener,noreferrer");
+  } catch {
+    toast.error("The file could not be opened. Try again.");
+  }
+};
 
 export const BugDetailWorkflow = ({
   embedded = false,
@@ -50,8 +67,9 @@ export const BugDetailWorkflow = ({
   readonly onRefresh?: () => Promise<void>;
   readonly userId: string;
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The bug could not be updated. Try again."
+  );
   const canEdit =
     isAdmin ||
     history.bug.reporterId === userId ||
@@ -72,10 +90,9 @@ export const BugDetailWorkflow = ({
 
   const finishAction = async (result: BugActionResult) => {
     if (!result.ok) {
-      setError(result.error.message);
+      toast.error(result.error.message);
       return;
     }
-    setError(null);
     if (embedded && onRefresh) {
       await onRefresh();
     }
@@ -92,17 +109,6 @@ export const BugDetailWorkflow = ({
 
   const runAction = (action: Promise<BugActionResult>) =>
     startTransition(async () => finishAction(await action));
-
-  const openFile = async (fileId: string, preview: boolean) => {
-    const result = preview
-      ? await getFilePreviewUrlAction({ fileId })
-      : await getFileDownloadUrlAction({ fileId });
-    if (!result.ok) {
-      setError(result.error.message);
-      return;
-    }
-    window.open(result.data, "_blank", "noopener,noreferrer");
-  };
 
   return (
     <article
@@ -198,11 +204,7 @@ export const BugDetailWorkflow = ({
           ) : null}
         </div>
       </header>
-      {error ? (
-        <p className="bug-form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <BugWorkflowProgress status={history.bug.status} />
       {history.archived ? (
         <output className="bug-read-only-note">
           Archived bugs are read only.
@@ -234,7 +236,9 @@ export const BugDetailWorkflow = ({
         history={history}
         isReadOnly={isReadOnly}
         latestAttempt={latestAttempt}
-        onError={setError}
+        onError={(message) => {
+          toast.error(message);
+        }}
         {...(embedded && onRefresh ? { onRefresh } : {})}
         openFile={openFile}
         pending={pending}

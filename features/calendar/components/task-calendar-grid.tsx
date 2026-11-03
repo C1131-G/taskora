@@ -6,7 +6,6 @@ import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/components/workspace/use-hydrated";
 import { eventsByLocalDay } from "@/features/calendar/calendar-event-days";
 import type {
@@ -195,47 +194,63 @@ export const TaskCalendarGrid = ({
 
   return (
     <section className="panel cal workspace-calendar">
-      <CalendarToolbar
-        onPriorityChange={setPriority}
-        onQueryChange={setQuery}
-        onSortChange={setSort}
-        onStatusChange={setStatus}
-        priority={priority}
-        query={query}
-        sort={sort}
-        status={status}
-      />
-      <div className="toolbar calendar-navigation-toolbar">
-        <Button asChild size="sm" variant="outline">
-          <Link href={calendarHref(0)} prefetch={false}>
-            Today
-          </Link>
-        </Button>
-        <div className="row calendar-nav">
-          <Button
-            aria-label={`Previous ${viewMode}`}
-            asChild
-            size="icon"
-            variant="ghost"
-          >
-            <Link href={calendarHref(monthOffset - 1)}>
+      <div className="cal-bar">
+        <div className="cal-bar-nav">
+          <h2 aria-live="polite" className="calendar-month-label">
+            {monthLabel}
+          </h2>
+          <div className="cal-seg" role="group" aria-label="Change period">
+            <Link
+              aria-label={`Previous ${viewMode}`}
+              className="cal-seg-item cal-seg-icon"
+              href={calendarHref(monthOffset - 1)}
+            >
               <CaretLeft aria-hidden="true" size={16} />
             </Link>
-          </Button>
-          <Button
-            aria-label={`Next ${viewMode}`}
-            asChild
-            size="icon"
-            variant="ghost"
-          >
-            <Link href={calendarHref(monthOffset + 1)}>
+            <Link
+              className="cal-seg-item"
+              href={calendarHref(0)}
+              prefetch={false}
+            >
+              Today
+            </Link>
+            <Link
+              aria-label={`Next ${viewMode}`}
+              className="cal-seg-item cal-seg-icon"
+              href={calendarHref(monthOffset + 1)}
+            >
               <CaretRight aria-hidden="true" size={16} />
             </Link>
-          </Button>
+          </div>
         </div>
-        <h2 aria-live="polite" className="calendar-month-label">
-          {monthLabel}
-        </h2>
+        <CalendarToolbar
+          onPriorityChange={setPriority}
+          onQueryChange={setQuery}
+          onSortChange={setSort}
+          onStatusChange={setStatus}
+          priority={priority}
+          query={query}
+          sort={sort}
+          status={status}
+        />
+        <div aria-label="Calendar view" className="cal-seg" role="group">
+          <Link
+            aria-current={viewMode === "month" ? "page" : undefined}
+            className="cal-seg-item"
+            href={calendarHref(0, "month")}
+          >
+            Month
+          </Link>
+          <Link
+            aria-current={viewMode === "week" ? "page" : undefined}
+            className="cal-seg-item"
+            href={calendarHref(0, "week")}
+          >
+            Week
+          </Link>
+        </div>
+      </div>
+      <div className="cal-filters">
         {projects.length ? (
           <ul aria-label="Projects" className="calendar-project-legend">
             {projects.map((project) => (
@@ -250,24 +265,6 @@ export const TaskCalendarGrid = ({
             ))}
           </ul>
         ) : null}
-        <div aria-label="Calendar view" className="calendar-view-toggle">
-          <Button
-            aria-current={viewMode === "month" ? "page" : undefined}
-            asChild
-            size="sm"
-            variant={viewMode === "month" ? "default" : "outline"}
-          >
-            <Link href={calendarHref(0, "month")}>Month</Link>
-          </Button>
-          <Button
-            aria-current={viewMode === "week" ? "page" : undefined}
-            asChild
-            size="sm"
-            variant={viewMode === "week" ? "default" : "outline"}
-          >
-            <Link href={calendarHref(0, "week")}>Week</Link>
-          </Button>
-        </div>
       </div>
       <div className="cal-h" aria-hidden="true">
         {[
@@ -285,11 +282,6 @@ export const TaskCalendarGrid = ({
       <output aria-live="polite" className="sr-only">
         {reschedule.announcement}
       </output>
-      {reschedule.error ? (
-        <p className="error" role="alert">
-          {reschedule.error}
-        </p>
-      ) : null}
       <TaskCalendarDays
         currentMonth={current}
         currentUserId={currentUserId}

@@ -43,9 +43,9 @@ const SkeletonPanel = ({
 const OverviewSkeleton = () => (
   <>
     <SkeletonStats />
-    <div className="grid2 overview-grid">
+    <div className="overview-grid ov-layout">
       <SkeletonPanel title="Portfolio">
-        <SkeletonTable columns={7} />
+        <SkeletonTable columns={6} />
       </SkeletonPanel>
       <SkeletonPanel title="Tasks by status">
         <SkeletonRows rows={5} />

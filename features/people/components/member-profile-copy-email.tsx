@@ -5,6 +5,7 @@
 
 import { Check, Copy } from "@phosphor-icons/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 
@@ -14,16 +15,14 @@ export const MemberProfileCopyEmail = ({
   readonly email: string;
 }) => {
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState(false);
 
   const copyEmail = async () => {
     try {
       await navigator.clipboard.writeText(email);
       setCopied(true);
-      setError(false);
     } catch {
       setCopied(false);
-      setError(true);
+      toast.error("Could not copy email address.");
     }
   };
 
@@ -42,11 +41,6 @@ export const MemberProfileCopyEmail = ({
         )}
         {copied ? "Copied" : "Copy email"}
       </WorkspaceButton>
-      {error ? (
-        <output aria-live="polite" className="sr-only">
-          Could not copy email address.
-        </output>
-      ) : null}
     </div>
   );
 };

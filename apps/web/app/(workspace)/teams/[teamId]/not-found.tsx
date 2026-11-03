@@ -1,12 +1,12 @@
-/* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in app/workspace-styles. */
+import { NotFoundState } from "@/components/ui/not-found-state";
 
 const TeamNotFound = () => (
-  <div className="page">
-    <section className="panel panel-b">
-      <h1>Team not found</h1>
-      <p>The team may have been deleted or you may not have access.</p>
-    </section>
-  </div>
+  <NotFoundState
+    description="The team may have been deleted or you may not have access."
+    href="/teams"
+    linkText="Go to teams"
+    title="Team not found"
+  />
 );
 
 export default TeamNotFound;

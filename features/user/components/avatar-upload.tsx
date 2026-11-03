@@ -4,6 +4,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -24,7 +25,6 @@ export const AvatarUpload = ({
   readonly initialUrl: string | null;
 }) => {
   const [avatarUrl, setAvatarUrl] = useState(initialUrl);
-  const [error, setError] = useState<string | null>(null);
   const uploadInput = useRef<HTMLInputElement>(null);
   const queue = useUploadQueue();
   const pending = queue.uploads.some(
@@ -73,13 +73,12 @@ export const AvatarUpload = ({
     if (!file) {
       return;
     }
-    setError(null);
     if (file.size > 5 * 1024 * 1024) {
-      setError("Profile photos must be 5 MB or smaller.");
+      toast.error("Profile photos must be 5 MB or smaller.");
       return;
     }
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Choose a JPEG, PNG, or WebP image.");
+      toast.error("Choose a JPEG, PNG, or WebP image.");
       return;
     }
     queue.start(file, runner);
@@ -123,11 +122,6 @@ export const AvatarUpload = ({
         ref={uploadInput}
         type="file"
       />
-      {error ? (
-        <span className="error" role="alert">
-          {error}
-        </span>
-      ) : null}
       <UploadProgressList
         onCancel={queue.handleCancel}
         onClearFinished={queue.handleClearFinished}

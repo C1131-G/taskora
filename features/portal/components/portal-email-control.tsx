@@ -5,6 +5,7 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal classes are authored in apps/web/app/workspace-styles/portal.css. */
 
 import { useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { setPortalEmailUpdatesAction } from "@/features/portal/portal-notification-actions";
@@ -22,15 +23,19 @@ const PortalEmailControl = ({ enabled }: { readonly enabled: boolean }) => {
     setMessage("");
     startTransition(async () => {
       setOptimisticOn(next);
-      const result = await setPortalEmailUpdatesAction({
-        enabled: next,
-        idempotencyKey: crypto.randomUUID(),
-      });
-      setMessage(
-        result.ok
-          ? `Email updates are ${next ? "on" : "off"}.`
-          : result.error.message
-      );
+      try {
+        const result = await setPortalEmailUpdatesAction({
+          enabled: next,
+          idempotencyKey: crypto.randomUUID(),
+        });
+        if (result.ok) {
+          setMessage(`Email updates are ${next ? "on" : "off"}.`);
+        } else {
+          toast.error(result.error.message);
+        }
+      } catch {
+        toast.error("Email updates could not be changed. Try again.");
+      }
     });
   };
 

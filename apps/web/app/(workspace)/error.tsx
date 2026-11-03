@@ -2,8 +2,8 @@
 
 import { RouteError } from "@/components/ui/route-error";
 
-const WorkspaceError = ({ reset }: { readonly reset: () => void }) => (
-  <RouteError reset={reset} title="Workspace unavailable" />
+const WorkspaceError = ({ retry }: { readonly retry: () => void }) => (
+  <RouteError retry={retry} title="Workspace unavailable" />
 );
 
 export default WorkspaceError;

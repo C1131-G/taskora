@@ -1,6 +1,7 @@
 "use client";
 
 import { useOptimistic, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import type { TaskSpan } from "@/features/tasks/task-dates";
 import { sameSpan } from "@/features/tasks/task-dates";
@@ -25,7 +26,6 @@ export const useTaskReschedule = <Task extends ReschedulableTask>(
   tasks: readonly Task[]
 ) => {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   // The version each move returned. A second move made before the refresh arrives
   // must send this one, not the stale version from the props.
@@ -47,21 +47,26 @@ export const useTaskReschedule = <Task extends ReschedulableTask>(
       task.version,
       knownVersions.current.get(task.id) ?? 0
     );
-    const result = await rescheduleTaskAction({
-      dueDate: dates.dueDate,
-      expectedVersion,
-      idempotencyKey: crypto.randomUUID(),
-      startDate: dates.startDate,
-      taskId: task.id,
-    });
-    if (!result.ok) {
-      setError(result.error.message);
-      setAnnouncement(`${task.title} was not moved. ${result.error.message}`);
-      return;
+    try {
+      const result = await rescheduleTaskAction({
+        dueDate: dates.dueDate,
+        expectedVersion,
+        idempotencyKey: crypto.randomUUID(),
+        startDate: dates.startDate,
+        taskId: task.id,
+      });
+      if (!result.ok) {
+        toast.error(result.error.message);
+        setAnnouncement(`${task.title} was not moved. ${result.error.message}`);
+        return;
+      }
+      knownVersions.current.set(task.id, result.data.version);
+      setAnnouncement(`${task.title} moved to ${describeSpan(dates)}.`);
+    } catch {
+      const message = "The task could not be rescheduled. Try again.";
+      toast.error(message);
+      setAnnouncement(`${task.title} was not moved. ${message}`);
     }
-    knownVersions.current.set(task.id, result.data.version);
-    setError(null);
-    setAnnouncement(`${task.title} moved to ${describeSpan(dates)}.`);
   };
 
   const sendAfter = async (
@@ -89,5 +94,5 @@ export const useTaskReschedule = <Task extends ReschedulableTask>(
     });
   };
 
-  return { announcement, error, move, pending, tasks: optimisticTasks };
+  return { announcement, move, pending, tasks: optimisticTasks };
 };

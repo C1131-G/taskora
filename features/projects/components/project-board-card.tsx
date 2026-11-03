@@ -62,7 +62,8 @@ export const ProjectBoardCard = ({
   <article
     tabIndex={0}
     aria-labelledby={`task-${task.id}-title`}
-    className={`kcard${task.status === "done" ? " done" : ""}`}
+    className={`kcard${task.status === "done" ? " done" : ""}${canEdit ? "" : " is-locked"}`}
+    title={canEdit ? undefined : "You don't have access to move this task"}
     draggable={canEdit && !reorderPending}
     key={task.id}
     onKeyDown={(event) => {

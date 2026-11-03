@@ -3,6 +3,7 @@
 "use client";
 
 import { Progress } from "@/components/ui/progress";
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { uploadPercent } from "@/features/files/upload-store";
 import type { UploadItem } from "@/features/files/upload-store";
@@ -16,9 +17,6 @@ const statusLabel = (upload: UploadItem): string => {
   }
   if (upload.status === "cancelled") {
     return "Cancelled";
-  }
-  if (upload.status === "error" || upload.status === "refresh-error") {
-    return upload.error ?? "Upload failed";
   }
   return `${uploadPercent(upload)}%`;
 };
@@ -47,22 +45,24 @@ export const UploadProgressList = ({
       <ul className="stack">
         {uploads.map((upload) => (
           <li className="stack" key={upload.id}>
+            <ErrorToast
+              action={{
+                label:
+                  upload.status === "refresh-error" ? "Refresh list" : "Retry",
+                onClick: () => onRetry(upload.id),
+              }}
+              message={
+                upload.status === "error" || upload.status === "refresh-error"
+                  ? `${upload.name}: ${upload.error ?? "Upload failed"}`
+                  : null
+              }
+            />
             <div className="row">
               <span className="trunc grow">{upload.name}</span>
-              <span
-                className={
-                  upload.status === "error" || upload.status === "refresh-error"
-                    ? "error"
-                    : "muted"
-                }
-                role={
-                  upload.status === "error" || upload.status === "refresh-error"
-                    ? "alert"
-                    : undefined
-                }
-              >
-                {statusLabel(upload)}
-              </span>
+              {upload.status === "error" ||
+              upload.status === "refresh-error" ? null : (
+                <span className="muted">{statusLabel(upload)}</span>
+              )}
               {upload.status === "uploading" ? (
                 <WorkspaceButton
                   aria-label={`Cancel upload of ${upload.name}`}

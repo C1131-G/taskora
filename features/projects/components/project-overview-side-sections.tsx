@@ -3,7 +3,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { LocalTime } from "@/components/workspace/local-time";
+import { getActivityVerb } from "@/src/lib/activity-display";
 import type { ActivityEntry } from "@/src/server/activity/activity-management";
 import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 import type { ProjectListItem } from "@/src/server/projects/project-contracts";
@@ -101,9 +103,7 @@ const ProjectRecentActivity = ({
   let activityContent: ReactNode;
   if (unavailable) {
     activityContent = (
-      <p className="project-overview-empty" role="alert">
-        Recent activity could not be loaded.
-      </p>
+      <ErrorToast message="Recent activity could not be loaded." />
     );
   } else if (activity.length === 0) {
     activityContent = (
@@ -120,7 +120,7 @@ const ProjectRecentActivity = ({
             <div className="project-overview-activity-copy">
               <p>
                 <strong>{entry.actorName}</strong>{" "}
-                {entry.action.replaceAll("_", " ")}
+                {getActivityVerb(entry.action)}
               </p>
               {entry.taskTitle ? (
                 <span className="muted">{entry.taskTitle}</span>

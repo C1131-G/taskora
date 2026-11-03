@@ -1,5 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes -- Project details use reference workspace styles. */
 
+import { ErrorToast } from "@/components/workspace/error-toast";
 import { listActivity } from "@/features/activity/activity-queries";
 import { listBugs } from "@/features/bugs/bugs-queries";
 import { calendarPeriod } from "@/features/calendar/calendar-params";
@@ -19,10 +20,8 @@ import {
 import { ProjectMilestones } from "@/features/projects/components/project-milestones";
 import {
   getProject,
-  listAllSavedViews,
   listProjectMilestones,
 } from "@/features/projects/projects-queries";
-import { resolveSavedViews } from "@/features/projects/saved-view-selection";
 import { columnWidthsFromPreferences } from "@/features/tasks/task-table-columns";
 import {
   listLabels,
@@ -123,7 +122,7 @@ const loadProjectViewData = async ({
           projectId: project.id,
         })
       : null,
-    // Only the table has custom field columns; a failed read just hides them.
+    // Only the table has custom field columns.
     view === "table"
       ? getProjectCustomFieldTable({ projectId: project.id })
       : null,
@@ -143,6 +142,10 @@ const loadProjectViewData = async ({
     bugResult,
     calendarEvents,
     calendarRange,
+    customFieldError:
+      customFieldResult && !customFieldResult.ok
+        ? customFieldResult.error.message
+        : null,
     customFieldTable,
     editableTaskIds,
     fileResult,
@@ -154,22 +157,24 @@ const loadProjectViewData = async ({
 };
 
 const resolveViewer = async (projectId: string, requestedView: string) => {
-  const [session, project, savedViewsResult] = await Promise.all([
+  const [session, project] = await Promise.all([
     getPageSession(),
     getProject(projectId),
-    listAllSavedViews(),
   ]);
   const isAdmin =
     session.kind === "authenticated" && session.user.role === "admin";
   const currentUserId =
     session.kind === "authenticated" ? session.user.id : null;
-  const savedViewState = resolveSavedViews(
-    savedViewsResult,
-    projectId,
+  // Links to the removed saved views open the board.
+  const activeView = requestedView.startsWith("saved-")
+    ? "board"
+    : requestedView;
+  return {
+    activeView,
     currentUserId,
-    requestedView
-  );
-  return { currentUserId, isAdmin, project, savedViewState };
+    isAdmin,
+    project,
+  };
 };
 
 export const getProjectHeaderData = async (
@@ -189,9 +194,10 @@ export const getProjectHeaderData = async (
     employees: employeeResult.ok ? employeeResult.data : [],
     isAdmin: viewer.isAdmin,
     isFavorite: favoriteProjectIds.has(viewer.project.id),
+    personalError: personal.ok ? null : personal.error.message,
     project: viewer.project,
     teams: teamResult.ok ? teamResult.data : [],
-    view: viewer.savedViewState.activeType,
+    view: viewer.activeView,
   };
 };
 
@@ -199,9 +205,12 @@ export const getProjectBodyData = async (
   projectId: string,
   query: ProjectDetailQuery
 ) => {
-  const { currentUserId, isAdmin, project, savedViewState } =
-    await resolveViewer(projectId, query.view);
-  const view = savedViewState.activeType;
+  const {
+    activeView: view,
+    currentUserId,
+    isAdmin,
+    project,
+  } = await resolveViewer(projectId, query.view);
   const [
     employeeResult,
     milestoneResult,
@@ -233,9 +242,7 @@ export const getProjectBodyData = async (
       version={milestoneResult.data.version}
     />
   ) : (
-    <section className="panel panel-b muted" role="alert">
-      Milestones could not be loaded.
-    </section>
+    <ErrorToast message="Milestones could not be loaded." />
   );
 
   return {
@@ -253,8 +260,8 @@ export const getProjectBodyData = async (
     milestones: milestoneResult.ok ? milestoneResult.data.milestones : [],
     milestonesVersion: milestoneResult.ok ? milestoneResult.data.version : 0,
     monthOffset,
+    preferencesError: preferences.ok ? null : preferences.error.message,
     project,
-    savedViewState,
     teamResult,
     today: getUtcToday(),
     view,

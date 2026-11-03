@@ -204,11 +204,6 @@ const SlaSettingsForm = ({
         pending={pending}
       />
 
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       {saved && !error ? (
         <output className="muted sla-saved">SLA settings saved.</output>
       ) : (

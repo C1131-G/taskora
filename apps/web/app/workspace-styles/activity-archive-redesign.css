@@ -1,0 +1,155 @@
+
+/* activity */
+.workspace-app .activity-filters {
+  gap: 8px;
+}
+.workspace-app .activity-tabs [data-slot="tabs-trigger"] {
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 34px;
+  min-height: 34px;
+  padding-inline: 14px;
+}
+.workspace-app .activity-filters [data-workspace-select],
+.workspace-app .activity-filters [data-workspace-combobox],
+.workspace-app .activity-filters > .skeleton-filter-select {
+  border-radius: var(--r-sm);
+  height: 34px;
+  margin-left: auto;
+}
+.workspace-app .activity-entry {
+  align-items: center;
+  padding: 12px 16px;
+}
+.workspace-app .activity-entry:hover {
+  background: var(--surface-2);
+}
+.workspace-app .activity-entry .av {
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+  flex: none;
+  height: 32px;
+  width: 32px;
+}
+.workspace-app .activity-copy {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.workspace-app .activity-copy strong {
+  color: var(--text);
+}
+.workspace-app .activity-entry time {
+  flex: none;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.workspace-app .activity-filters + .panel .panel-h h2,
+.workspace-app .stack > .panel > .panel-h h2 {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* archive */
+.workspace-app .archive-workspace [data-slot="tabs-list"] {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  gap: 2px;
+  padding: 2px;
+}
+.workspace-app .archive-workspace [data-slot="tabs-trigger"] {
+  border-bottom: 0;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  height: 32px;
+  padding-inline: 14px;
+}
+.workspace-app
+  .archive-workspace
+  [data-slot="tabs-trigger"][aria-selected="true"] {
+  background: var(--accent);
+  border-bottom: 0;
+  color: var(--on-accent);
+}
+.workspace-app .archive-list {
+  border-radius: var(--r);
+}
+.workspace-app .archive-row {
+  align-items: center;
+  min-height: 60px;
+  padding: 12px 16px;
+}
+.workspace-app .archive-row:hover {
+  background: var(--surface-2);
+}
+.workspace-app .archive-row-main strong {
+  font-size: var(--fs);
+  font-weight: 650;
+}
+
+/* project activity: each day is a boxed list of readable rows */
+.workspace-app .project-activity-feed {
+  display: grid;
+  gap: 16px;
+  max-width: 880px;
+  padding-top: 18px;
+}
+.workspace-app .project-activity-feed > section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.workspace-app .project-activity-feed .day-h {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+}
+.workspace-app .project-activity-feed .feed.lined .fitem::before {
+  display: none;
+}
+.workspace-app .project-activity-feed .fitem {
+  align-items: center;
+  border-bottom: 1px solid var(--divider);
+  gap: 12px;
+  padding: 12px 16px;
+  transition: background-color 0.12s;
+}
+.workspace-app .project-activity-feed .fitem:last-child {
+  border-bottom: 0;
+}
+.workspace-app .project-activity-feed .fitem:hover {
+  background: var(--surface-2);
+}
+.workspace-app .project-activity-feed .fitem .av {
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+  flex: none;
+  height: 32px;
+  margin-top: 0;
+  width: 32px;
+}
+.workspace-app .project-activity-feed .activity-copy {
+  color: var(--text-2);
+  line-height: 1.5;
+  min-width: 0;
+}
+.workspace-app .project-activity-feed .activity-copy > strong {
+  color: var(--text);
+}
+.workspace-app .project-activity-feed .fitem time {
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+}
+.workspace-app .project-activity-empty {
+  border-radius: var(--r);
+}

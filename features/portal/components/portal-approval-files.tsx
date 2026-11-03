@@ -6,6 +6,7 @@
 
 import { DownloadSimple, Eye } from "@phosphor-icons/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { getPortalFileUrlAction } from "@/features/portal/portal-upload-actions";
@@ -18,24 +19,22 @@ type ApprovalFile = PortalApprovalDetail["files"][number];
 // use; the server re-checks each one belongs to this company's request.
 const FileActions = ({ file }: { readonly file: ApprovalFile }) => {
   const [busy, setBusy] = useState<"download" | "preview" | null>(null);
-  const [error, setError] = useState("");
   const open = async (disposition: "download" | "preview") => {
     setBusy(disposition);
-    setError("");
     try {
       const result = await getPortalFileUrlAction({
         disposition,
         fileId: file.fileId,
       });
       if (!result.ok) {
-        setError(result.error.message);
+        toast.error(result.error.message);
       } else if (disposition === "preview") {
         window.open(result.data, "_blank", "noopener,noreferrer");
       } else {
         window.location.assign(result.data);
       }
     } catch {
-      setError("The file could not be opened. Try again.");
+      toast.error("The file could not be opened. Try again.");
     }
     setBusy(null);
   };
@@ -61,11 +60,6 @@ const FileActions = ({ file }: { readonly file: ApprovalFile }) => {
         <DownloadSimple aria-hidden="true" size={14} />
         {busy === "download" ? "Preparing…" : "Download"}
       </WorkspaceButton>
-      {error ? (
-        <p className="err" role="alert">
-          {error}
-        </p>
-      ) : null}
     </>
   );
 };

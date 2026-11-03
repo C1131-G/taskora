@@ -11,6 +11,7 @@ import { FavoriteToggle } from "@/features/discovery/components/favorite-toggle"
 import { GlobalTaskFilterBar } from "@/features/tasks/components/global-task-filter-bar";
 import { MyTasksCalendar } from "@/features/tasks/components/my-tasks-calendar";
 import { QuickTaskForm } from "@/features/tasks/components/quick-task-form";
+import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
 import { TaskManageControls } from "@/features/tasks/components/task-manage-controls";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import type { DueGroup } from "@/features/tasks/global-task-view-state";
@@ -60,6 +61,15 @@ const DUE_SUMMARY_DESCRIPTIONS: Readonly<Record<string, string>> = {
   upcoming: "upcoming",
 };
 
+const DUE_FORMATTER = new Intl.DateTimeFormat("en", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+const formatDueDate = (value: string | null): string =>
+  value ? DUE_FORMATTER.format(new Date(`${value}T00:00:00`)) : "—";
+
 const TaskRows = ({
   groups,
   favoriteTaskIds,
@@ -72,70 +82,111 @@ const TaskRows = ({
   readonly employees: readonly EmployeeDirectoryEntry[];
   readonly userId: string;
   readonly isAdmin: boolean;
-}) => (
-  <div className="list-wrap">
-    <div className="tlist task-table-global my-task-table">
-      <div className="thead">
-        <div>Task</div>
-        <div>Project</div>
-        <div>Status</div>
-        <div>Priority</div>
-        <div>Due date</div>
-        <div>Actions</div>
-      </div>
-      {groups.map((group) => (
-        <section className="my-task-group" key={group.id}>
-          <h2 className="task-group-heading">
-            {group.label} <span>{group.tasks.length}</span>
-          </h2>
-          {group.tasks.map((task) => (
-            <div className="trow" key={task.id}>
-              <div className="ttl">
-                <span className="mono faint">
-                  {task.projectKey}-{task.projectTaskNumber}
-                </span>
-                <Link
-                  className="trunc"
-                  href={`/projects/${task.projectId}?view=board`}
+}) => {
+  const drawer = useTaskDrawer();
+  return (
+    <div className="mtt-wrap">
+      <table className="mtt">
+        <caption className="sr-only">
+          My assigned tasks grouped by due date
+        </caption>
+        <colgroup>
+          <col className="mtt-col-task" />
+          <col className="mtt-col-project" />
+          <col className="mtt-col-status" />
+          <col className="mtt-col-priority" />
+          <col className="mtt-col-due" />
+          <col className="mtt-col-actions" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Task</th>
+            <th scope="col">Project</th>
+            <th scope="col">Status</th>
+            <th scope="col">Priority</th>
+            <th scope="col">Due date</th>
+            <th className="mtt-actions-head" scope="col">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        {groups.map((group) => (
+          <tbody className={`mtt-group-body is-${group.id}`} key={group.id}>
+            <tr className="mtt-group">
+              <th colSpan={6} scope="colgroup">
+                {group.label} <span>{group.tasks.length}</span>
+              </th>
+            </tr>
+            {group.tasks.map((task) => (
+              <tr className="mtt-row" key={task.id}>
+                <td className="mtt-task" data-label="Task">
+                  <div className="mtt-task-inner">
+                    <button
+                      className="mtt-title"
+                      onClick={() => drawer?.openTask(task.id)}
+                      onFocus={() => drawer?.prefetchTask(task.id)}
+                      onPointerEnter={() => drawer?.prefetchTask(task.id)}
+                      title={`Open ${task.title}`}
+                      type="button"
+                    >
+                      {task.title}
+                    </button>
+                    <span className="mono mtt-key">
+                      {task.projectKey}-{task.projectTaskNumber}
+                    </span>
+                  </div>
+                </td>
+                <td data-label="Project">
+                  <Link
+                    className="mtt-project"
+                    href={`/projects/${task.projectId}`}
+                    title={task.projectName}
+                  >
+                    {task.projectName}
+                  </Link>
+                </td>
+                <td data-label="Status">
+                  <TaskStatusSelect
+                    status={task.status}
+                    taskId={task.id}
+                    version={task.version}
+                  />
+                </td>
+                <td data-label="Priority">
+                  <span className={`mtt-priority prio-${task.priority}`}>
+                    {task.priority}
+                  </span>
+                </td>
+                <td
+                  className={`mtt-due${group.id === "overdue" ? " is-overdue" : ""}`}
+                  data-label="Due"
                 >
-                  {task.title}
-                </Link>
-              </div>
-              <div className="c-meta">
-                <Link href={`/projects/${task.projectId}`}>
-                  {task.projectName}
-                </Link>
-              </div>
-              <div className="c-meta">
-                <TaskStatusSelect
-                  status={task.status}
-                  taskId={task.id}
-                  version={task.version}
-                />
-              </div>
-              <div className="c-meta">{task.priority}</div>
-              <div className="c-meta num">{task.dueDate ?? "—"}</div>
-              <div className="c-meta row">
-                <FavoriteToggle
-                  id={task.id}
-                  initialFavorite={favoriteTaskIds.has(task.id)}
-                  kind="task"
-                />
-                <TaskManageControls
-                  canEdit
-                  currentUserId={userId}
-                  employees={employees}
-                  isAdmin={isAdmin}
-                  task={task}
-                />
-              </div>
-            </div>
-          ))}
-        </section>
-      ))}
+                  {formatDueDate(task.dueDate)}
+                </td>
+                <td className="mtt-actions" data-label="Actions">
+                  <div className="mtt-actions-inner">
+                    <FavoriteToggle
+                      id={task.id}
+                      initialFavorite={favoriteTaskIds.has(task.id)}
+                      kind="task"
+                    />
+                    <TaskManageControls
+                      canEdit
+                      currentUserId={userId}
+                      employees={employees}
+                      isAdmin={isAdmin}
+                      task={task}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        ))}
+      </table>
     </div>
-  </div>
-);
+  );
+};
 
 // Tabs are links so the server recomputes the calendar range, and each link keeps
 // every filter the user has set.

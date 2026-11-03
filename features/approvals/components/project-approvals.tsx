@@ -36,24 +36,26 @@ const decisionOf = (request: Request) => {
 const RequestRow = ({ request }: { readonly request: Request }) => {
   const badge = APPROVAL_STATUS_BADGES[request.status];
   return (
-    <tr data-approval-version={request.version}>
-      <th scope="row">
-        {request.subjectTitle}
-        <span className="muted">
-          {" "}
-          ({request.subjectKind === "task" ? "Task" : "Milestone"})
-        </span>
-      </th>
-      <td>Version {request.version}</td>
-      <td>{request.companyName}</td>
-      <td>
-        <span className={`badge ${badge.tone}`}>{badge.label}</span>
-      </td>
-      <td>
-        {request.requestedByName} on <LocalTime value={request.requestedAt} />
-      </td>
-      <td className="muted">{decisionOf(request)}</td>
-    </tr>
+    <li
+      className="approval-request"
+      data-approval-status={request.status}
+      data-approval-version={request.version}
+    >
+      <div className="approval-request-main">
+        <div className="approval-request-title">
+          <strong>{request.subjectTitle}</strong>
+          <span className="approval-request-kind">
+            {request.subjectKind === "task" ? "Task" : "Milestone"}
+          </span>
+        </div>
+        <p className="approval-request-meta">
+          {request.companyName} · Version {request.version} · Requested by{" "}
+          {request.requestedByName} on <LocalTime value={request.requestedAt} />
+        </p>
+        <p className="approval-request-decision">{decisionOf(request)}</p>
+      </div>
+      <span className={`badge ${badge.tone}`}>{badge.label}</span>
+    </li>
   );
 };
 
@@ -68,38 +70,39 @@ export const ProjectApprovals = async ({
     await listProjectApprovals({ projectId }),
     "Approvals"
   );
+  const count = (status: Request["status"]) =>
+    approvals.requests.filter((request) => request.status === status).length;
+  const waiting = count("pending");
+  const approved = count("approved");
+  const changes = count("changes_requested");
   return (
     <div className="stack" data-project-approvals="true">
       <section aria-labelledby="project-approvals-heading" className="panel">
         <div className="panel-h">
           <h2 id="project-approvals-heading">Client approvals</h2>
+          <span className="ct">{approvals.requests.length}</span>
         </div>
-        <div className="panel-b">
+        <div className="approval-body">
+          {approvals.requests.length > 0 ? (
+            <p className="approval-summary">
+              <strong>{waiting}</strong> waiting for the client ·{" "}
+              <strong>{approved}</strong> approved · <strong>{changes}</strong>{" "}
+              need changes
+            </p>
+          ) : null}
           {approvals.requests.length === 0 ? (
-            <p className="muted">No approvals have been requested yet.</p>
+            <p className="approval-empty">
+              No approvals have been requested yet.
+            </p>
           ) : (
-            <div className="tbl-wrap">
-              <table className="tbl">
-                <caption className="sr-only">
-                  Approval requests for this project
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Work</th>
-                    <th scope="col">Version</th>
-                    <th scope="col">Company</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Requested by</th>
-                    <th scope="col">Decision</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {approvals.requests.map((request) => (
-                    <RequestRow key={request.id} request={request} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ul
+              aria-label="Approval requests for this project"
+              className="approval-requests"
+            >
+              {approvals.requests.map((request) => (
+                <RequestRow key={request.id} request={request} />
+              ))}
+            </ul>
           )}
         </div>
       </section>

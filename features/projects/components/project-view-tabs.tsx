@@ -10,7 +10,6 @@ import {
   Files,
   Lightning,
   ListPlus,
-  List,
   SealCheck,
   SquaresFour,
   Table,
@@ -23,7 +22,6 @@ import { TabUnderline } from "@/components/ui/tab-underline";
 const views = [
   { Icon: SquaresFour, id: "overview", label: "Overview" },
   { Icon: SquaresFour, id: "board", label: "Board" },
-  { Icon: List, id: "list", label: "List" },
   { Icon: Table, id: "table", label: "Table" },
   { Icon: Bug, id: "bugs", label: "Bugs" },
   { Icon: CalendarBlank, id: "calendar", label: "Calendar" },

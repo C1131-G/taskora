@@ -275,11 +275,6 @@ export const WorkspaceTimeline = ({
         {reschedule.announcement}
         {milestoneReschedule.announcement}
       </output>
-      {(reschedule.error ?? milestoneReschedule.error) ? (
-        <p className="error panel-b" role="alert">
-          {reschedule.error ?? milestoneReschedule.error}
-        </p>
-      ) : null}
       {rows.length ? (
         <WorkspaceTimelineChart
           allTasks={reschedule.tasks}

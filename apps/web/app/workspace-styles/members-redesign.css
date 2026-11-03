@@ -1,0 +1,206 @@
+/* Members: tabs, one toolbar line, and a table that fits without sideways scrolling. */
+.workspace-app .members-section-nav {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  gap: 2px;
+  padding: 2px;
+}
+.workspace-app .members-section-nav a {
+  align-items: center;
+  border-radius: var(--r-sm);
+  display: inline-flex;
+  font-weight: 600;
+  min-height: 32px;
+  padding: 0 14px;
+}
+.workspace-app .members-section-nav a:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.workspace-app .members-section-nav a[aria-current="page"] {
+  background: var(--accent);
+  border-bottom: 0;
+  color: var(--on-accent);
+}
+
+/* panel and toolbar */
+.workspace-app .members-panel {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.workspace-app .members-toolbar {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px;
+}
+.workspace-app .members-count-label {
+  color: var(--text-2);
+  font-size: var(--fs);
+}
+.workspace-app .members-count-label strong {
+  color: var(--text);
+  font-size: var(--fs-lg);
+  font-weight: 650;
+}
+.workspace-app .members-search {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
+  height: 36px;
+  width: min(260px, 100%);
+}
+.workspace-app .members-role-filter {
+  background: var(--surface-2);
+  border-radius: var(--r);
+}
+.workspace-app .members-role-filter [data-slot="button"] {
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  height: 28px;
+  min-height: 28px;
+  padding-inline: 12px;
+}
+.workspace-app .members-role-filter [data-active="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: none;
+  color: var(--on-accent);
+}
+
+/* table */
+.workspace-app .members-table {
+  min-width: 0;
+  width: 100%;
+}
+.workspace-app .members-table [data-slot="table-head"] {
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding-block: 11px;
+}
+.workspace-app .members-table [data-slot="table-row"]:hover {
+  background: var(--surface-2);
+}
+.workspace-app .members-table [data-slot="table-cell"] {
+  font-size: var(--fs-sm);
+  padding-block: 12px;
+}
+.workspace-app .members-avatar {
+  background: var(--accent-soft);
+  height: 38px;
+  width: 38px;
+}
+.workspace-app .members-person {
+  gap: 12px;
+}
+.workspace-app .members-person-copy strong {
+  font-size: var(--fs);
+  font-weight: 650;
+}
+.workspace-app .member-role {
+  border-radius: var(--r-full);
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 3px 10px;
+}
+.workspace-app .member-role.role-admin {
+  background: color-mix(in srgb, var(--st-review) 18%, transparent);
+  color: var(--text);
+}
+.workspace-app .member-role.role-employee {
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+.workspace-app .member-muted {
+  color: var(--text-4);
+}
+.workspace-app .member-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.workspace-app .member-status {
+  border-radius: var(--r-full);
+  font-weight: 600;
+}
+.workspace-app .member-status.is-active {
+  background: color-mix(in srgb, var(--st-done) 18%, transparent);
+  color: var(--text);
+}
+.workspace-app .member-status.is-pending {
+  border-color: var(--st-progress);
+  color: var(--st-progress);
+}
+.workspace-app .members-toolbar {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.workspace-app .members-controls {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.workspace-app .members-person-copy span {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-app .members-table [data-slot="table-head"],
+.workspace-app .members-table [data-slot="table-cell"] {
+  padding-inline: 10px;
+}
+.workspace-app .members-table [data-slot="table-head"] {
+  line-height: 1.25;
+  white-space: normal;
+}
+.workspace-app .members-person-copy span {
+  max-width: 140px;
+}
+
+/* one line: count left, search + filter right, all 36px tall and boxy */
+.workspace-app .members-toolbar {
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.workspace-app .members-controls {
+  align-items: center;
+  flex: 0 1 auto;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.workspace-app .members-search {
+  border-radius: var(--r-sm);
+  flex: 1 1 160px;
+  min-width: 120px;
+  width: 240px;
+}
+.workspace-app .members-role-filter {
+  border-radius: var(--r-sm);
+  box-sizing: border-box;
+  flex: none;
+  flex-wrap: nowrap;
+  height: 36px;
+  padding: 3px;
+}
+.workspace-app .members-role-filter [data-slot="button"] {
+  border-radius: 2px;
+  height: 28px;
+  min-height: 28px;
+}
+.workspace-app .members-role-filter [data-active="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+@media (max-width: 640px) {
+  .workspace-app .members-toolbar,
+  .workspace-app .members-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

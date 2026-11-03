@@ -3,8 +3,9 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
@@ -19,6 +20,7 @@ import {
   setIntakeFormEnabledAction,
 } from "@/features/intake/intake-actions";
 import { intakeFormUrl } from "@/features/intake/intake-form-url";
+import { useToastTransition } from "@/hooks/use-toast-transition";
 import type { IntakeFormItem } from "@/src/server/intake/intake-form-contracts";
 
 interface Option {
@@ -41,7 +43,6 @@ const FormRow = ({
   ) => void;
 }) => {
   const [copied, setCopied] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
 
   const copy = async () => {
     try {
@@ -50,7 +51,7 @@ const FormRow = ({
       );
       setCopied(true);
     } catch {
-      setFailure("Copy failed. Select the link and copy it by hand.");
+      toast.error("Copy failed. Select the link and copy it by hand.");
     }
   };
 
@@ -76,7 +77,6 @@ const FormRow = ({
           value={`/intake/${form.slug}`}
         />
       </label>
-      {failure ? <p role="alert">{failure}</p> : null}
       <div className="row">
         <WorkspaceButton
           className="btn btn-secondary btn-sm"
@@ -140,8 +140,9 @@ const IntakeFormsPanel = ({
   readonly forms: readonly IntakeFormItem[];
   readonly projects: readonly Option[];
 }) => {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useToastTransition(
+    "The intake form could not be updated. Try again."
+  );
   const [name, setName] = useState("");
   const [companyId, setCompanyId] = useState(companies[0]?.id ?? "");
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
@@ -154,7 +155,9 @@ const IntakeFormsPanel = ({
   ) =>
     startTransition(async () => {
       const result = await task();
-      setError(result.ok ? null : (result.error?.message ?? "Try again."));
+      if (!result.ok) {
+        toast.error(result.error?.message ?? "Try again.");
+      }
     });
 
   const create = (event: FormEvent<HTMLFormElement>) => {
@@ -229,7 +232,6 @@ const IntakeFormsPanel = ({
             </WorkspaceSelect>
           </label>
         </div>
-        {error ? <p role="alert">{error}</p> : null}
         <div className="row">
           <WorkspaceButton
             aria-busy={pending || undefined}

@@ -42,7 +42,6 @@ const NotificationPreferencesForm = ({
   readonly values: readonly NotificationPreferenceValue[];
 }) => {
   const {
-    error,
     pending,
     saved: notifyPreferenceSaved,
     setError,
@@ -180,11 +179,6 @@ const NotificationPreferencesForm = ({
             onCheckedChange={updateDigest}
           />
         </label>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
       </div>
     </section>
   );

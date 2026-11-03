@@ -16,7 +16,7 @@ const projectStatuses = [
   "complete",
 ] as const;
 const projectSorts = ["recent", "name", "due", "progress"] as const;
-const projectViews = ["grid", "list", "table"] as const;
+const projectViews = ["grid", "table"] as const;
 
 const firstParam = (value: string | string[] | undefined): string =>
   typeof value === "string" ? value : "";
@@ -54,7 +54,11 @@ const parseProjectFilters = (
     query: firstParam(params["q"]).trim().slice(0, MAX_QUERY_LENGTH),
     sort: projectSorts.find((option) => option === rawSort) ?? "recent",
     status: projectStatuses.find((status) => status === rawStatus) ?? "",
-    view: projectViews.find((option) => option === rawView) ?? "grid",
+    // Old links to the removed list layout open the table.
+    view:
+      projectViews.find(
+        (option) => option === (rawView === "list" ? "table" : rawView)
+      ) ?? "grid",
   };
 };
 

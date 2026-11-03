@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Tasks | Taskora" };
 const TasksPage = ({ searchParams }: PageProps<"/tasks">) => (
   <PageTransition>
     <div className="page flush">
-      <SectionErrorBoundary title="Tasks couldn't load">
+      <SectionErrorBoundary title="Tasks couldn't load" variant="page">
         <SuspenseReveal fallback={<AllTasksSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (

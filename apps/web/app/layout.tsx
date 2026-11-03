@@ -4,6 +4,8 @@ import { EB_Garamond, Geist_Mono, Noto_Sans } from "next/font/google";
 import "./globals.css";
 import "./view-transitions.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppToaster } from "@/components/workspace/app-toaster";
+import { ClientErrorToasts } from "@/components/workspace/client-error-toasts";
 import { cn } from "@/lib/utils";
 
 const ebGaramondHeading = EB_Garamond({
@@ -52,7 +54,11 @@ const RootLayout = ({
     )}
   >
     <body>
-      <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider>
+        {children}
+        <ClientErrorToasts />
+        <AppToaster />
+      </ThemeProvider>
     </body>
   </html>
 );

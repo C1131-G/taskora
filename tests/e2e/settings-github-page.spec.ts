@@ -30,13 +30,13 @@ test.describe("GitHub (/settings/github)", () => {
       );
     });
 
-    test("a malformed repository name is refused beside its field", async ({
+    test("a malformed repository name is refused in a toast", async ({
       page,
     }) => {
       await openGithub(page);
       await page.getByLabel("Repository").fill("not a repository");
       await page.getByRole("button", { name: "Connect repository" }).click();
-      await expect(page.getByRole("alert").first()).toContainText(
+      await expect(page.locator("[data-sonner-toast]").first()).toContainText(
         /owner\/name/u
       );
     });

@@ -1,0 +1,61 @@
+/* Project tabs that reuse a sidebar page's component sit inset like that page does. */
+.workspace-app .page.flush > .workspace-calendar,
+.workspace-app .page.flush > .file-project,
+.workspace-app .page.flush > .timeline-panel {
+  margin: 16px var(--gutter);
+}
+.workspace-app .page.flush > .file-project {
+  margin-bottom: 24px;
+}
+
+/* Project Overview: the same panels as the workspace Overview page. */
+.workspace-app .project-overview {
+  gap: 16px;
+}
+.workspace-app .project-overview .po-stats {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+.workspace-app .project-overview-main > .panel,
+.workspace-app .project-overview-aside > .panel {
+  border-radius: var(--r-xl);
+  min-width: 0;
+  overflow: hidden;
+}
+.workspace-app .project-overview .panel-h {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px;
+}
+.workspace-app .project-overview .panel-h h2 {
+  font-size: var(--fs-md);
+  font-weight: 650;
+}
+
+/* Approvals and Automations panels get the same side margins as the other tabs. */
+.workspace-app .page.flush > [data-project-approvals],
+.workspace-app .page.flush > [data-project-automations] {
+  margin: 16px var(--gutter) 24px;
+}
+
+.workspace-app .page.flush > .project-overview {
+  margin: 16px var(--gutter) 24px;
+}
+.workspace-app .project-overview .panel {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+/* Coming up: visible checkbox and left-aligned titles */
+.workspace-app .project-upcoming-item [data-slot="checkbox"] {
+  background: var(--surface);
+  border: 1.5px solid var(--text-4);
+  border-radius: 4px;
+}
+.workspace-app .project-upcoming-item [data-slot="checkbox"][data-state="checked"] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.workspace-app .project-upcoming-item .task-details-panel,
+.workspace-app .project-upcoming-item .project-upcoming-title {
+  justify-content: flex-start;
+  text-align: left;
+}

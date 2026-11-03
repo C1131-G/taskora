@@ -28,20 +28,18 @@ const HomeStats = ({
       <span className="v">{openTasks}</span>
       <span className="d">{assignedTasks} assigned to you</span>
     </Link>
-    <Link className="stat" href="/tasks?status=done">
+    <Link className="stat stat-done" href="/tasks?status=done">
       <span className="k">Completed</span>
       <span className="v">{completed}</span>
-      <span className="d">this week</span>
+      <span className="stat-chip">this week</span>
     </Link>
-    <Link className="stat" href="/tasks?overdue=true">
+    <Link
+      className={`stat stat-overdue${overdue > 0 ? " alert" : ""}`}
+      href="/tasks?overdue=true"
+    >
       <span className="k">Overdue</span>
-      <span
-        className="v"
-        style={overdue > 0 ? { color: "var(--red)" } : undefined}
-      >
-        {overdue}
-      </span>
-      <span className={`d${overdue > 0 ? " bad" : ""}`}>
+      <span className="v">{overdue}</span>
+      <span className="stat-chip">
         {overdue > 0 ? "need attention" : "all on track"}
       </span>
     </Link>

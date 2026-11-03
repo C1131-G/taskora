@@ -7,6 +7,7 @@
 import { SignOut } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { authClient } from "@/src/client/auth-client";
@@ -14,22 +15,20 @@ import { authClient } from "@/src/client/auth-client";
 const PortalSignOut = () => {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
 
   const signOut = async () => {
     setPending(true);
-    setError("");
     try {
       const result = await authClient.signOut();
       if (result.error) {
-        setError("Sign-out failed. Try again.");
+        toast.error("Sign-out failed. Try again.");
       } else {
         router.replace("/login");
         router.refresh();
         return;
       }
     } catch {
-      setError("Sign-out failed. Try again.");
+      toast.error("Sign-out failed. Try again.");
     }
     setPending(false);
   };
@@ -48,11 +47,6 @@ const PortalSignOut = () => {
           {pending ? "Signing out…" : "Sign out"}
         </WorkspaceButton>
       </div>
-      {error ? (
-        <p className="err" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 };

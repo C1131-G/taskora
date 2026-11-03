@@ -1,4 +1,4 @@
-/* eslint-disable shadcn/no-unknown-classes */
+/* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
 
 "use client";
 
@@ -18,6 +18,8 @@ import {
 import type { RunningTimer, WeeklyTime } from "@/src/server/time/time-tracking";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+// A full bar is an eight hour day.
+const FULL_DAY_MINUTES = 480;
 
 export const MyTimeView = ({
   currentUserId,
@@ -41,65 +43,89 @@ export const MyTimeView = ({
     pathname: "/my-time",
     query: { week: shiftWeek(week.weekStart, 1) },
   } as const;
+  const loggedDays = week.days.filter(({ minutes }) => minutes > 0).length;
   return (
-    <div className="stack my-time">
-      <section aria-label="Timer" className="panel panel-b">
-        <TimerControl taskChoices={taskChoices} timer={timer} />
-      </section>
-      <nav aria-label="Week" className="row my-time-weeks">
-        <Link
-          aria-label="Previous week"
-          className="btn btn-secondary btn-sm"
-          href={previous}
-        >
-          <CaretLeft aria-hidden="true" size={14} />
-        </Link>
-        <h2 className="my-time-week-label">{weekLabel(week.weekStart)}</h2>
-        <Link
-          aria-label="Next week"
-          className="btn btn-secondary btn-sm"
-          href={next}
-        >
-          <CaretRight aria-hidden="true" size={14} />
-        </Link>
-        <p className="muted my-time-week-total">
-          <strong>{formatMinutes(week.totalMinutes)}</strong> this week,{" "}
-          {formatMinutes(week.billableMinutes)} billable
-        </p>
-      </nav>
-      <ol aria-label="Hours per day" className="my-time-days">
-        {week.days.map((day, index) => (
-          <li
-            className="my-time-day"
-            data-today={day.date === today || undefined}
-            key={day.date}
-          >
-            <span className="muted">{WEEKDAYS[index]}</span>
-            <time dateTime={day.date}>{day.date.slice(8)}</time>
-            <strong>
-              {day.minutes === 0 ? "-" : formatMinutes(day.minutes)}
-            </strong>
-          </li>
-        ))}
-      </ol>
-      <section aria-label="Log time" className="panel panel-b stack">
-        <h3>Log time</h3>
-        <TimeEntryForm
-          idPrefix="my-time"
-          taskChoices={taskChoices}
-          today={today}
-        />
-      </section>
-      <section aria-label="Entries this week" className="stack">
-        <h3>Entries</h3>
-        <TimeEntryList
-          currentUserId={currentUserId}
-          entries={week.entries}
-          isAdmin={isAdmin}
-          showTask
-          today={today}
-        />
-      </section>
+    <div className="my-time mt-layout">
+      <div className="mt-main">
+        <section aria-label="Week" className="mt-card">
+          <nav aria-label="Week" className="mt-weeknav">
+            <Link
+              aria-label="Previous week"
+              className="mt-iconbtn"
+              href={previous}
+            >
+              <CaretLeft aria-hidden="true" size={16} />
+            </Link>
+            <h2 className="mt-weeklabel">{weekLabel(week.weekStart)}</h2>
+            <Link aria-label="Next week" className="mt-iconbtn" href={next}>
+              <CaretRight aria-hidden="true" size={16} />
+            </Link>
+          </nav>
+          <dl className="mt-stats">
+            <div>
+              <dt>Logged</dt>
+              <dd>{formatMinutes(week.totalMinutes)}</dd>
+            </div>
+            <div>
+              <dt>Billable</dt>
+              <dd>{formatMinutes(week.billableMinutes)}</dd>
+            </div>
+            <div>
+              <dt>Days worked</dt>
+              <dd>
+                {loggedDays} <span>of 7</span>
+              </dd>
+            </div>
+          </dl>
+          <ol aria-label="Hours per day" className="mt-days">
+            {week.days.map((day, index) => (
+              <li
+                className="mt-day"
+                data-today={day.date === today || undefined}
+                key={day.date}
+              >
+                <span className="mt-day-hours">
+                  {day.minutes === 0 ? "—" : formatMinutes(day.minutes)}
+                </span>
+                <span aria-hidden="true" className="mt-day-track">
+                  <span
+                    className="mt-day-fill"
+                    style={{
+                      height: `${Math.min(100, Math.round((day.minutes / FULL_DAY_MINUTES) * 100))}%`,
+                    }}
+                  />
+                </span>
+                <span className="mt-day-name">{WEEKDAYS[index]}</span>
+                <time dateTime={day.date}>{day.date.slice(8)}</time>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section aria-label="Entries this week" className="mt-card">
+          <h3 className="mt-title">Entries this week</h3>
+          <TimeEntryList
+            currentUserId={currentUserId}
+            entries={week.entries}
+            isAdmin={isAdmin}
+            showTask
+            today={today}
+          />
+        </section>
+      </div>
+      <aside className="mt-side">
+        <section aria-label="Timer" className="mt-card">
+          <h3 className="mt-title">Timer</h3>
+          <TimerControl taskChoices={taskChoices} timer={timer} />
+        </section>
+        <section aria-label="Log time" className="mt-card">
+          <h3 className="mt-title">Log time</h3>
+          <TimeEntryForm
+            idPrefix="my-time"
+            taskChoices={taskChoices}
+            today={today}
+          />
+        </section>
+      </aside>
     </div>
   );
 };

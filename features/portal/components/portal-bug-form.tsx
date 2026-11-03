@@ -7,6 +7,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { FormEvent } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
@@ -138,7 +139,6 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
   const router = useRouter();
   const [values, setValues] = useState<Values>(() => initialValues(mode));
   const [errors, setErrors] = useState<Errors>({});
-  const [formError, setFormError] = useState("");
   const [pending, setPending] = useState(false);
   const [progress, setProgress] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -235,6 +235,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
     }
     setErrors(stepErrors);
     if (Object.keys(stepErrors).length > 0) {
+      toast.error(Object.values(stepErrors).filter(Boolean).join(" "));
       focusFirstError(stepErrors);
       return;
     }
@@ -257,7 +258,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
         : {}),
     });
     if (!result.ok) {
-      setFormError(result.error.message);
+      toast.error(result.error.message);
       setPending(false);
       return;
     }
@@ -286,7 +287,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
       idempotencyKey,
     });
     if (!result.ok) {
-      setFormError(
+      toast.error(
         result.error.code === "CONFLICT"
           ? conflictMessage
           : result.error.message
@@ -299,10 +300,10 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFormError("");
     const found = validate(values, isCreate);
     setErrors(found);
     if (Object.keys(found).length > 0) {
+      toast.error(Object.values(found).filter(Boolean).join(" "));
       focusFirstError(found);
       return;
     }
@@ -313,9 +314,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
     try {
       await (isCreate ? createBug(keyRef.current) : editBug(keyRef.current));
     } catch {
-      setFormError(
-        "Something went wrong. Check your connection and try again."
-      );
+      toast.error("Something went wrong. Check your connection and try again.");
       setPending(false);
     }
   };
@@ -377,11 +376,6 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
           values={values}
         />
       )}
-      {formError ? (
-        <p className="portal-form-error" role="alert">
-          {formError}
-        </p>
-      ) : null}
       <output aria-live="polite" className="muted">
         {progress}
       </output>

@@ -43,9 +43,11 @@ test.describe("Project automations (/projects/[projectId]?view=automations)", ()
       const form = page.getByRole("form", { name: "New automation" });
       await form.getByLabel("Name").fill(name);
 
-      // An empty rule is refused with a reason beside the form.
+      // An empty rule is refused with a toast.
       await form.getByRole("button", { name: "Save automation" }).click();
-      await expect(form.getByRole("alert")).toContainText("Add at least one");
+      await expect(page.locator("[data-sonner-toast]").first()).toContainText(
+        "Add at least one"
+      );
 
       await form.getByRole("button", { name: "Add action" }).click();
       await form.getByRole("button", { name: "Save automation" }).click();
@@ -94,7 +96,7 @@ test.describe("Project automations (/projects/[projectId]?view=automations)", ()
         0
       );
       await openPopulatedProject(page, "automations");
-      await expect(page.locator('section[role="alert"]')).toContainText(
+      await expect(page.locator("[data-sonner-toast]").first()).toContainText(
         "Only administrators can manage automations."
       );
       await expect(page.locator("[data-automation-rule]")).toHaveCount(0);

@@ -18,7 +18,7 @@ export const FieldError = ({
   readonly message: string;
 }) =>
   message ? (
-    <p className="err" id={id} role="alert">
+    <p className="sr-only" id={id}>
       {message}
     </p>
   ) : null;

@@ -3,7 +3,9 @@
 
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useTransition } from "react";
+import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
 import {
@@ -47,6 +49,7 @@ export const ProjectBoard = ({
   labels,
   currentUserId,
   isAdmin,
+  toolbarAction,
 }: {
   readonly projectKey: string;
   readonly tasks: readonly Task[];
@@ -54,11 +57,11 @@ export const ProjectBoard = ({
   readonly labels: readonly LabelSummary[];
   readonly currentUserId: string | null;
   readonly isAdmin: boolean;
+  readonly toolbarAction?: ReactNode;
 }) => {
   const [pending, startTransition] = useTransition();
   const draggedTaskId = useRef<string | null>(null);
   const moveInFlight = useRef(false);
-  const [error, setError] = useState<string | null>(null);
   const { search, update: updateSearch } = useProjectViewSearch();
   const { priority: priorityFilter, q: query, sort } = search;
   const setQuery = (value: string) => updateSearch({ q: value });
@@ -72,7 +75,11 @@ export const ProjectBoard = ({
 
   const reorder = useBoardReorder({
     canReorder,
-    onError: setError,
+    onError: (message) => {
+      if (message) {
+        toast.error(message);
+      }
+    },
     tasks,
   });
   const handleMove = reorder.move;
@@ -124,13 +131,11 @@ export const ProjectBoard = ({
           status,
           taskId: task.id,
         });
-        if (result.ok) {
-          setError(null);
-        } else {
-          setError(result.error.message);
+        if (!result.ok) {
+          toast.error(result.error.message);
         }
       } catch {
-        setError("Task could not be moved. Try again.");
+        toast.error("Task could not be moved. Try again.");
       }
       moveInFlight.current = false;
     });
@@ -186,12 +191,10 @@ export const ProjectBoard = ({
             <WorkspaceSelectItem value="priority">Priority</WorkspaceSelectItem>
           </WorkspaceSelect>
         </label>
+        {toolbarAction ? (
+          <div className="board-toolbar-action">{toolbarAction}</div>
+        ) : null}
       </div>
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <p aria-live="polite" className="sr-only">
         {reorder.announcement}
       </p>
