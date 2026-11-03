@@ -63,6 +63,14 @@ const apiStub: ApiContextValue = {
     }),
 } as unknown as ApiContextValue;
 
+it("toasts a failed mark-all request", async () => {
+  const api = { call: () => Effect.fail(new ValidationFailed({ fieldErrors: { inbox: "Could not mark read" } })) } as unknown as ApiContextValue;
+  const user = userEvent.setup();
+  await renderWithTheme(<InboxScreen api={api} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />);
+  await user.press(screen.getByRole("button", { name: "Mark all read" }));
+  await waitFor(() => expect(screen.getByText("Could not mark read")).toBeTruthy());
+});
+
 it("shows the tabs, unread badge counts and switches to unread", async () => {
   const user = userEvent.setup();
   await renderWithTheme(

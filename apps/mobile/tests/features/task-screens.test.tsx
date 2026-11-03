@@ -161,3 +161,17 @@ it("tells the user when a status move fails", async () => {
   await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
   expect(screen.getByText("Cannot move this task")).toBeTruthy();
 });
+
+it("shows a toast again when a task update fails after dismissal", async () => {
+  const api = {
+    call: () => Effect.fail(new ValidationFailed({ fieldErrors: { task: "Cannot update this task" } })),
+  } as unknown as ApiContextValue;
+  const user = userEvent.setup();
+  await renderWithTheme(<TaskDetailScreen api={api} keys={keysStub} task={detail()} taskId="task-1" />);
+
+  await user.press(screen.getByRole("button", { name: "Toggle subtask Launch checklist" }));
+  await waitFor(() => expect(screen.getByText("Cannot update this task")).toBeTruthy());
+  await user.press(screen.getByRole("button", { name: "Dismiss" }));
+  await user.press(screen.getByRole("button", { name: "Toggle subtask Launch checklist" }));
+  await waitFor(() => expect(screen.getByText("Cannot update this task")).toBeTruthy());
+});

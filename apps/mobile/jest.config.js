@@ -6,6 +6,8 @@ module.exports = {
   testTimeout: 30_000,
   testMatch: ["<rootDir>/tests/components/**/*.test.tsx", "<rootDir>/tests/features/**/*.test.tsx"],
   moduleNameMapper: {
+    "^react$": "<rootDir>/node_modules/react",
+    "^react/(.*)$": "<rootDir>/node_modules/react/$1",
     "^@api/(.*)$": "<rootDir>/../../src/mobile-api/$1",
     "^@pending/(.*)$": "<rootDir>/src/api/pending-routes/$1",
     "^@/(.*)$": "<rootDir>/src/$1",

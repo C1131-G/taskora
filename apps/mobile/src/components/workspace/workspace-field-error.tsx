@@ -1,9 +1,8 @@
-import { StyleSheet, Text } from "react-native";
+import { useEffect } from "react";
 
-import { type AppFailure, ValidationFailed } from "@/errors";
-import { useTheme } from "@/theme/theme-provider";
-import { typeStyle } from "@/theme/type-scale";
-import { spacing, theme } from "@/theme/tokens.generated";
+import { type AppFailure } from "@/errors";
+import { useErrorToast } from "@/components/workspace/error-toast-provider";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
 
 export interface WorkspaceFieldErrorProps {
   readonly failure?: AppFailure | undefined;
@@ -13,36 +12,16 @@ export interface WorkspaceFieldErrorProps {
 
 /** Renders the ValidationFailed field errors; other failures render nothing. */
 export const WorkspaceFieldError = ({ failure, field }: WorkspaceFieldErrorProps) => {
-  const { isDark } = useTheme();
-  if (failure === undefined || failure._tag !== "ValidationFailed") {
-    return null;
-  }
-  const fieldErrors = (failure as ValidationFailed).fieldErrors;
+  const showError = useErrorToast();
+  const fieldErrors = failure?._tag === "ValidationFailed" ? failure.fieldErrors : {};
   const message =
-    field === undefined
+    failure !== undefined && failure._tag !== "ValidationFailed"
+      ? failureMessage(failure)
+      : field === undefined
       ? (Object.values(fieldErrors)[0] ?? null)
       : (fieldErrors[field] ?? null);
-  if (message === null) {
-    return null;
-  }
-
-  return (
-    <Text
-      accessibilityLiveRegion="polite"
-      accessibilityRole="alert"
-      style={[
-        typeStyle("xs"),
-        styles.error,
-        { color: isDark ? theme.dark.red : theme.light.red },
-      ]}
-    >
-      {message}
-    </Text>
-  );
+  useEffect(() => {
+    if (message !== null) showError(message);
+  }, [message, showError]);
+  return null;
 };
-
-const styles = StyleSheet.create({
-  error: {
-    marginTop: spacing.s1,
-  },
-});

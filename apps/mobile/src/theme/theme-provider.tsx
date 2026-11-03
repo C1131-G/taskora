@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, type ReactNode } from "r
 import { useColorScheme } from "react-native";
 import { useStore, createStore } from "@tanstack/react-store";
 
+import { useErrorToast } from "@/components/workspace/error-toast-context";
 import {
   ThemePreferences,
   type DensityName,
@@ -57,14 +58,17 @@ export const useTheme = (): ThemeContextValue => {
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemScheme = useColorScheme();
   const values = useStore(preferencesStore);
+  const showError = useErrorToast();
 
   useEffect(() => {
     const load = Effect.map(
       Effect.flatMap(Effect.service(ThemePreferences), (preferences) => preferences.load),
       (loaded) => preferencesStore.setState(() => loaded),
     );
-    void appRuntime().runPromiseExit(Effect.ignore(load));
-  }, []);
+    void appRuntime().runPromiseExit(
+      Effect.catchEager(load, () => Effect.sync(() => showError("Could not load appearance settings."))),
+    );
+  }, [showError]);
 
   const contextValue = useMemo<ThemeContextValue>(() => {
     const save = (patch: Partial<ThemeValues>): void => {
@@ -72,10 +76,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       const persist = Effect.flatMap(
         Effect.service(ThemePreferences),
         (preferences) => preferences.save(patch),
-      ).pipe(
-        Effect.tapError((error) => Effect.log(`Theme preference save failed: ${error._tag}`)),
-        Effect.ignore,
-      );
+      ).pipe(Effect.catchEager(() => Effect.sync(() => showError("Could not save appearance settings."))));
       void appRuntime().runPromiseExit(persist);
     };
     return {
@@ -87,7 +88,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setDensity: (density) => save({ density }),
       setMode: (mode) => save({ mode }),
     };
-  }, [values, systemScheme]);
+  }, [values, systemScheme, showError]);
 
   return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 };

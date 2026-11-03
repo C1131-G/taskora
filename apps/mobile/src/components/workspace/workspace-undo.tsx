@@ -38,6 +38,7 @@ export const WorkspaceUndoToast = ({
       ]}
     >
       <Text
+        accessibilityRole="alert"
         style={[typeStyle("sm"), { color: isDark ? theme.dark.text : theme.light.textInv, flex: 1 }]}
       >
         {message}
@@ -78,5 +79,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.s3,
     position: "absolute",
     width: "92%",
+    zIndex: 100,
+    elevation: 20,
   },
 });

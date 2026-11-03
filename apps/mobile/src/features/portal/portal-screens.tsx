@@ -1,14 +1,14 @@
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
-import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
+import { useErrorToast } from "@/components/workspace/error-toast-provider";
 import { WorkspaceListRow } from "@/components/workspace/workspace-list-row";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
-import type { AppFailure } from "@/errors";
 import { listPortalBugs, listPortalProjects, submitPortalBug } from "@/features/portal/queries";
 import {
   draftToReport,
@@ -16,7 +16,7 @@ import {
   REPORT_IMPACTS,
   type ReportDraft,
 } from "@/features/portal/report-form";
-import { useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
+import { failureOf, useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
@@ -71,8 +71,7 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [draft, setDraft] = useState<ReportDraft>(EMPTY_REPORT_DRAFT);
-  const [problem, setProblem] = useState<string | null>(null);
-  const [failure, setFailure] = useState<AppFailure | null>(null);
+  const showError = useErrorToast();
 
   const projects = useApiQuery({
     enabled: api !== null,
@@ -94,25 +93,22 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
       return;
     }
     const result = draftToReport({ ...draft, projectId });
-    setFailure(null);
     if (!result.ok) {
-      setProblem(Object.values(result.fieldErrors)[0] ?? "Check the form");
+      showError(Object.values(result.fieldErrors).join(" ") || "Check the form");
       return;
     }
-    setProblem(null);
-    void Effect.runPromise(
-      Effect.matchEffect(
+    void (async () => {
+      const exit = await Effect.runPromiseExit(
         keys.run("portal-new-bug", (key) => submitPortalBug(api, key, result.body)),
-        {
-          onFailure: (error) => Effect.sync(() => setFailure(error)),
-          onSuccess: () =>
-            Effect.sync(() => {
-              void queryClient.invalidateQueries({ queryKey: ["portal", "bugs"] });
-              onDone();
-            }),
-        },
-      ),
-    );
+      );
+      if (Exit.isSuccess(exit)) {
+        await queryClient.invalidateQueries({ queryKey: ["portal", "bugs"] });
+        onDone();
+        return;
+      }
+      const failure = failureOf(exit);
+      showError(failure === undefined ? "Could not send the report." : failureMessage(failure));
+    })();
   };
 
   return (
@@ -174,12 +170,6 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
             </Pressable>
           ))}
         </View>
-        {problem === null ? null : (
-          <Text accessible accessibilityRole="alert" style={{ color: palette.red }}>
-            {problem}
-          </Text>
-        )}
-        {failure === null ? null : <WorkspaceErrorState failure={failure} />}
         <Pressable
           accessibilityRole="button"
           onPress={submit}

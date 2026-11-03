@@ -38,16 +38,16 @@ export class Session extends Context.Service<
     /** Exchanges credentials for a token, loads /me and persists the token. */
     readonly signIn: (input: SignInInput) => Effect.Effect<SessionState, AppFailure>;
     /** Restores the stored token, validating it against /me. */
-    readonly restore: Effect.Effect<SessionState, never>;
+    readonly restore: Effect.Effect<SessionState, AppFailure>;
     /** Changes the signed-in account's password through better-auth. */
     readonly changeOwnPassword: (input: {
       readonly currentPassword: string;
       readonly newPassword: string;
     }) => Effect.Effect<void, AppFailure>;
     /** Revokes the server session and clears local state. */
-    readonly signOut: Effect.Effect<void, never>;
+    readonly signOut: Effect.Effect<void, Error>;
     /** Clears local state without a server call (used on a 401 cascade). */
-    readonly invalidate: Effect.Effect<void, never>;
+    readonly invalidate: Effect.Effect<void, AppFailure>;
     /**
      * Runs forever: signs a client-role session out after `idle` in the
      * background. Staff sessions are never timed out.
@@ -55,7 +55,7 @@ export class Session extends Context.Service<
     readonly watchClientIdle: (
       lifecycleChanges: Stream.Stream<LifecycleState>,
       idle: Parameters<typeof Effect.sleep>[0],
-    ) => Effect.Effect<never>;
+    ) => Effect.Effect<never, Error | AppFailure>;
   }
 >()("taskora/mobile/Session") {}
 
@@ -85,13 +85,9 @@ export const makeSession = (deps: SessionDeps) =>
         token,
       });
 
-    const persist = (token: string) =>
-      Effect.catchEager(storage.write(TOKEN_KEY, token, TokenCodec), () => Effect.void);
+    const persist = (token: string) => storage.write(TOKEN_KEY, token, TokenCodec);
 
-    const clear = Effect.andThen(
-      SubscriptionRef.set(ref, ANONYMOUS),
-      Effect.catchEager(storage.remove(TOKEN_KEY), () => Effect.void),
-    );
+    const clear = Effect.andThen(SubscriptionRef.set(ref, ANONYMOUS), storage.remove(TOKEN_KEY));
 
     const authenticated = (token: string, me: MobileMe): SessionState => ({
       kind: "authenticated",
@@ -110,37 +106,30 @@ export const makeSession = (deps: SessionDeps) =>
       );
 
     const revokeOnServer = (token: string) =>
-      Effect.asVoid(
-        Effect.catchEager(
-          Effect.tryPromise({
-            catch: () => new Error("sign-out failed"),
+      Effect.flatMap(Effect.tryPromise({
+            catch: () => new Error("Could not revoke the server session. You have been signed out on this device."),
             try: () =>
               (deps.fetchImpl ?? fetch)(`${deps.baseUrl}/api/auth/sign-out`, {
                 headers: { authorization: `Bearer ${token}` },
                 method: "POST",
               }),
-          }),
-          () => Effect.void,
-        ),
-      );
+          }), (response) => response.ok
+            ? Effect.void
+            : Effect.fail(new Error("Could not revoke the server session. You have been signed out on this device.")));
 
     const session = Session.of({
       changes: SubscriptionRef.changes(ref),
       current: SubscriptionRef.get(ref),
       invalidate: clear,
       restore: Effect.flatMap(
-        Effect.catchEager(storage.read(TOKEN_KEY, TokenCodec), () => Effect.succeed(null)),
+        storage.read(TOKEN_KEY, TokenCodec),
         (token) =>
           token === null || token.length === 0
             ? Effect.succeed(ANONYMOUS)
-            : Effect.catchEager(loadMe(token), () =>
-                Effect.as(
-                  Effect.andThen(
-                    SubscriptionRef.set(ref, ANONYMOUS),
-                    Effect.catchEager(storage.remove(TOKEN_KEY), () => Effect.void),
-                  ),
-                  ANONYMOUS,
-                ),
+            : Effect.catchEager(loadMe(token), (failure): Effect.Effect<never, AppFailure> =>
+                failure._tag === "Unauthenticated"
+                  ? Effect.andThen(clear, Effect.fail(failure))
+                  : Effect.fail(failure),
               ),
       ),
       signIn: (input) =>
@@ -217,11 +206,19 @@ export const makeSession = (deps: SessionDeps) =>
               )
             : Effect.fail(new Unauthenticated()),
         ),
-      signOut: Effect.flatMap(SubscriptionRef.get(ref), (state) =>
-        state.kind === "authenticated"
-          ? Effect.andThen(revokeOnServer(state.token), clear)
-          : clear,
-      ),
+      signOut: Effect.gen(function* () {
+        const state = yield* SubscriptionRef.get(ref);
+        const revocation = yield* Effect.exit(
+          state.kind === "authenticated" ? revokeOnServer(state.token) : Effect.void,
+        );
+        yield* SubscriptionRef.set(ref, ANONYMOUS);
+        yield* Effect.mapError(storage.remove(TOKEN_KEY), () =>
+          new Error("Could not remove the saved session from this device."),
+        );
+        if (Exit.isFailure(revocation)) {
+          return yield* Effect.fail(new Error("Could not revoke the server session. You have been signed out on this device."));
+        }
+      }),
       watchClientIdle: (lifecycleChanges, idle) =>
         Effect.forever(
           Effect.gen(function* () {
@@ -241,7 +238,13 @@ export const makeSession = (deps: SessionDeps) =>
             ).pipe(
               Effect.flatMap((outcome) =>
                 outcome === "timeout"
-                  ? Effect.andThen(revokeOnServer(state.token), clear)
+                  ? Effect.gen(function* () {
+                      const revocation = yield* Effect.exit(revokeOnServer(state.token));
+                      yield* clear;
+                      if (Exit.isFailure(revocation)) {
+                        return yield* Effect.fail(new Error("Could not revoke the server session. You have been signed out on this device."));
+                      }
+                    })
                   : Effect.void,
               ),
             );

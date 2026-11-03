@@ -6,6 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
+import { useErrorToast } from "@/components/workspace/error-toast-context";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
 import {
   CHANNEL_LABELS,
   EVENT_LABELS,
@@ -14,7 +16,7 @@ import {
   type Preference,
   type PreferenceAudience,
 } from "@/features/preferences/queries";
-import type { ApiContextValue, KeysContextValue } from "@/runtime/api-hooks";
+import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
@@ -37,6 +39,7 @@ export const PreferencesScreen = ({ api, audience, keys, preferences }: Preferen
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [shown, setShown] = useState<Readonly<Record<string, boolean>>>({});
+  const showError = useErrorToast();
 
   const toggle = (preference: Preference): void => {
     const cell = cellOf(preference);
@@ -53,6 +56,9 @@ export const PreferencesScreen = ({ api, audience, keys, preferences }: Preferen
           yield* Effect.promise(() =>
             queryClient.invalidateQueries({ queryKey: ["notification-preferences", audience] }),
           );
+        } else {
+          const failure = failureOf(exit);
+          yield* Effect.sync(() => showError(failure === undefined ? "Could not save notification settings." : failureMessage(failure)));
         }
         yield* Effect.sync(() =>
           setShown((current) => {

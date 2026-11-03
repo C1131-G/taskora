@@ -1,15 +1,16 @@
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import type { AppFailure } from "@/errors";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
-import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
+import { useErrorToast } from "@/components/workspace/error-toast-provider";
+import { failureMessage, WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
 import { WorkspaceListRow } from "@/components/workspace/workspace-list-row";
 import { SkelterWorkspaceScreen } from "@/components/workspace/skelter-workspace-screen";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
-import { useApi, useApiQuery } from "@/runtime/api-hooks";
+import { failureOf, useApi, useApiQuery } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
@@ -98,6 +99,7 @@ export const SearchScreen = ({
 }) => {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<readonly ListRow[]>([]);
+  const showError = useErrorToast();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
 
@@ -107,11 +109,15 @@ export const SearchScreen = ({
       setHits([]);
       return;
     }
-    void Effect.runPromiseExit(
-      Effect.map(search(trimmed), (page) => {
-        setHits(page.rows);
-      }),
-    );
+    void (async () => {
+      const result = await Effect.runPromiseExit(search(trimmed));
+      if (Exit.isSuccess(result)) {
+        setHits(result.value.rows);
+        return;
+      }
+      const failure = failureOf(result);
+      showError(failure === undefined ? "Could not search. Please try again." : failureMessage(failure));
+    })();
   };
 
   return (

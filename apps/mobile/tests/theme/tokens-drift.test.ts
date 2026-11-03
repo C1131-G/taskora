@@ -8,11 +8,11 @@ import * as generated from "@/theme/tokens.generated";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const lightCss = readFileSync(
-  path.join(repoRoot, "app", "workspace-styles", "tokens-light.css"),
+  path.join(repoRoot, "apps", "web", "app", "workspace-styles", "tokens-light.css"),
   "utf8",
 );
 const darkCss = readFileSync(
-  path.join(repoRoot, "app", "workspace-styles", "tokens-dark-accents.css"),
+  path.join(repoRoot, "apps", "web", "app", "workspace-styles", "tokens-dark-accents.css"),
   "utf8",
 );
 const generatedPath = path.join(repoRoot, "apps", "mobile", "src", "theme", "tokens.generated.ts");

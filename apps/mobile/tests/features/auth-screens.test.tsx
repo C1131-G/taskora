@@ -91,7 +91,16 @@ it("blocks submission when the local fields fail", async () => {
   await user.press(screen.getByRole("button", { name: "Sign in" }));
 
   expect(calls).toBe(0);
-  expect(screen.getByText("Enter your email")).toBeTruthy();
+  expect(screen.getByText(/Enter your email/)).toBeTruthy();
+});
+
+it("shows a toast when sign-in encounters an unexpected failure", async () => {
+  const user = userEvent.setup();
+  await renderWithTheme(<LoginScreen session={stubSession({ signIn: () => Effect.die(new Error("unexpected")) })} />);
+  await user.type(screen.getByLabelText("Email"), "ada@taskora.test");
+  await user.type(screen.getByLabelText("Password"), "longenough");
+  await user.press(screen.getByRole("button", { name: "Sign in" }));
+  await waitFor(() => expect(screen.getByText("Could not sign in. Please try again.")).toBeTruthy());
 });
 
 it("changes the password and calls onDone", async () => {

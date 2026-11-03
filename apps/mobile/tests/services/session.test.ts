@@ -94,6 +94,37 @@ it.effect("restore validates a stored token and reports anonymous without one", 
   }).pipe(Effect.provide(sessionLayer("token-stored"))),
 );
 
+it.effect("reports a session storage read failure", () =>
+  Effect.gen(function* () {
+    const session = yield* Effect.service(Session);
+    const error = yield* Effect.flip(session.restore);
+    expect(error._tag).toBe("StorageFailure");
+    expect((yield* session.current).kind).toBe("anonymous");
+  }).pipe(
+    Effect.provide(Layer.provide(makeSessionLayer({ baseUrl: "https://unit.test", fetchImpl }),
+      Layer.succeed(SecureStorage, SecureStorage.of(makeStoreOps({
+        ...memoryStorageAdapter(),
+        getItem: () => Promise.reject(new Error("storage unavailable")),
+      }))),
+    )),
+  ),
+);
+
+it.effect("keeps the stored token when session validation fails temporarily", () =>
+  Effect.gen(function* () {
+    const adapter = memoryStorageAdapter(new Map([["session-token", "token-stored"]]));
+    const session = yield* Effect.service(Session).pipe(Effect.provide(
+      Layer.provide(makeSessionLayer({
+        baseUrl: "https://unit.test",
+        fetchImpl: (() => Promise.reject(new Error("network unavailable"))) as typeof fetch,
+      }), Layer.succeed(SecureStorage, SecureStorage.of(makeStoreOps(adapter)))),
+    ));
+    const error = yield* Effect.flip(session.restore);
+    expect(error._tag).toBe("Unavailable");
+    expect(adapter.data.get("session-token")).toBe("token-stored");
+  }),
+);
+
 it.effect("sign out revokes the server session and clears state", () =>
   Effect.gen(function* () {
     const session = yield* Effect.service(Session);
@@ -103,6 +134,73 @@ it.effect("sign out revokes the server session and clears state", () =>
 
     expect((yield* session.current).kind).toBe("anonymous");
   }).pipe(Effect.provide(sessionLayer(null))),
+);
+
+it.effect("reports a rejected sign out while still clearing the local session", () =>
+  Effect.gen(function* () {
+    const session = yield* Effect.service(Session);
+    yield* session.signIn({ email: "c@taskora.test", password: "secret" });
+    const error = yield* Effect.flip(session.signOut);
+    expect(error.message).toContain("Could not revoke the server session");
+    expect((yield* session.current).kind).toBe("anonymous");
+  }).pipe(
+    Effect.provide(Layer.provide(makeSessionLayer({
+      baseUrl: "https://unit.test",
+      fetchImpl: ((input, init) => String(input).endsWith("/api/auth/sign-out")
+        ? jsonResponse(503, { ok: false })
+        : fetchImpl(input, init)) as typeof fetch,
+    }), storageLayer(null))),
+  ),
+);
+
+it.effect("reports an inability to save the sign-in token", () =>
+  Effect.gen(function* () {
+    const session = yield* Effect.service(Session);
+    const error = yield* Effect.flip(session.signIn({ email: "c@taskora.test", password: "secret" }));
+    expect(error._tag).toBe("StorageFailure");
+    expect((yield* session.current).kind).toBe("anonymous");
+  }).pipe(
+    Effect.provide(Layer.provide(makeSessionLayer({ baseUrl: "https://unit.test", fetchImpl }),
+      Layer.succeed(SecureStorage, SecureStorage.of(makeStoreOps({
+        ...memoryStorageAdapter(),
+        setItem: () => Promise.reject(new Error("storage unavailable")),
+      }))),
+    )),
+  ),
+);
+
+it.effect("reports an inability to remove the saved token on sign out", () =>
+  Effect.gen(function* () {
+    const session = yield* Effect.service(Session);
+    yield* session.signIn({ email: "c@taskora.test", password: "secret" });
+    const error = yield* Effect.flip(session.signOut);
+    expect(error.message).toContain("Could not remove the saved session");
+    expect((yield* session.current).kind).toBe("anonymous");
+  }).pipe(
+    Effect.provide(Layer.provide(makeSessionLayer({ baseUrl: "https://unit.test", fetchImpl }),
+      Layer.succeed(SecureStorage, SecureStorage.of(makeStoreOps({
+        ...memoryStorageAdapter(),
+        removeItem: () => Promise.reject(new Error("storage unavailable")),
+      }))),
+    )),
+  ),
+);
+
+it.effect("reports storage failure when invalidating a session", () =>
+  Effect.gen(function* () {
+    const session = yield* Effect.service(Session);
+    yield* session.signIn({ email: "c@taskora.test", password: "secret" });
+    const error = yield* Effect.flip(session.invalidate);
+    expect(error._tag).toBe("StorageFailure");
+    expect((yield* session.current).kind).toBe("anonymous");
+  }).pipe(
+    Effect.provide(Layer.provide(makeSessionLayer({ baseUrl: "https://unit.test", fetchImpl }),
+      Layer.succeed(SecureStorage, SecureStorage.of(makeStoreOps({
+        ...memoryStorageAdapter(),
+        removeItem: () => Promise.reject(new Error("storage unavailable")),
+      }))),
+    )),
+  ),
 );
 
 it.effect("signs a client out after the idle timeout in the background", () =>

@@ -43,6 +43,7 @@ it("shows the empty state with title, message and action", async () => {
 });
 
 it("matches each error tag to a message", async () => {
+  const user = userEvent.setup();
   await renderWithTheme(
     <>
       <WorkspaceErrorState failure={new Unavailable({ requestId: "req-9" })} />
@@ -55,8 +56,11 @@ it("matches each error tag to a message", async () => {
   );
 
   expect(screen.getByText("The service is temporarily unavailable. Try again.")).toBeTruthy();
+  await user.press(screen.getByRole("button", { name: "Dismiss" }));
   expect(screen.getByText("Someone else changed this item. Reload to continue.")).toBeTruthy();
+  await user.press(screen.getByRole("button", { name: "Dismiss" }));
   expect(screen.getByText("Title is required")).toBeTruthy();
+  await user.press(screen.getByRole("button", { name: "Dismiss" }));
   expect(screen.getByText("You appear to be offline. Reconnect and retry.")).toBeTruthy();
 });
 

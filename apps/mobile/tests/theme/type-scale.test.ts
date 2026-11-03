@@ -36,10 +36,10 @@ describe("the type scale", () => {
 });
 
 describe("font loading", () => {
-  it("degrades to the system font when native modules are unavailable", async () => {
+  it("reports a failure when native font modules are unavailable", async () => {
     const exit = await Effect.runPromiseExit(loadAppFonts);
 
-    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(Exit.isFailure(exit)).toBe(true);
   });
 });
 

@@ -1,12 +1,14 @@
-import { Effect, Stream } from "effect";
+import { Effect, Exit, Stream } from "effect";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import { AppLifecycle } from "@/services/app-lifecycle";
 import { MobileApi } from "@/services/mobile-api";
-import { ApiContext, KeysContext } from "@/runtime/api-hooks";
+import { ApiContext, KeysContext, failureOf } from "@/runtime/api-hooks";
 import { IdempotencyKeys } from "@/services/idempotency-keys";
 import { Session, type SessionService, type SessionState } from "@/services/session";
 import { appRuntime } from "@/runtime/runtime";
+import { useErrorToast } from "@/components/workspace/error-toast-context";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
 
 export interface SessionGateValue {
   readonly restored: boolean;
@@ -33,6 +35,7 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<SessionService | null>(null);
   const [api, setApi] = useState<MobileApi["Service"] | null>(null);
   const [keys, setKeys] = useState<IdempotencyKeys["Service"] | null>(null);
+  const showError = useErrorToast();
 
   useEffect(() => {
     const runtime = appRuntime();
@@ -44,8 +47,8 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
       return { api, keys, lifecycle, sessionService };
     });
 
-    void runtime.runPromise(
-      Effect.gen(function* () {
+    void (async () => {
+      const result = await runtime.runPromiseExit(Effect.gen(function* () {
         const { api, keys, lifecycle, sessionService } = yield* setup;
         yield* Effect.sync(() => setSession(sessionService));
         yield* Effect.sync(() => setApi(api));
@@ -57,11 +60,23 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
             ),
           ),
         );
-        runtime.runFork(sessionService.watchClientIdle(lifecycle.changes, "2 hours"));
-        runtime.runFork(sessionService.restore);
-      }),
-    );
-  }, []);
+        runtime.runFork(Effect.forever(Effect.catchEager(
+          sessionService.watchClientIdle(lifecycle.changes, "2 hours"),
+          (failure) => Effect.sync(() => showError("_tag" in failure ? failureMessage(failure) : failure.message)),
+        )));
+        runtime.runFork(Effect.flatMap(Effect.exit(sessionService.restore), (result) => {
+          if (Exit.isSuccess(result)) return Effect.void;
+          const failure = failureOf(result);
+          return Effect.sync(() => showError(failure === undefined
+            ? "Could not restore your session. Please sign in again."
+            : failureMessage(failure)));
+        }));
+      }));
+      if (Exit.isFailure(result)) {
+        showError("Could not start your session. Please restart the app.");
+      }
+    })();
+  }, [showError]);
 
   return (
     <SessionStateContext.Provider value={value}>

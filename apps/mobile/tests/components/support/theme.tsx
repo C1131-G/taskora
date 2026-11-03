@@ -2,6 +2,7 @@ import { createElement, type ReactElement, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react-native";
 
+import { ErrorToastProvider } from "@/components/workspace/error-toast-provider";
 import { ThemeContext, type ThemeContextValue } from "@/theme/theme-provider";
 
 const noop = (): void => undefined;
@@ -27,13 +28,13 @@ export const renderWithTheme = async (
   };
   const queryClient = new QueryClient({
     // gcTime 0 frees the cache timers so Jest can exit after the last test.
-    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } },
+    defaultOptions: { mutations: { gcTime: 0, retry: false }, queries: { gcTime: 0, retry: false } },
   });
   await render(
     createElement(
       QueryClientProvider,
       { client: queryClient },
-      createElement(ThemeContext.Provider, { value }, ui as ReactNode),
+      createElement(ThemeContext.Provider, { value }, createElement(ErrorToastProvider, null, ui as ReactNode)),
     ),
   );
 };

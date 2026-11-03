@@ -15,7 +15,7 @@ export class TokenSource extends Context.Service<
     /** The bearer token for the signed-in session, or null when signed out. */
     readonly currentToken: Effect.Effect<string | null>;
     /** Reacts to a 401 by clearing the session. */
-    readonly onUnauthenticated: Effect.Effect<void>;
+    readonly onUnauthenticated: Effect.Effect<void, AppFailure>;
   }
 >()("taskora/mobile/TokenSource") {}
 

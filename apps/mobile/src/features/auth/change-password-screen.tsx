@@ -5,21 +5,17 @@ import { useMutation } from "@tanstack/react-query";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceField } from "@/components/workspace/workspace-field";
-import { WorkspaceFieldError } from "@/components/workspace/workspace-field-error";
+import { useErrorToast } from "@/components/workspace/error-toast-provider";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTextInput } from "@/components/workspace/workspace-text-input";
-import { ValidationFailed, type AppFailure } from "@/errors";
+import { type AppFailure } from "@/errors";
 import type { SessionService } from "@/services/session";
 
 const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure | undefined =>
   exit === undefined || Exit.isSuccess(exit)
     ? undefined
     : Option.getOrUndefined(Cause.findErrorOption(exit.cause));
-
-const fieldError = (message: string | undefined, field: string): AppFailure | undefined =>
-  message === undefined
-    ? undefined
-    : new ValidationFailed({ fieldErrors: { [field]: message } });
 
 export interface ChangePasswordScreenProps {
   readonly onDone: () => void;
@@ -29,6 +25,7 @@ export interface ChangePasswordScreenProps {
 /** The forced (or voluntary) password change; the session stays signed in. */
 export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePasswordScreenProps) => {
   const session = sessionProp ?? null;
+  const showError = useErrorToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -37,6 +34,12 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
   const change = useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
       Effect.runPromiseExit(session!.changeOwnPassword(input)),
+    onSuccess: (result) => {
+      const failure = failureOf(result);
+      if (failure !== undefined) showError(failureMessage(failure));
+      else if (Exit.isFailure(result)) showError("Could not change your password. Please try again.");
+    },
+    onError: () => showError("Could not change your password. Please try again."),
   });
 
   const submit = (): void => {
@@ -51,13 +54,12 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
       errors.confirm = "The passwords do not match";
     }
     setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) showError(Object.values(errors).join(". "));
     if (Object.keys(errors).length > 0 || session === null) {
       return;
     }
     change.mutate({ currentPassword, newPassword });
   };
-
-  const serverFailure = failureOf(change.data);
 
   const succeeded = change.data !== undefined && Exit.isSuccess(change.data);
   useEffect(() => {
@@ -77,14 +79,6 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
             value={currentPassword}
           />
         </WorkspaceField>
-        <WorkspaceFieldError
-          failure={
-            serverFailure?._tag === "ValidationFailed"
-              ? serverFailure
-              : fieldError(fieldErrors.currentPassword, "currentPassword")
-          }
-          field="currentPassword"
-        />
         <WorkspaceField label="New password">
           <WorkspaceTextInput
             invalid={fieldErrors.newPassword !== undefined}
@@ -93,10 +87,6 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
             value={newPassword}
           />
         </WorkspaceField>
-        <WorkspaceFieldError
-          failure={fieldError(fieldErrors.newPassword, "newPassword")}
-          field="newPassword"
-        />
         <WorkspaceField label="Repeat new password">
           <WorkspaceTextInput
             invalid={fieldErrors.confirm !== undefined}
@@ -105,10 +95,6 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
             value={confirm}
           />
         </WorkspaceField>
-        <WorkspaceFieldError
-          failure={fieldError(fieldErrors.confirm, "confirm")}
-          field="confirm"
-        />
         <WorkspaceButton disabled={session === null || change.isPending} onPress={submit}>
           {change.isPending ? "Saving" : "Save new password"}
         </WorkspaceButton>

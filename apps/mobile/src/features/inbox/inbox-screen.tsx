@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { withSkeleton } from "react-zero-skeleton";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -7,13 +7,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
+import { useErrorToast } from "@/components/workspace/error-toast-context";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
+import type { AppFailure } from "@/errors";
 import {
   markAllInboxRead,
   markInboxItemRead,
   splitInbox,
   type InboxItem,
 } from "@/features/inbox/queries";
-import type { ApiContextValue, KeysContextValue } from "@/runtime/api-hooks";
+import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
@@ -33,23 +36,24 @@ export const InboxScreen = ({ api, items, keys, onOpenTask }: InboxScreenProps) 
   const palette = isDark ? theme.dark : theme.light;
   const groups = splitInbox(items);
   const visible = tab === "all" ? groups.all : groups.unread;
+  const showError = useErrorToast();
+
+  const updateReadState = async (operation: Effect.Effect<unknown, AppFailure>): Promise<void> => {
+    const result = await Effect.runPromiseExit(operation);
+    if (Exit.isSuccess(result)) {
+      await queryClient.invalidateQueries({ queryKey: ["inbox"] });
+      return;
+    }
+    const failure = failureOf(result);
+    showError(failure === undefined ? "Could not update the inbox." : failureMessage(failure));
+  };
 
   const markRead = (id: string): void => {
-    void Effect.runPromise(
-      Effect.andThen(
-        keys.run(`read-${id}`, (key) => markInboxItemRead(api, key, id)),
-        Effect.sync(() => queryClient.invalidateQueries({ queryKey: ["inbox"] })),
-      ),
-    );
+    void updateReadState(keys.run(`read-${id}`, (key) => markInboxItemRead(api, key, id)));
   };
 
   const markAll = (): void => {
-    void Effect.runPromise(
-      Effect.andThen(
-        keys.run("read-all", (key) => markAllInboxRead(api, key)),
-        Effect.sync(() => queryClient.invalidateQueries({ queryKey: ["inbox"] })),
-      ),
-    );
+    void updateReadState(keys.run("read-all", (key) => markAllInboxRead(api, key)));
   };
 
   return (

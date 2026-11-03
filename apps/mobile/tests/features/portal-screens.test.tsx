@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import { createElement } from "react";
 import type { ReactElement, ReactNode } from "react";
 
+import { ErrorToastProvider } from "@/components/workspace/error-toast-provider";
 import { ValidationFailed } from "@/errors";
 import { PortalHomeScreen, PortalNewBugScreen } from "@/features/portal/portal-screens";
 import type { ApiContextValue } from "@/runtime/api-hooks";
@@ -32,7 +33,7 @@ const renderPortal = async (ui: ReactElement, api: ApiContextValue): Promise<voi
             setMode: noop,
           },
         },
-        createElement(ApiProviderShim, { api, children: ui }),
+        createElement(ErrorToastProvider, null, createElement(ApiProviderShim, { api, children: ui })),
       ),
     ),
   );

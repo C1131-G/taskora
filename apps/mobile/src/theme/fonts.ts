@@ -19,11 +19,10 @@ export const FONT_FAMILIES = {
 } as const;
 
 /**
- * Loads the Geist faces once at startup. A failure (unsupported device,
- * bundled-out module) degrades to the system font instead of failing.
+ * Loads the Geist faces at startup. The caller reports failures and keeps
+ * the app usable with the system font.
  */
-export const loadAppFonts: Effect.Effect<void> = Effect.catchEager(
-  Effect.tryPromise({
+export const loadAppFonts: Effect.Effect<void, Error> = Effect.tryPromise({
     catch: (cause) => new Error(`Font load failed: ${String(cause)}`),
     try: async () => {
       const [{ loadAsync }, geist, geistMono] = await Promise.all([
@@ -42,6 +41,4 @@ export const loadAppFonts: Effect.Effect<void> = Effect.catchEager(
         Geist_700Bold: geist.Geist_700Bold,
       });
     },
-  }),
-  () => Effect.void,
-);
+  });

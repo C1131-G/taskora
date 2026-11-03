@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Schema } from "effect";
 
-import { StorageFailure } from "@/errors";
+import { DecodeFailure, StorageFailure } from "@/errors";
 import { KeyValueStore, KeyValueStoreLive } from "@/services/key-value-store";
 import type { StoreOps } from "@/services/storage-adapter";
 import type { AccentName } from "@/theme/tokens.generated";
@@ -33,10 +33,10 @@ const ValuesCodec = Schema.fromJsonString(
 export class ThemePreferences extends Context.Service<
   ThemePreferences,
   {
-    /** The stored preferences, or the defaults when nothing valid is stored. */
-    readonly load: Effect.Effect<ThemeValues>;
+    /** The stored preferences, or the defaults when nothing is stored. */
+    readonly load: Effect.Effect<ThemeValues, StorageFailure | DecodeFailure>;
     /** Persists a partial patch, keeping unspecified values. */
-    readonly save: (patch: Partial<ThemeValues>) => Effect.Effect<void, StorageFailure>;
+    readonly save: (patch: Partial<ThemeValues>) => Effect.Effect<void, StorageFailure | DecodeFailure>;
   }
 >()("taskora/mobile/ThemePreferences") {}
 
@@ -44,7 +44,7 @@ const makePreferences = (store: StoreOps) => {
   const readStored = Effect.flatMap(
     store.read(STORE_KEY, ValuesCodec),
     (stored) => Effect.succeed(stored ?? DEFAULT_THEME_VALUES),
-  ).pipe(Effect.catchEager(() => Effect.succeed(DEFAULT_THEME_VALUES)));
+  );
 
   return ThemePreferences.of({
     load: readStored,

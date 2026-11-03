@@ -18,6 +18,16 @@ const keysStub: KeysContextValue = {
   run: (_intent, program) => program("key-1234567890"),
 };
 
+it("toasts a failed preference update and restores the switch", async () => {
+  const api = { call: () => Effect.fail(new ValidationFailed({ fieldErrors: { preference: "Could not save setting" } })) } as unknown as ApiContextValue;
+  const user = userEvent.setup();
+  await renderWithTheme(<PreferencesScreen api={api} audience="workspace" keys={keysStub} preferences={PREFERENCES} />);
+  const toggle = screen.getByRole("switch", { name: "Mentions: In the app" });
+  await user.press(toggle);
+  await waitFor(() => expect(screen.getByText("Could not save setting")).toBeTruthy());
+  expect(screen.getByRole("switch", { checked: true, name: "Mentions: In the app" })).toBeTruthy();
+});
+
 const apiThat = (setWorkspace: (input: unknown) => Promise<unknown>): ApiContextValue =>
   ({
     call: (run: (client: unknown) => Promise<unknown>) =>

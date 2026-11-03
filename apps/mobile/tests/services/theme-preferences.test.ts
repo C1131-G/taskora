@@ -51,10 +51,10 @@ it.effect("saves a partial patch and reloads it", () =>
   }).pipe(Effect.provide(serviceLayer())),
 );
 
-it.effect("falls back to the defaults on a corrupt stored value", () =>
+it.effect("reports a corrupt stored value", () =>
   Effect.gen(function* () {
     const preferences = yield* Effect.service(ThemePreferences);
 
-    expect(yield* preferences.load).toEqual(DEFAULTS);
+    expect((yield* Effect.flip(preferences.load))._tag).toBe("DecodeFailure");
   }).pipe(Effect.provide(serviceLayer((data) => void data.set("theme-preferences", "!!nope")))),
 );

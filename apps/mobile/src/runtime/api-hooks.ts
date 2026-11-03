@@ -2,7 +2,9 @@ import { Cause, Effect, Exit, Option } from "effect";
 import { createContext, useContext } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import type { AppFailure } from "@/errors";
+import { Unavailable, type AppFailure } from "@/errors";
+import { useErrorToast } from "@/components/workspace/error-toast-context";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
 import type { MobileApi } from "@/services/mobile-api";
 import type { IdempotencyKeys } from "@/services/idempotency-keys";
 
@@ -34,12 +36,20 @@ export interface ApiQueryInput<A> {
 }
 
 /** Runs one Effect program as a TanStack query; rejections are AppFailure. */
-export const useApiQuery = <A>({ enabled, program, queryKey }: ApiQueryInput<A>) =>
-  useQuery({
+export const useApiQuery = <A>({ enabled, program, queryKey }: ApiQueryInput<A>) => {
+  const showError = useErrorToast();
+  return useQuery<A, AppFailure>({
     enabled: enabled ?? true,
-    queryFn: () => Effect.runPromise(program),
+    queryFn: async () => {
+      const exit = await Effect.runPromiseExit(program);
+      if (Exit.isSuccess(exit)) return exit.value;
+      const failure = failureOf(exit) ?? new Unavailable({ requestId: "" });
+      showError(failureMessage(failure));
+      return Promise.reject(failure);
+    },
     queryKey,
   });
+};
 
 export interface ApiMutationInput<V, A> {
   readonly program: (variables: V) => Effect.Effect<A, AppFailure>;

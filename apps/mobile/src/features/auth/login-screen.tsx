@@ -5,10 +5,11 @@ import { useMutation } from "@tanstack/react-query";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceField } from "@/components/workspace/workspace-field";
-import { WorkspaceFieldError } from "@/components/workspace/workspace-field-error";
+import { useErrorToast } from "@/components/workspace/error-toast-provider";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTextInput } from "@/components/workspace/workspace-text-input";
-import { ValidationFailed, type AppFailure } from "@/errors";
+import { type AppFailure } from "@/errors";
 import type { SessionService } from "@/services/session";
 
 export interface Credentials {
@@ -45,11 +46,6 @@ const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure
     ? undefined
     : Option.getOrUndefined(Cause.findErrorOption(exit.cause));
 
-const fieldError = (message: string | undefined, field: string): AppFailure | undefined =>
-  message === undefined
-    ? undefined
-    : new ValidationFailed({ fieldErrors: { [field]: message } });
-
 export interface LoginScreenProps {
   readonly session?: SessionService;
 }
@@ -57,25 +53,31 @@ export interface LoginScreenProps {
 /** The sign-in screen; the route gate reacts to the session it mutates. */
 export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
   const session = sessionProp ?? useSession();
+  const showError = useErrorToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const signIn = useMutation({
     mutationFn: (input: Credentials) => Effect.runPromiseExit(session!.signIn(input)),
+    onSuccess: (result) => {
+      const failure = failureOf(result);
+      if (failure !== undefined) showError(failureMessage(failure));
+      else if (Exit.isFailure(result)) showError("Could not sign in. Please try again.");
+    },
+    onError: () => showError("Could not sign in. Please try again."),
   });
 
   const submit = (): void => {
     const validated = validateCredentials({ email, password });
     if (!validated.ok) {
       setFieldErrors(validated.errors);
+      showError(Object.values(validated.errors).join(". "));
       return;
     }
     setFieldErrors({});
     signIn.mutate(validated.values);
   };
-
-  const serverFailure = failureOf(signIn.data);
 
   return (
     <WorkspaceScreen title="Sign in">
@@ -89,7 +91,6 @@ export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
             value={email}
           />
         </WorkspaceField>
-        <WorkspaceFieldError failure={fieldError(fieldErrors.email, "email")} field="email" />
         <WorkspaceField label="Password">
           <WorkspaceTextInput
             invalid={fieldErrors.password !== undefined}
@@ -98,17 +99,6 @@ export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
             value={password}
           />
         </WorkspaceField>
-        <WorkspaceFieldError
-          failure={
-            serverFailure?._tag === "ValidationFailed"
-              ? serverFailure
-              : fieldError(fieldErrors.password, "password")
-          }
-          field="password"
-        />
-        {serverFailure === undefined || serverFailure._tag === "ValidationFailed" ? null : (
-          <WorkspaceFieldError failure={serverFailure} />
-        )}
         <WorkspaceButton disabled={session === null || signIn.isPending} onPress={submit}>
           {signIn.isPending ? "Signing in" : "Sign in"}
         </WorkspaceButton>

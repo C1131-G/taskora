@@ -4,10 +4,12 @@ import { useRouter } from "expo-router";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { useSessionState, useGateSession } from "@/features/auth/session-gate";
 import { PortalAccountBody } from "@/features/portal/portal-list";
+import { useErrorToast } from "@/components/workspace/error-toast-context";
 
 export default function Route() {
   const session = useGateSession();
   const router = useRouter();
+  const showError = useErrorToast();
   const { state } = useSessionState();
   const me = state.kind === "authenticated" ? state.me : null;
 
@@ -20,7 +22,7 @@ export default function Route() {
           onOpenNotifications={() => router.push("/portal/notification-settings")}
           onSignOut={() => {
             if (session !== null) {
-              void Effect.runPromiseExit(session.signOut);
+              void Effect.runPromiseExit(Effect.catchEager(session.signOut, (error) => Effect.sync(() => showError(error.message))));
             }
             router.push("/login");
           }}

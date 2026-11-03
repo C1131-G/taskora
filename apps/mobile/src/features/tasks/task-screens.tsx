@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { withSkeleton } from "react-zero-skeleton";
 import { useState } from "react";
 import type { AppFailure } from "@/errors";
@@ -7,7 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
-import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
+import { failureMessage } from "@/components/workspace/workspace-error-state";
+import { useErrorToast } from "@/components/workspace/error-toast-context";
 import { WorkspaceListRow } from "@/components/workspace/workspace-list-row";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { TaskStatusTrigger } from "@/features/tasks/task-status-sheet";
@@ -17,7 +18,7 @@ import {
   type TaskPriority,
   type TaskStatus,
 } from "@/features/tasks/queries";
-import type { ApiContextValue, KeysContextValue } from "@/runtime/api-hooks";
+import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
@@ -123,20 +124,19 @@ export const TaskDetailScreen = ({
   const queryClient = useQueryClient();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
-  const [failure, setFailure] = useState<AppFailure | null>(null);
+  const showError = useErrorToast();
 
-  // Every write reports a failure on screen and refreshes the task on success.
+  // Every write reports a failure and refreshes the task on success.
   const run = (write: Effect.Effect<unknown, AppFailure>): void => {
-    setFailure(null);
-    void Effect.runPromise(
-      Effect.matchEffect(write, {
-        onFailure: (error) => Effect.sync(() => setFailure(error)),
-        onSuccess: () =>
-          Effect.sync(() => {
-            void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-          }),
-      }),
-    );
+    void (async () => {
+      const result = await Effect.runPromiseExit(write);
+      if (Exit.isSuccess(result)) {
+        await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        return;
+      }
+      const failure = failureOf(result);
+      showError(failure === undefined ? "Could not update the task." : failureMessage(failure));
+    })();
   };
 
   return (
@@ -154,7 +154,6 @@ export const TaskDetailScreen = ({
           )
         }
       />
-      {failure === null ? null : <WorkspaceErrorState failure={failure} />}
       <View style={styles.subtasks}>
         {task.subtasks.map((subtask) => (
           <WorkspaceListRow
