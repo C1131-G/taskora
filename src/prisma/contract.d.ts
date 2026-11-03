@@ -18,9 +18,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'61afe3ffbbbe6842c629550003404982fb79f698f88a35dac7328c3ef16d27b6'>;
+  StorageHashBase<'f001ece94fea7f773796b8e6b6efc71a8b9c28c74c14e431761920fd58b2063a'>;
 export type ExecutionHash =
-  ExecutionHashBase<'c81db46d91fe75b042799333d93566bc3c8bf0e06e1662364c480ab1dcc1250e'>;
+  ExecutionHashBase<'3ef83339784932ff44a74add40452346987a6331301bd5a1a3b4f9da50f8fc55'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -812,20 +812,6 @@ export type FieldOutputTypes = {
       readonly sourceTaskId: CodecTypes['pg/uuid@1']['output'];
       readonly successorTaskId: CodecTypes['pg/uuid@1']['output'];
     };
-    readonly SavedView: {
-      readonly createdAt: CodecTypes['pg/timestamptz-date@1']['output'];
-      readonly filters: CodecTypes['pg/jsonb@1']['output'];
-      readonly groupBy: CodecTypes['pg/text@1']['output'] | null;
-      readonly hiddenColumns: CodecTypes['pg/jsonb@1']['output'];
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly isShared: CodecTypes['pg/bool@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly projectId: CodecTypes['pg/uuid@1']['output'] | null;
-      readonly sort: CodecTypes['pg/jsonb@1']['output'];
-      readonly type: 'board' | 'list' | 'table' | 'calendar' | 'timeline';
-      readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['output'];
-      readonly userId: CodecTypes['pg/text@1']['output'];
-    };
     readonly Session: {
       readonly createdAt: CodecTypes['pg/timestamptz-date@1']['output'];
       readonly expiresAt: CodecTypes['pg/timestamptz-date@1']['output'];
@@ -1600,20 +1586,6 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/uuid@1']['input'];
       readonly sourceTaskId: CodecTypes['pg/uuid@1']['input'];
       readonly successorTaskId: CodecTypes['pg/uuid@1']['input'];
-    };
-    readonly SavedView: {
-      readonly createdAt: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly filters: CodecTypes['pg/jsonb@1']['input'];
-      readonly groupBy: CodecTypes['pg/text@1']['input'] | null;
-      readonly hiddenColumns: CodecTypes['pg/jsonb@1']['input'];
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly isShared: CodecTypes['pg/bool@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly projectId: CodecTypes['pg/uuid@1']['input'] | null;
-      readonly sort: CodecTypes['pg/jsonb@1']['input'];
-      readonly type: 'board' | 'list' | 'table' | 'calendar' | 'timeline';
-      readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly userId: CodecTypes['pg/text@1']['input'];
     };
     readonly Session: {
       readonly createdAt: CodecTypes['pg/timestamptz-date@1']['input'];
@@ -2390,20 +2362,6 @@ export type StorageColumnTypes = {
       readonly sourceTaskId: CodecTypes['pg/uuid@1']['output'];
       readonly successorTaskId: CodecTypes['pg/uuid@1']['output'];
     };
-    readonly saved_view: {
-      readonly createdAt: CodecTypes['pg/timestamptz-date@1']['output'];
-      readonly filters: CodecTypes['pg/jsonb@1']['output'];
-      readonly groupBy: CodecTypes['pg/text@1']['output'] | null;
-      readonly hiddenColumns: CodecTypes['pg/jsonb@1']['output'];
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly isShared: CodecTypes['pg/bool@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly projectId: CodecTypes['pg/uuid@1']['output'] | null;
-      readonly sort: CodecTypes['pg/jsonb@1']['output'];
-      readonly type: 'board' | 'list' | 'table' | 'calendar' | 'timeline';
-      readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['output'];
-      readonly userId: CodecTypes['pg/text@1']['output'];
-    };
     readonly session: {
       readonly createdAt: CodecTypes['pg/timestamptz-date@1']['output'];
       readonly expiresAt: CodecTypes['pg/timestamptz-date@1']['output'];
@@ -3178,20 +3136,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/uuid@1']['input'];
       readonly sourceTaskId: CodecTypes['pg/uuid@1']['input'];
       readonly successorTaskId: CodecTypes['pg/uuid@1']['input'];
-    };
-    readonly saved_view: {
-      readonly createdAt: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly filters: CodecTypes['pg/jsonb@1']['input'];
-      readonly groupBy: CodecTypes['pg/text@1']['input'] | null;
-      readonly hiddenColumns: CodecTypes['pg/jsonb@1']['input'];
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly isShared: CodecTypes['pg/bool@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly projectId: CodecTypes['pg/uuid@1']['input'] | null;
-      readonly sort: CodecTypes['pg/jsonb@1']['input'];
-      readonly type: 'board' | 'list' | 'table' | 'calendar' | 'timeline';
-      readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly userId: CodecTypes['pg/text@1']['input'];
     };
     readonly session: {
       readonly createdAt: CodecTypes['pg/timestamptz-date@1']['input'];
@@ -4193,23 +4137,6 @@ export namespace Models {
     successor: public_Task;
     readonly [RelationKeys]?: 'source' | 'successor';
   };
-  export type public_SavedView = {
-    createdAt: CodecTypes['pg/timestamptz-date@1']['output'];
-    filters: CodecTypes['pg/jsonb@1']['output'];
-    groupBy: CodecTypes['pg/text@1']['output'] | null;
-    hiddenColumns: CodecTypes['pg/jsonb@1']['output'];
-    id: CodecTypes['pg/uuid@1']['output'];
-    isShared: CodecTypes['pg/bool@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    projectId: CodecTypes['pg/uuid@1']['output'] | null;
-    sort: CodecTypes['pg/jsonb@1']['output'];
-    type: 'board' | 'list' | 'table' | 'calendar' | 'timeline';
-    updatedAt: CodecTypes['pg/timestamptz-date@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
-    project: public_Project | null;
-    user: public_User;
-    readonly [RelationKeys]?: 'project' | 'user';
-  };
   export type public_Session = {
     createdAt: CodecTypes['pg/timestamptz-date@1']['output'];
     expiresAt: CodecTypes['pg/timestamptz-date@1']['output'];
@@ -4597,7 +4524,6 @@ export declare const models: {
     RateLimit: Models.public_RateLimit;
     RecentSearch: Models.public_RecentSearch;
     RecurrenceGeneration: Models.public_RecurrenceGeneration;
-    SavedView: Models.public_SavedView;
     Session: Models.public_Session;
     Task: Models.public_Task;
     TaskAssignee: Models.public_TaskAssignee;
@@ -10226,148 +10152,6 @@ type ContractBase = Omit<
                 },
               ];
             };
-            readonly saved_view: {
-              columns: {
-                readonly createdAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-date@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                  readonly many: false;
-                };
-                readonly filters: {
-                  readonly dataType: 'pg/jsonb';
-                  readonly codecId: 'pg/jsonb@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/jsonb@1', readonly []>;
-                  };
-                  readonly many: false;
-                };
-                readonly groupBy: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                  readonly many: false;
-                };
-                readonly hiddenColumns: {
-                  readonly dataType: 'pg/jsonb';
-                  readonly codecId: 'pg/jsonb@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/jsonb@1', readonly []>;
-                  };
-                  readonly many: false;
-                };
-                readonly id: {
-                  readonly dataType: 'pg/uuid';
-                  readonly codecId: 'pg/uuid@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly isShared: {
-                  readonly dataType: 'pg/bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
-                  };
-                  readonly many: false;
-                };
-                readonly name: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly projectId: {
-                  readonly dataType: 'pg/uuid';
-                  readonly codecId: 'pg/uuid@1';
-                  readonly nullable: true;
-                  readonly many: false;
-                };
-                readonly sort: {
-                  readonly dataType: 'pg/jsonb';
-                  readonly codecId: 'pg/jsonb@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/jsonb@1', {}>;
-                  };
-                  readonly many: false;
-                };
-                readonly type: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly updatedAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-date@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                  readonly many: false;
-                };
-                readonly userId: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'saved_view_projectId_idx_a96e4d92';
-                  readonly prefix: 'saved_view_projectId_idx';
-                  readonly columns: readonly ['projectId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'saved_view_userId_idx_a489d58a';
-                  readonly prefix: 'saved_view_userId_idx';
-                  readonly columns: readonly ['userId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'saved_view_userId_projectId_idx_a2a73bc7';
-                  readonly prefix: 'saved_view_userId_projectId_idx';
-                  readonly columns: readonly ['userId', 'projectId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'saved_view';
-                    readonly columns: readonly ['userId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'user';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'saved_view';
-                    readonly columns: readonly ['projectId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'project';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
             readonly session: {
               columns: {
                 readonly createdAt: {
@@ -12307,10 +12091,6 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['daily', 'weekly', 'biweekly', 'monthly'];
             };
-            readonly SavedViewType: {
-              readonly kind: 'valueSet';
-              readonly values: readonly ['board', 'list', 'table', 'calendar', 'timeline'];
-            };
             readonly TaskPriority: {
               readonly kind: 'valueSet';
               readonly values: readonly ['urgent', 'high', 'medium', 'low', 'none'];
@@ -12513,10 +12293,6 @@ type ContractBase = Omit<
     readonly recurrence_generation: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'RecurrenceGeneration';
-    };
-    readonly saved_view: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'SavedView';
     };
     readonly session: { readonly namespace: 'public' & NamespaceId; readonly model: 'Session' };
     readonly task: { readonly namespace: 'public' & NamespaceId; readonly model: 'Task' };
@@ -17154,105 +16930,6 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly SavedView: {
-            readonly fields: {
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-date@1';
-                };
-              };
-              readonly filters: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
-              };
-              readonly groupBy: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly hiddenColumns: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
-              };
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
-              };
-              readonly isShared: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
-              readonly name: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly projectId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
-              };
-              readonly sort: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
-              };
-              readonly type: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly updatedAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-date@1';
-                };
-              };
-              readonly userId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-            };
-            readonly relations: {
-              readonly project: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Project';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: true;
-                readonly on: {
-                  readonly localFields: readonly ['projectId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly user: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['userId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'saved_view';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly createdAt: { readonly column: 'createdAt' };
-                readonly filters: { readonly column: 'filters' };
-                readonly groupBy: { readonly column: 'groupBy' };
-                readonly hiddenColumns: { readonly column: 'hiddenColumns' };
-                readonly id: { readonly column: 'id' };
-                readonly isShared: { readonly column: 'isShared' };
-                readonly name: { readonly column: 'name' };
-                readonly projectId: { readonly column: 'projectId' };
-                readonly sort: { readonly column: 'sort' };
-                readonly type: { readonly column: 'type' };
-                readonly updatedAt: { readonly column: 'updatedAt' };
-                readonly userId: { readonly column: 'userId' };
-              };
-            };
-          };
           readonly Session: {
             readonly fields: {
               readonly createdAt: {
@@ -19289,16 +18966,6 @@ type ContractBase = Omit<
               { readonly name: 'Monthly'; readonly value: 'monthly' },
             ];
           };
-          readonly SavedViewType: {
-            readonly codecId: 'pg/text@1';
-            readonly members: readonly [
-              { readonly name: 'Board'; readonly value: 'board' },
-              { readonly name: 'List'; readonly value: 'list' },
-              { readonly name: 'Table'; readonly value: 'table' },
-              { readonly name: 'Calendar'; readonly value: 'calendar' },
-              { readonly name: 'Timeline'; readonly value: 'timeline' },
-            ];
-          };
           readonly TaskPriority: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -19662,14 +19329,6 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'recurrence_generation';
-            readonly field: 'id';
-            readonly namespace: 'public';
-          };
-        },
-        {
-          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
-          readonly ref: {
-            readonly entry: 'saved_view';
             readonly field: 'id';
             readonly namespace: 'public';
           };

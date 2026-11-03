@@ -15,15 +15,6 @@ import {
   TeamSummarySchema,
 } from "../../src/server/people/team-management";
 import {
-  SavedViewManagement,
-  SavedViewManagementLive,
-  SavedViewSummarySchema,
-} from "../../src/server/preferences/saved-view-management";
-import {
-  defaultSavedViewFilters,
-  defaultSavedViewSort,
-} from "../../src/server/preferences/saved-view-settings";
-import {
   LabelManagement,
   LabelManagementLive,
   LabelSummarySchema,
@@ -35,8 +26,7 @@ process.env["BETTER_AUTH_SECRET"] ??=
 const layers = Layer.mergeAll(
   IdempotencyLive,
   TeamManagementLive,
-  LabelManagementLive,
-  SavedViewManagementLive
+  LabelManagementLive
 );
 
 const seedUser = async (userId: string, role: "admin" | "employee") => {
@@ -54,7 +44,7 @@ const removeUser = async (userId: string) => {
   await authPool.query('DELETE FROM "user" WHERE id = $1', [userId]);
 };
 
-it("replays team, label, and saved-view creates without duplicating rows", async () => {
+it("replays team and label creates without duplicating rows", async () => {
   const adminId = randomUUID();
   const employeeId = randomUUID();
   const suffix = randomUUID().slice(0, 8);
@@ -62,7 +52,6 @@ it("replays team, label, and saved-view creates without duplicating rows", async
   await seedUser(employeeId, "employee");
   const teamName = `Team ${suffix}`;
   const labelName = `label-${suffix}`;
-  const viewName = `view-${suffix}`;
 
   try {
     const result = await Effect.runPromise(
@@ -71,7 +60,6 @@ it("replays team, label, and saved-view creates without duplicating rows", async
           const idempotency = yield* Idempotency;
           const teams = yield* TeamManagement;
           const labels = yield* LabelManagement;
-          const views = yield* SavedViewManagement;
 
           const teamInput = {
             color: "#2563eb",
@@ -103,29 +91,7 @@ it("replays team, label, and saved-view creates without duplicating rows", async
           const label = yield* createLabel();
           const labelReplay = yield* createLabel();
 
-          const viewInput = {
-            filters: defaultSavedViewFilters,
-            groupBy: null,
-            hiddenColumns: [],
-            isShared: false,
-            name: viewName,
-            projectId: null,
-            sort: defaultSavedViewSort,
-            type: "list" as const,
-          };
-          const createView = () =>
-            idempotency.run({
-              actorId: employeeId,
-              execute: () => views.createView(employeeId, viewInput),
-              input: viewInput,
-              key: `view-create-${suffix}`,
-              operation: "savedView.create",
-              resultSchema: SavedViewSummarySchema,
-            });
-          const view = yield* createView();
-          const viewReplay = yield* createView();
-
-          return { label, labelReplay, team, teamReplay, view, viewReplay };
+          return { label, labelReplay, team, teamReplay };
         }),
         layers
       )
@@ -133,7 +99,6 @@ it("replays team, label, and saved-view creates without duplicating rows", async
 
     expect(result.teamReplay.id).toBe(result.team.id);
     expect(result.labelReplay.id).toBe(result.label.id);
-    expect(result.viewReplay.id).toBe(result.view.id);
 
     const teamRows = await authPool.query(
       "SELECT id FROM team WHERE name = $1",
@@ -145,13 +110,7 @@ it("replays team, label, and saved-view creates without duplicating rows", async
       [labelName]
     );
     expect(labelRows.rows).toHaveLength(1);
-    const viewRows = await authPool.query(
-      "SELECT id FROM saved_view WHERE name = $1",
-      [viewName]
-    );
-    expect(viewRows.rows).toHaveLength(1);
   } finally {
-    await authPool.query("DELETE FROM saved_view WHERE name = $1", [viewName]);
     await authPool.query("DELETE FROM label WHERE name = $1", [labelName]);
     await authPool.query("DELETE FROM team WHERE name = $1", [teamName]);
     await removeUser(employeeId);

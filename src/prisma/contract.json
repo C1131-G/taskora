@@ -208,10 +208,6 @@
       "model": "RecurrenceGeneration",
       "namespace": "public"
     },
-    "saved_view": {
-      "model": "SavedView",
-      "namespace": "public"
-    },
     "session": {
       "model": "Session",
       "namespace": "public"
@@ -659,31 +655,6 @@
               {
                 "name": "Monthly",
                 "value": "monthly"
-              }
-            ]
-          },
-          "SavedViewType": {
-            "codecId": "pg/text@1",
-            "members": [
-              {
-                "name": "Board",
-                "value": "board"
-              },
-              {
-                "name": "List",
-                "value": "list"
-              },
-              {
-                "name": "Table",
-                "value": "table"
-              },
-              {
-                "name": "Calendar",
-                "value": "calendar"
-              },
-              {
-                "name": "Timeline",
-                "value": "timeline"
               }
             ]
           },
@@ -8072,176 +8043,6 @@
               },
               "namespaceId": "public",
               "table": "recurrence_generation"
-            }
-          },
-          "SavedView": {
-            "fields": {
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-date@1",
-                  "kind": "scalar"
-                }
-              },
-              "filters": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/jsonb@1",
-                  "kind": "scalar"
-                }
-              },
-              "groupBy": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "hiddenColumns": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/jsonb@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/uuid@1",
-                  "kind": "scalar"
-                }
-              },
-              "isShared": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/bool@1",
-                  "kind": "scalar"
-                }
-              },
-              "name": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "projectId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/uuid@1",
-                  "kind": "scalar"
-                }
-              },
-              "sort": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/jsonb@1",
-                  "kind": "scalar"
-                }
-              },
-              "type": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                },
-                "valueSet": {
-                  "entityKind": "enum",
-                  "entityName": "SavedViewType",
-                  "namespaceId": "public",
-                  "plane": "domain"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-date@1",
-                  "kind": "scalar"
-                }
-              },
-              "userId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {
-              "project": {
-                "cardinality": "N:1",
-                "nullable": true,
-                "on": {
-                  "localFields": [
-                    "projectId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Project",
-                  "namespace": "public"
-                }
-              },
-              "user": {
-                "cardinality": "N:1",
-                "nullable": false,
-                "on": {
-                  "localFields": [
-                    "userId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "User",
-                  "namespace": "public"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "createdAt": {
-                  "column": "createdAt"
-                },
-                "filters": {
-                  "column": "filters"
-                },
-                "groupBy": {
-                  "column": "groupBy"
-                },
-                "hiddenColumns": {
-                  "column": "hiddenColumns"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "isShared": {
-                  "column": "isShared"
-                },
-                "name": {
-                  "column": "name"
-                },
-                "projectId": {
-                  "column": "projectId"
-                },
-                "sort": {
-                  "column": "sort"
-                },
-                "type": {
-                  "column": "type"
-                },
-                "updatedAt": {
-                  "column": "updatedAt"
-                },
-                "userId": {
-                  "column": "userId"
-                }
-              },
-              "namespaceId": "public",
-              "table": "saved_view"
             }
           },
           "Session": {
@@ -18253,176 +18054,6 @@
                 }
               ]
             },
-            "saved_view": {
-              "checks": [
-                {
-                  "expression": "\"type\" IN ('board', 'list', 'table', 'calendar', 'timeline')",
-                  "name": "saved_view_type_check_422226e3",
-                  "prefix": "saved_view_type_check"
-                }
-              ],
-              "columns": {
-                "createdAt": {
-                  "codecId": "pg/timestamptz-date@1",
-                  "dataType": "pg/timestamptz",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nullable": false
-                },
-                "filters": {
-                  "codecId": "pg/jsonb@1",
-                  "dataType": "pg/jsonb",
-                  "default": {
-                    "kind": "literal",
-                    "value": []
-                  },
-                  "nullable": false
-                },
-                "groupBy": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true
-                },
-                "hiddenColumns": {
-                  "codecId": "pg/jsonb@1",
-                  "dataType": "pg/jsonb",
-                  "default": {
-                    "kind": "literal",
-                    "value": []
-                  },
-                  "nullable": false
-                },
-                "id": {
-                  "codecId": "pg/uuid@1",
-                  "dataType": "pg/uuid",
-                  "nullable": false
-                },
-                "isShared": {
-                  "codecId": "pg/bool@1",
-                  "dataType": "pg/bool",
-                  "default": {
-                    "kind": "literal",
-                    "value": false
-                  },
-                  "nullable": false
-                },
-                "name": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
-                "projectId": {
-                  "codecId": "pg/uuid@1",
-                  "dataType": "pg/uuid",
-                  "nullable": true
-                },
-                "sort": {
-                  "codecId": "pg/jsonb@1",
-                  "dataType": "pg/jsonb",
-                  "default": {
-                    "kind": "literal",
-                    "value": {}
-                  },
-                  "nullable": false
-                },
-                "type": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false,
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "SavedViewType",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
-                },
-                "updatedAt": {
-                  "codecId": "pg/timestamptz-date@1",
-                  "dataType": "pg/timestamptz",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nullable": false
-                },
-                "userId": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [
-                {
-                  "onDelete": "cascade",
-                  "source": {
-                    "columns": [
-                      "userId"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "saved_view"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "user"
-                  }
-                },
-                {
-                  "onDelete": "setNull",
-                  "source": {
-                    "columns": [
-                      "projectId"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "saved_view"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "project"
-                  }
-                }
-              ],
-              "indexes": [
-                {
-                  "columns": [
-                    "projectId"
-                  ],
-                  "name": "saved_view_projectId_idx_a96e4d92",
-                  "prefix": "saved_view_projectId_idx",
-                  "unique": false
-                },
-                {
-                  "columns": [
-                    "userId"
-                  ],
-                  "name": "saved_view_userId_idx_a489d58a",
-                  "prefix": "saved_view_userId_idx",
-                  "unique": false
-                },
-                {
-                  "columns": [
-                    "userId",
-                    "projectId"
-                  ],
-                  "name": "saved_view_userId_projectId_idx_a2a73bc7",
-                  "prefix": "saved_view_userId_projectId_idx",
-                  "unique": false
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": []
-            },
             "session": {
               "columns": {
                 "createdAt": {
@@ -20833,16 +20464,6 @@
                 "monthly"
               ]
             },
-            "SavedViewType": {
-              "kind": "valueSet",
-              "values": [
-                "board",
-                "list",
-                "table",
-                "calendar",
-                "timeline"
-              ]
-            },
             "TaskPriority": {
               "kind": "valueSet",
               "values": [
@@ -20876,10 +20497,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "61afe3ffbbbe6842c629550003404982fb79f698f88a35dac7328c3ef16d27b6"
+    "storageHash": "f001ece94fea7f773796b8e6b6efc71a8b9c28c74c14e431761920fd58b2063a"
   },
   "execution": {
-    "executionHash": "c81db46d91fe75b042799333d93566bc3c8bf0e06e1662364c480ab1dcc1250e",
+    "executionHash": "3ef83339784932ff44a74add40452346987a6331301bd5a1a3b4f9da50f8fc55",
     "mutations": {
       "defaults": [
         {
@@ -21296,17 +20917,6 @@
           },
           "ref": {
             "entry": "recurrence_generation",
-            "field": "id",
-            "namespace": "public"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "uuidv4",
-            "kind": "generator"
-          },
-          "ref": {
-            "entry": "saved_view",
             "field": "id",
             "namespace": "public"
           }

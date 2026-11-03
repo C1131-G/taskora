@@ -1,11 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  entry,
-  view,
-  subtaskBody,
-  taskBody,
-} from "./action-permissions-shared";
+import { entry, subtaskBody, taskBody } from "./action-permissions-shared";
 import type { ActionEntry } from "./action-permissions-shared";
 import { ids, nextKey } from "./support/action-harness";
 
@@ -15,8 +10,6 @@ const notifications =
   await import("../../features/notifications/notifications-actions");
 const password = await import("../../features/user/actions/user-password");
 const projects = await import("../../features/projects/projects-actions");
-const savedViews =
-  await import("../../features/projects/actions/projects-saved-views");
 const sessions = await import("../../features/user/actions/user-sessions");
 const subtasks = await import("../../features/tasks/actions/tasks-subtasks");
 const tasks = await import("../../features/tasks/tasks-actions");
@@ -170,20 +163,6 @@ export const personalProjectActionCatalog: readonly ActionEntry[] = [
     projectId: ids.projectId,
   })),
   entry("getWorkload", workloadQueries.getWorkload, () => ({})),
-  entry("listSavedViews", projectsQueries.listSavedViews, () => ({})),
-  entry("createSavedViewAction", savedViews.createSavedViewAction, () => ({
-    idempotencyKey: nextKey(),
-    view: view(),
-  })),
-  entry("updateSavedViewAction", savedViews.updateSavedViewAction, () => ({
-    idempotencyKey: nextKey(),
-    view: view(),
-    viewId: ids.random,
-  })),
-  entry("deleteSavedViewAction", savedViews.deleteSavedViewAction, () => ({
-    idempotencyKey: nextKey(),
-    viewId: ids.random,
-  })),
   entry("listMySessions", userQueries.listMySessions, () => ({}), true),
   entry("listEmployeeSessions", userQueries.listEmployeeSessions, () => ({
     employeeId: ids.employeeId,

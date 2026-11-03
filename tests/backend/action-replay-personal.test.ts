@@ -32,8 +32,6 @@ const password = await import("../../features/user/actions/user-password");
 const personalPreferences =
   await import("../../features/user/actions/user-personal-preferences");
 const projects = await import("../../features/projects/projects-actions");
-const savedViews =
-  await import("../../features/projects/actions/projects-saved-views");
 const sessions = await import("../../features/user/actions/user-sessions");
 const subtasks = await import("../../features/tasks/actions/tasks-subtasks");
 const tasks = await import("../../features/tasks/tasks-actions");
@@ -83,39 +81,6 @@ afterAll(teardownHarness);
 
 it("replays personal, notification, and favorite mutations", async () => {
   const ownerId = personaId("owner");
-  const viewBody = {
-    filters: { priority: [], query: "", status: [] },
-    groupBy: null,
-    hiddenColumns: [],
-    isShared: false,
-    name: "Replay view",
-    projectId: null,
-    sort: { direction: "asc", field: "manual" },
-    type: "list",
-  };
-  const view = await replay(
-    "createSavedViewAction",
-    "owner",
-    savedViews.createSavedViewAction,
-    { view: viewBody }
-  );
-  await replay(
-    "updateSavedViewAction",
-    "owner",
-    savedViews.updateSavedViewAction,
-    {
-      view: { ...viewBody, name: "Replay view renamed" },
-      viewId: view.id,
-    }
-  );
-  await replay(
-    "deleteSavedViewAction",
-    "owner",
-    savedViews.deleteSavedViewAction,
-    {
-      viewId: view.id,
-    }
-  );
   await replay(
     "savePersonalPreferencesAction",
     "owner",

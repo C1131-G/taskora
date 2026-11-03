@@ -55,7 +55,6 @@ const composedReads = new Set([
   "getProject",
   "getTeam",
   "listAllClientCompanies",
-  "listAllSavedViews",
   // The drawer bundle runs getProjectTask, listTaskComments, listTaskSubtasks,
   // listTaskFiles and getBugHistory, each covered by the catalog.
   "getTaskBundleAction",

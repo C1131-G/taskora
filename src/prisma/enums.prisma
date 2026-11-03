@@ -172,16 +172,6 @@ enum RecurrenceFrequency {
   Monthly = "monthly"
 }
 
-enum SavedViewType {
-  @@type("pg/text@1")
-
-  Board    = "board"
-  List     = "list"
-  Table    = "table"
-  Calendar = "calendar"
-  Timeline = "timeline"
-}
-
 enum NotificationType {
   @@type("pg/text@1")
 

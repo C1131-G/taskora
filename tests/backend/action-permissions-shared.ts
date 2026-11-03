@@ -24,17 +24,6 @@ export const entry = (
   name,
 });
 
-export const view = () => ({
-  filters: { priority: [], query: "", status: [] },
-  groupBy: null,
-  hiddenColumns: [],
-  isShared: false,
-  name: "Permission view",
-  projectId: null,
-  sort: { direction: "asc", field: "manual" },
-  type: "list",
-});
-
 export const eventBody = () => ({
   attendeeIds: [],
   description: null,

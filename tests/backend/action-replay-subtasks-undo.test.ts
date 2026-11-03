@@ -32,8 +32,6 @@ const password = await import("../../features/user/actions/user-password");
 const personalPreferences =
   await import("../../features/user/actions/user-personal-preferences");
 const projects = await import("../../features/projects/projects-actions");
-const savedViews =
-  await import("../../features/projects/actions/projects-saved-views");
 const sessions = await import("../../features/user/actions/user-sessions");
 const subtasks = await import("../../features/tasks/actions/tasks-subtasks");
 const tasks = await import("../../features/tasks/tasks-actions");

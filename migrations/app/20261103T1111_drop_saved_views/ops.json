@@ -1,0 +1,39 @@
+[
+  {
+    "id": "dropTable.saved_view",
+    "label": "Drop table \"saved_view\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "saved_view"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"saved_view\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"saved_view\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"saved_view\"",
+        "sql": "DROP TABLE \"public\".\"saved_view\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"saved_view\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"saved_view\""
+        ]
+      }
+    ]
+  }
+]

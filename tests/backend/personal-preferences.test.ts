@@ -68,10 +68,10 @@ it("rejects malformed UUIDs and unsupported time zones as schema errors", async 
     ]
   );
   try {
-    const malformedUuid = Effect.gen(function* saveInvalidUuid() {
+    const invalidDensity = Effect.gen(function* saveInvalidDensity() {
       const preferences = yield* PersonalPreferences;
       return yield* preferences.save(userId, {
-        defaultViewId: "------------------------------------",
+        density: "huge" as never,
         timezone: "Asia/Kolkata",
       });
     });
@@ -79,14 +79,14 @@ it("rejects malformed UUIDs and unsupported time zones as schema errors", async 
       const preferences = yield* PersonalPreferences;
       return yield* preferences.save(userId, { timezone: "Mars/Olympus" });
     });
-    const [uuidResult, timezoneResult] = await Promise.all([
-      runEffectResult(Effect.provide(malformedUuid, PersonalPreferencesLive)),
+    const [densityResult, timezoneResult] = await Promise.all([
+      runEffectResult(Effect.provide(invalidDensity, PersonalPreferencesLive)),
       runEffectResult(
         Effect.provide(malformedTimeZone, PersonalPreferencesLive)
       ),
     ]);
 
-    expect(uuidResult).toMatchObject({
+    expect(densityResult).toMatchObject({
       error: { code: "VALIDATION_FAILED" },
       ok: false,
     });
