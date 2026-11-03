@@ -1417,7 +1417,7 @@ const rules = [
     "Notify on done",
     "status_changed",
     [{ field: "status", op: "in", values: ["done"] }],
-    [{ message: "A task was completed.", type: "notify" }],
+    [{ message: "A task was completed.", type: "notify", userId: admin.id }],
   ],
   [
     "Escalate urgent",
