@@ -17,6 +17,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS dependencies
 COPY package.json bun.lock ./
+COPY patches ./patches
 COPY apps/web/package.json ./apps/web/package.json
 COPY apps/mobile/package.json ./apps/mobile/package.json
 # lefthook's `prepare` hook needs git, which an image build neither has nor needs.
