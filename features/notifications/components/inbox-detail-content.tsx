@@ -5,14 +5,12 @@ import Link from "next/link";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
-import {
-  getTypeLabel,
-  InboxTypeIcon,
-} from "@/features/notifications/components/inbox-type-icon";
+import { InboxTypeIcon } from "@/features/notifications/components/inbox-type-icon";
 import {
   DATE_FORMATTER,
   formatRelativeTime,
   getInitials,
+  getTypeLabel,
 } from "@/features/notifications/inbox-format";
 import type { NotificationItem } from "@/src/server/notifications/contracts";
 

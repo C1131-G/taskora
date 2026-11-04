@@ -40,7 +40,7 @@ export const TaskTableSkeleton = ({
   return (
     <>
       <SkeletonToolbar count={global ? 5 : 4} />
-      <div aria-busy="true" className="mtt-wrap" role="status">
+      <output aria-busy="true" className="mtt-wrap">
         <span className="sr-only">Loading tasks…</span>
         <table
           aria-hidden="true"
@@ -125,7 +125,7 @@ export const TaskTableSkeleton = ({
             </tbody>
           ))}
         </table>
-      </div>
+      </output>
     </>
   );
 };

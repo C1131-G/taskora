@@ -5,7 +5,6 @@
 import {
   ArrowRight,
   Briefcase,
-  CheckCircle,
   UsersThree,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";

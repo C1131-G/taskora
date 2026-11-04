@@ -17,6 +17,18 @@ export const FILTERS: readonly {
   { id: "comment", label: "Comments" },
   { id: "update", label: "Updates" },
 ];
+
+const TYPE_LABELS: Readonly<Record<string, string>> = {
+  assignment: "Assignment",
+  comment: "Comment",
+  due: "Due soon",
+  mention: "Mention",
+  update: "Update",
+};
+
+export const getTypeLabel = (type: string): string =>
+  TYPE_LABELS[type] ?? "Notification";
+
 export const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
   timeStyle: "short",

@@ -57,6 +57,7 @@ const STEPS = [
   { hint: "Help someone else see the same thing.", label: "How to reproduce" },
 ] as const;
 
+/* eslint-disable react-doctor/no-giant-component -- Wizard orchestration shares step validation and submission; field groups are separate components. */
 export const BugReportDialog = ({
   initialProjectId,
   projects,

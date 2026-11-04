@@ -290,7 +290,10 @@ const MembersDirectory = ({
                     </TableCell>
                     <TableCell>
                       <Badge
-                        className={`member-status${employee.mustChangePassword ? " is-pending" : " is-active"}`}
+                        className="member-status"
+                        data-status={
+                          employee.mustChangePassword ? "pending" : "active"
+                        }
                         variant={
                           employee.mustChangePassword ? "outline" : "secondary"
                         }

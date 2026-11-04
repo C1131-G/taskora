@@ -279,6 +279,7 @@ export const GlobalTaskList = ({
                     <div className="mtt-task-inner">
                       <button
                         className="mtt-title"
+                        aria-label={`Open ${task.title}`}
                         onClick={() => drawer?.openTask(task.id)}
                         onFocus={() => drawer?.prefetchTask(task.id)}
                         onPointerEnter={() => drawer?.prefetchTask(task.id)}

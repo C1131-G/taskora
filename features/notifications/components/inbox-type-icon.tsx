@@ -16,9 +16,6 @@ const TYPES: Readonly<Record<string, { icon: Icon; label: string }>> = {
   update: { icon: ArrowsClockwise, label: "Update" },
 };
 
-export const getTypeLabel = (type: string): string =>
-  TYPES[type]?.label ?? "Notification";
-
 export const InboxTypeIcon = ({ type }: { readonly type: string }) => {
   const Glyph = TYPES[type]?.icon ?? Bell;
   return <Glyph aria-hidden="true" weight="bold" />;

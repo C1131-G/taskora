@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, isValidElement, useEffect, useRef, useState } from "react";
+import { isValidElement, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -35,7 +35,7 @@ const labelOfSelected = (
 ): string | undefined => {
   let found: string | undefined;
   const visit = (node: ReactNode) => {
-    for (const child of Children.toArray(node)) {
+    for (const child of Array.isArray(node) ? node : [node]) {
       if (found !== undefined || !isValidElement(child)) {
         continue;
       }

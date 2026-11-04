@@ -55,6 +55,8 @@ const isVersionCurrent = (
 ): boolean =>
   task === null || task.version === version || trustedVersion === version;
 
+/* eslint-disable react-doctor/no-giant-component -- This component coordinates the task drawer state while its sections stay delegated to focused components. */
+
 // One panel per task. Everything it edits is read from the server when it opens,
 // so a caller only needs the task's ID, project and version. Closing with unsaved
 // details or a comment draft asks first.
@@ -220,33 +222,31 @@ export const TaskDetailsPanel = ({
               ) : null}
               {bugDetailId ? null : (
                 <div hidden={tab !== "details"}>
-                  <>
-                    <TaskWorkSections
-                      editable={editable}
-                      employees={employees}
-                      onDirtyChange={setDetailsDirty}
-                      onReload={() => refresh()}
-                      onSaved={handleSaved}
-                      onVersionChange={recordVersionChange}
-                      part="details"
-                      projectId={projectId}
-                      subtaskActions={subtaskActions}
-                      subtasks={subtasks}
-                      task={task}
-                      taskId={taskId}
-                      version={version}
-                      versionIsCurrent={isVersionCurrent(
-                        task,
-                        version,
-                        trustedVersion
-                      )}
-                    />
-                    <TaskCustomFields
-                      customFields={customFields}
-                      onChanged={refresh}
-                      taskId={taskId}
-                    />
-                  </>
+                  <TaskWorkSections
+                    editable={editable}
+                    employees={employees}
+                    onDirtyChange={setDetailsDirty}
+                    onReload={() => refresh()}
+                    onSaved={handleSaved}
+                    onVersionChange={recordVersionChange}
+                    part="details"
+                    projectId={projectId}
+                    subtaskActions={subtaskActions}
+                    subtasks={subtasks}
+                    task={task}
+                    taskId={taskId}
+                    version={version}
+                    versionIsCurrent={isVersionCurrent(
+                      task,
+                      version,
+                      trustedVersion
+                    )}
+                  />
+                  <TaskCustomFields
+                    customFields={customFields}
+                    onChanged={refresh}
+                    taskId={taskId}
+                  />
                 </div>
               )}
               {bugDetailId ? null : (
@@ -302,53 +302,49 @@ export const TaskDetailsPanel = ({
                 />
               </div>
               <div hidden={tab !== "files" && !bugDetailId}>
-                <>
-                  <section className="stack">
-                    <h3>Attachments</h3>
-                    <ProjectFiles
-                      canUpload={editable}
-                      controlledFiles={files}
-                      currentUserId={currentUserId}
-                      initialFiles={files}
-                      isAdmin={isAdmin}
-                      projectId={projectId}
-                      setControlledFiles={setFiles}
-                      taskId={taskId}
-                    />
-                  </section>
-                  <TaskLinkedPulls pulls={pulls} />
-                </>
+                <section className="stack">
+                  <h3>Attachments</h3>
+                  <ProjectFiles
+                    canUpload={editable}
+                    controlledFiles={files}
+                    currentUserId={currentUserId}
+                    initialFiles={files}
+                    isAdmin={isAdmin}
+                    projectId={projectId}
+                    setControlledFiles={setFiles}
+                    taskId={taskId}
+                  />
+                </section>
+                <TaskLinkedPulls pulls={pulls} />
               </div>
               {bugDetailId ? null : (
                 <div hidden={tab !== "client"}>
-                  <>
-                    <TaskWorkSections
-                      editable={editable}
-                      employees={employees}
-                      onDirtyChange={setDetailsDirty}
-                      onReload={() => refresh()}
-                      onSaved={handleSaved}
-                      onVersionChange={recordVersionChange}
-                      part="client"
-                      projectId={projectId}
-                      subtaskActions={subtaskActions}
-                      subtasks={subtasks}
-                      task={task}
-                      taskId={taskId}
-                      version={version}
-                      versionIsCurrent={isVersionCurrent(
-                        task,
-                        version,
-                        trustedVersion
-                      )}
-                    />
-                    <TaskApprovals
-                      approvals={approvals}
-                      files={files}
-                      onChanged={refresh}
-                      taskId={taskId}
-                    />
-                  </>
+                  <TaskWorkSections
+                    editable={editable}
+                    employees={employees}
+                    onDirtyChange={setDetailsDirty}
+                    onReload={() => refresh()}
+                    onSaved={handleSaved}
+                    onVersionChange={recordVersionChange}
+                    part="client"
+                    projectId={projectId}
+                    subtaskActions={subtaskActions}
+                    subtasks={subtasks}
+                    task={task}
+                    taskId={taskId}
+                    version={version}
+                    versionIsCurrent={isVersionCurrent(
+                      task,
+                      version,
+                      trustedVersion
+                    )}
+                  />
+                  <TaskApprovals
+                    approvals={approvals}
+                    files={files}
+                    onChanged={refresh}
+                    taskId={taskId}
+                  />
                 </div>
               )}
               {bugDetailId ? (

@@ -18,15 +18,13 @@ import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/workspace/empty-state";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { InboxDetailContent } from "@/features/notifications/components/inbox-detail-content";
-import {
-  getTypeLabel,
-  InboxTypeIcon,
-} from "@/features/notifications/components/inbox-type-icon";
+import { InboxTypeIcon } from "@/features/notifications/components/inbox-type-icon";
 import { useInboxReadState } from "@/features/notifications/hooks/use-inbox-read-state";
 import {
   DATE_FORMATTER,
   FILTERS,
   formatRelativeTime,
+  getTypeLabel,
   getDayGroup,
   getInitials,
   typeMatchesFilter,
@@ -137,11 +135,7 @@ export const InboxWorkspace = ({
             ) : null}
           </div>
         </header>
-        <div
-          aria-label="Filter inbox by type"
-          className="inbox-tabs"
-          role="group"
-        >
+        <nav aria-label="Filter inbox by type" className="inbox-tabs">
           {FILTERS.map(({ id, label }) => (
             <button
               aria-pressed={filter === id}
@@ -154,7 +148,7 @@ export const InboxWorkspace = ({
               <span className="inbox-tab-count">{counts.get(id) ?? 0}</span>
             </button>
           ))}
-        </div>
+        </nav>
         {visibleItems.length > 0 ? (
           <div className="inbox-items">
             {groups.map(([label, group]) => (
@@ -224,9 +218,8 @@ export const InboxWorkspace = ({
                           </span>
                           {notification.readAt === null ? (
                             <span
+                              aria-hidden="true"
                               className="inbox-unread-dot"
-                              role="img"
-                              aria-label="Unread"
                             />
                           ) : null}
                         </button>

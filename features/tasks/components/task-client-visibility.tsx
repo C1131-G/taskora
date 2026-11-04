@@ -24,7 +24,7 @@ export const TaskClientVisibility = ({
   readonly taskId: string;
   readonly version: number;
 }) => {
-  const checkboxId = useId();
+  const questionId = useId();
   const hintId = useId();
   const [pending, startTransition] = useTransition();
   const [shown, setShown] = useOptimistic(clientVisible);
@@ -61,7 +61,7 @@ export const TaskClientVisibility = ({
       <h3>Client portal</h3>
       <div className="setting-row is-stacked">
         <div className="setting-copy">
-          <span className="setting-title" id={checkboxId}>
+          <span className="setting-title" id={questionId}>
             Who can see this task?
           </span>
           <span className="setting-hint" id={hintId}>
@@ -71,30 +71,34 @@ export const TaskClientVisibility = ({
         </div>
         <div
           aria-describedby={hintId}
-          aria-labelledby={checkboxId}
+          aria-labelledby={questionId}
           className="choice-pair"
           role="radiogroup"
         >
-          <button
-            aria-checked={!shown}
-            className="choice"
-            disabled={!editable || pending}
-            onClick={() => change(false)}
-            role="radio"
-            type="button"
-          >
-            Team only
-          </button>
-          <button
-            aria-checked={shown}
-            className="choice"
-            disabled={!editable || pending}
-            onClick={() => change(true)}
-            role="radio"
-            type="button"
-          >
-            Team and client
-          </button>
+          <label className="choice">
+            <input
+              checked={!shown}
+              className="sr-only"
+              disabled={!editable || pending}
+              name={`client-visibility-${taskId}`}
+              onChange={() => change(false)}
+              type="radio"
+              value="team"
+            />
+            <span>Team only</span>
+          </label>
+          <label className="choice">
+            <input
+              checked={shown}
+              className="sr-only"
+              disabled={!editable || pending}
+              name={`client-visibility-${taskId}`}
+              onChange={() => change(true)}
+              type="radio"
+              value="team-and-client"
+            />
+            <span>Team and client</span>
+          </label>
         </div>
       </div>
     </section>

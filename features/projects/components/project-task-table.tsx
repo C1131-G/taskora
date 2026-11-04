@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,6 +65,8 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
   timeZone: "UTC",
   year: "numeric",
 });
+
+const getUtcDateKey = (): string => new Date().toISOString().slice(0, 10);
 
 const formatDate = (date: string | null): string => {
   if (!date) {
@@ -133,7 +135,20 @@ export const ProjectTaskTable = ({
   readonly tasks: readonly ProjectTaskTableItem[];
 }) => {
   const drawer = useTaskDrawer();
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const [todayKey, setTodayKey] = useState(getUtcDateKey);
+  useEffect(() => {
+    const now = new Date();
+    const nextUtcDay = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + 1
+    );
+    const timeout = window.setTimeout(
+      () => setTodayKey(getUtcDateKey()),
+      nextUtcDay - now.getTime()
+    );
+    return () => window.clearTimeout(timeout);
+  }, []);
   const labelsById = new Map(labels.map((label) => [label.id, label]));
   const fieldsByColumnId = new Map(
     customFields.map((field) => [customFieldColumn(field).id, field])

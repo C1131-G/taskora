@@ -199,7 +199,7 @@ export const TaskCalendarGrid = ({
           <h2 aria-live="polite" className="calendar-month-label">
             {monthLabel}
           </h2>
-          <div className="cal-seg" role="group" aria-label="Change period">
+          <nav aria-label="Change period" className="cal-seg">
             <Link
               aria-label={`Previous ${viewMode}`}
               className="cal-seg-item cal-seg-icon"
@@ -221,7 +221,7 @@ export const TaskCalendarGrid = ({
             >
               <CaretRight aria-hidden="true" size={16} />
             </Link>
-          </div>
+          </nav>
         </div>
         <CalendarToolbar
           onPriorityChange={setPriority}
@@ -233,7 +233,7 @@ export const TaskCalendarGrid = ({
           sort={sort}
           status={status}
         />
-        <div aria-label="Calendar view" className="cal-seg" role="group">
+        <nav aria-label="Calendar view" className="cal-seg">
           <Link
             aria-current={viewMode === "month" ? "page" : undefined}
             className="cal-seg-item"
@@ -248,7 +248,7 @@ export const TaskCalendarGrid = ({
           >
             Week
           </Link>
-        </div>
+        </nav>
       </div>
       <div className="cal-filters">
         {projects.length ? (

@@ -161,17 +161,15 @@ const renderProjectBoard = ({
     return <ErrorToast message="Tasks could not be loaded." />;
   }
   return (
-    <>
-      <ProjectBoard
-        currentUserId={currentUserId}
-        employees={employees}
-        isAdmin={isAdmin}
-        labels={labelResult.ok ? labelResult.data : []}
-        projectKey={project.key}
-        tasks={tasks}
-        toolbarAction={<TaskCreateForm projectId={project.id} />}
-      />
-    </>
+    <ProjectBoard
+      currentUserId={currentUserId}
+      employees={employees}
+      isAdmin={isAdmin}
+      labels={labelResult.ok ? labelResult.data : []}
+      projectKey={project.key}
+      tasks={tasks}
+      toolbarAction={<TaskCreateForm projectId={project.id} />}
+    />
   );
 };
 

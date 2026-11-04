@@ -1,4 +1,4 @@
-/* eslint-disable shadcn/no-unknown-classes -- Loading frame uses workspace CSS token classes. */
+/* eslint-disable shadcn/no-unknown-classes, shadcn/no-restyle -- Loading frame uses workspace CSS token classes. */
 
 "use client";
 

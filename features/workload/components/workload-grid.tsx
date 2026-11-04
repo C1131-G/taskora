@@ -1,5 +1,7 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
+import type { CSSProperties } from "react";
+
 import {
   SkeletonBone,
   SkeletonStats,
@@ -11,6 +13,27 @@ import {
 } from "@/features/workload/workload-format";
 import { getWorkload } from "@/features/workload/workload-queries";
 import { readOrThrow } from "@/lib/read-result";
+
+const workloadLevel = (
+  overloaded: boolean,
+  loadHours: number,
+  capacityHours: number,
+  taskCount: number
+): "over" | "high" | "ok" | "none" => {
+  if (overloaded) {
+    return "over";
+  }
+  if (loadHours > capacityHours * 0.7) {
+    return "high";
+  }
+  if (taskCount > 0) {
+    return "ok";
+  }
+  return "none";
+};
+
+const workloadWidth = (loadHours: number, capacityHours: number): string =>
+  `${Math.min(100, Math.round((loadHours / capacityHours) * 100))}%`;
 
 // One row per teammate, one column per week: how much is due and how many
 // estimated hours it adds up to. A week over the threshold says so in words.
@@ -94,7 +117,7 @@ const WorkloadGrid = async () => {
           <tbody>
             {workload.people.map((person) => (
               <tr key={person.userId}>
-                <th scope="row">
+                <th aria-label={person.name} scope="row">
                   <span className="workload-person">
                     <span aria-hidden="true" className="workload-avatar">
                       {person.name.slice(0, 1).toUpperCase()}
@@ -112,15 +135,12 @@ const WorkloadGrid = async () => {
                 {person.weeks.map((week) => (
                   <td
                     className="workload-cell"
-                    data-level={
-                      week.overloaded
-                        ? "over"
-                        : week.loadHours > workload.capacityHours * 0.7
-                          ? "high"
-                          : week.taskCount > 0
-                            ? "ok"
-                            : "none"
-                    }
+                    data-level={workloadLevel(
+                      week.overloaded,
+                      week.loadHours,
+                      workload.capacityHours,
+                      week.taskCount
+                    )}
                     data-overloaded={week.overloaded}
                     key={week.weekStart}
                   >
@@ -137,9 +157,14 @@ const WorkloadGrid = async () => {
                         </span>
                         <span aria-hidden="true" className="workload-bar">
                           <span
-                            style={{
-                              width: `${Math.min(100, Math.round((week.loadHours / workload.capacityHours) * 100))}%`,
-                            }}
+                            style={
+                              {
+                                "--workload-bar-width": workloadWidth(
+                                  week.loadHours,
+                                  workload.capacityHours
+                                ),
+                              } as CSSProperties
+                            }
                           />
                         </span>
                         {week.overloaded ? (
@@ -181,7 +206,7 @@ const SKELETON_WEEKS = ["w1", "w2", "w3", "w4", "w5", "w6"] as const;
 // The summary strip, the legend and the grid frame at their real sizes; only the
 // people and their weekly numbers are placeholders.
 const WorkloadGridSkeleton = () => (
-  <section aria-busy="true" className="workload" role="status">
+  <output aria-busy="true" className="workload">
     <span className="sr-only">Loading workload…</span>
     <SkeletonStats />
     <div aria-hidden="true" className="workload-legend">
@@ -218,7 +243,7 @@ const WorkloadGridSkeleton = () => (
         </tbody>
       </table>
     </div>
-  </section>
+  </output>
 );
 
 export { WorkloadGrid, WorkloadGridSkeleton };

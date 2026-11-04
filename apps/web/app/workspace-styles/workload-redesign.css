@@ -151,6 +151,7 @@
   border-radius: inherit;
   display: block;
   height: 100%;
+  width: var(--workload-bar-width);
 }
 .workspace-app .workload-cell[data-level="high"] .workload-bar > span {
   background: var(--st-progress);

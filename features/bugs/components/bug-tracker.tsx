@@ -246,7 +246,7 @@ const BugTrackerSkeleton = () => (
         </span>
       ))}
     </div>
-    <div aria-busy="true" className="bug-list" role="status">
+    <output aria-busy="true" className="bug-list">
       <span className="sr-only">Loading bug reports…</span>
       {SKELETON_ROWS.map((key) => (
         <article
@@ -272,7 +272,7 @@ const BugTrackerSkeleton = () => (
           <SkeletonBone shape="control" />
         </article>
       ))}
-    </div>
+    </output>
   </>
 );
 

@@ -17,7 +17,7 @@ test("page errors offer retry and the correct home destination", () => {
   );
 
   expect(markup).toContain('aria-label="Page recovery"');
-  expect(markup).not.toContain("Portal unavailable");
+  expect(markup).toContain("This page hit a problem.");
   expect(markup).toContain("Try again");
   expect(markup).toContain('href="/portal"');
 });
@@ -31,7 +31,7 @@ test("section errors keep retry available without inline error text", () => {
   );
 
   expect(markup).toContain('aria-label="Section recovery"');
-  expect(markup).not.toContain("Projects couldn");
+  expect(markup).toContain("This section hit a problem.");
   expect(markup).toContain("Try again");
   expect(markup).not.toContain("Go to home");
 });

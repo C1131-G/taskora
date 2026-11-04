@@ -60,6 +60,29 @@ const TeamOpenTasksPanel = async ({
   return <TeamOpenTasks tasks={tasks} />;
 };
 
+const SECTION_ROWS = SKELETON_KEYS.slice(0, 3);
+
+const TeamTasksSkeleton = () => (
+  <section className="panel">
+    <div className="panel-h team-overview-section-heading">
+      <div className="team-section-title">
+        <CheckCircle aria-hidden="true" size={18} />
+        <h2>Open tasks</h2>
+      </div>
+      <span className="ct">
+        <SkeletonBone shape="short" />
+      </span>
+    </div>
+    <SkelterSurface label="Loading team open tasks…">
+      <div className="panel-b stack">
+        {SECTION_ROWS.map((key) => (
+          <SkeletonBone key={key} />
+        ))}
+      </div>
+    </SkelterSurface>
+  </section>
+);
+
 const TeamDetail = async ({ teamId }: { readonly teamId: string }) => {
   const [team, teams, projectsResult, employeesResult, session] =
     await Promise.all([
@@ -98,29 +121,6 @@ const SECTIONS = [
   { Icon: CheckCircle, title: "Open tasks" },
   { Icon: UsersThree, title: "Members" },
 ] as const;
-
-const SECTION_ROWS = SKELETON_KEYS.slice(0, 3);
-
-const TeamTasksSkeleton = () => (
-  <section className="panel">
-    <div className="panel-h team-overview-section-heading">
-      <div className="team-section-title">
-        <CheckCircle aria-hidden="true" size={18} />
-        <h2>Open tasks</h2>
-      </div>
-      <span className="ct">
-        <SkeletonBone shape="short" />
-      </span>
-    </div>
-    <SkelterSurface label="Loading team open tasks…">
-      <div className="panel-b stack">
-        {SECTION_ROWS.map((key) => (
-          <SkeletonBone key={key} />
-        ))}
-      </div>
-    </SkelterSurface>
-  </section>
-);
 
 // Mirrors TeamOverview: section titles are static; the team name, counts and
 // rows are data.
