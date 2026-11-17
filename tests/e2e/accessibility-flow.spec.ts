@@ -153,7 +153,8 @@ for (const theme of THEMES) {
         !process.env["E2E_ADMIN_PASSWORD"],
         "E2E_ADMIN_PASSWORD is not set"
       );
-      test.setTimeout(480_000);
+      // Full WCAG sweep across every admin route; bounded well below the old 480s.
+      test.setTimeout(180_000);
       await useTheme(page, theme);
       const project = await populatedProject(page);
       expect(await checkRoutes(page, adminRoutes(project))).toEqual([]);
@@ -170,7 +171,8 @@ for (const theme of THEMES) {
         !process.env["E2E_EMPLOYEE_PASSWORD"],
         "E2E_EMPLOYEE_PASSWORD is not set"
       );
-      test.setTimeout(480_000);
+      // Full WCAG sweep across every employee route; bounded well below the old 480s.
+      test.setTimeout(180_000);
       await useTheme(page, theme);
       expect(await checkRoutes(page, employeeRoutes)).toEqual([]);
     });

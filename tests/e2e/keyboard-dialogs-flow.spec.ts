@@ -173,7 +173,8 @@ test.describe("keyboard use of dialogs, sheets and menus as admin", () => {
         !process.env["E2E_ADMIN_PASSWORD"],
         "E2E_ADMIN_PASSWORD is not set"
       );
-      test.setTimeout(240_000);
+      // Dialog focus cycle per route; bounded below the old 240s.
+      test.setTimeout(60_000);
       let target = route;
       if (/^[A-Z]+$/u.test(route)) {
         const project = await populatedProject(page);
@@ -190,7 +191,8 @@ test.describe("keyboard use of dialogs, sheets and menus as admin", () => {
       !process.env["E2E_ADMIN_PASSWORD"],
       "E2E_ADMIN_PASSWORD is not set"
     );
-    test.setTimeout(240_000);
+    // Dialog focus cycle on a phone viewport; bounded below the old 240s.
+    test.setTimeout(60_000);
     await page.setViewportSize({ height: 800, width: 390 });
     await checkRoute(page, "/");
   });
@@ -207,7 +209,8 @@ test.describe("keyboard use of dialogs, sheets and menus as employee", () => {
         !process.env["E2E_EMPLOYEE_PASSWORD"],
         "E2E_EMPLOYEE_PASSWORD is not set"
       );
-      test.setTimeout(240_000);
+      // Dialog focus cycle per route; bounded below the old 240s.
+      test.setTimeout(60_000);
       await checkRoute(page, route);
     });
   }

@@ -49,7 +49,11 @@ const skipWithoutPushControl = async (page: Page): Promise<void> => {
       () => true,
       () => false
     );
-  test.skip(!mounted, "VAPID_PUBLIC_KEY is not configured for this server");
+  // CI fails closed when the prerequisite is missing; skip only for local runs.
+  test.skip(
+    !process.env["CI"] && !mounted,
+    "VAPID_PUBLIC_KEY is not configured for this server"
+  );
 };
 
 const registerWorker = async (page: Page): Promise<void> => {
@@ -104,8 +108,9 @@ test.describe("Push notifications (flow)", () => {
   }) => {
     // Reading delivered notifications back needs a full Chrome; the headless
     // shell Playwright installs by default cannot list them.
+    // CI fails closed when the prerequisite is missing; skip only for local runs.
     test.skip(
-      !process.env["E2E_CHROMIUM_PATH"],
+      !process.env["CI"] && !process.env["E2E_CHROMIUM_PATH"],
       "Needs a full Chrome: set E2E_CHROMIUM_PATH to run this check."
     );
     await context.grantPermissions(["notifications"]);

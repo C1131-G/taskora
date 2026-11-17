@@ -15,6 +15,9 @@ import {
 // Signs the admin in once for the whole run. Specs reuse the saved browser state,
 // because repeated sign-ins hit the auth rate limit.
 setup("admin signs in once", async ({ page }) => {
+  // Sign-in waits for a hydrated form and a redirect; bounded above the 30s
+  // global cap so a slow CI login fails on the login itself, not a wall clock.
+  setup.setTimeout(60_000);
   setup.skip(
     !process.env["E2E_ADMIN_PASSWORD"],
     "E2E_ADMIN_PASSWORD is not set"
@@ -37,6 +40,7 @@ setup("admin signs in once", async ({ page }) => {
 });
 
 setup("employee signs in once", async ({ page }) => {
+  setup.setTimeout(60_000);
   setup.skip(
     !process.env["E2E_EMPLOYEE_PASSWORD"],
     "E2E_EMPLOYEE_PASSWORD is not set"
@@ -88,6 +92,7 @@ const portalSignIns = [
 // account signs in from its own forwarded address.
 for (const [index, account] of portalSignIns.entries()) {
   setup(account.name, async ({ page }) => {
+    setup.setTimeout(60_000);
     setup.skip(
       !process.env["E2E_PORTAL_PASSWORD"],
       "E2E_PORTAL_PASSWORD is not set"

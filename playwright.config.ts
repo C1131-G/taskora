@@ -27,12 +27,12 @@ export default defineConfig({
     },
   ],
   reporter: [["list"]],
-  // One retry on CI only: shared runners are slower, and a test that passes on
-  // the second try is reported as flaky instead of failing the run.
-  retries: process.env["CI"] ? 1 : 0,
-  // The dev server compiles routes on first use, so give each test room.
+  // Flaky tests must be fixed, not retried into a green run.
+  retries: 0,
+  // CI runs a production build, so routes need no dev-compile headroom;
+  // 30s is Playwright's default and keeps genuine hangs loud.
   testDir: "tests/e2e",
-  timeout: 120_000,
+  timeout: 30_000,
   use: {
     baseURL,
     launchOptions: chromiumPath ? { executablePath: chromiumPath } : {},

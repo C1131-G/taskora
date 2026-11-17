@@ -31,15 +31,15 @@ test.describe("inbox and notifications as employee", () => {
     const assigned = page.getByText("assigned you a task").first();
     const commented = page.getByText("commented on a task").first();
     // These notifications come from scripts/seed-ui-notifications.ts, run with
-    // UI_FIXTURE_NOTIFIED_EMAIL set; a database seeded without it has none.
+    // UI_FIXTURE_NOTIFIED_EMAIL set; a missing fixture means seeding broke.
     const seeded = await assigned
       .waitFor({ timeout: 5000 })
       .then(() => true)
       .catch(() => false);
-    test.skip(
-      !seeded,
-      "Needs the notification fixture from scripts/seed-ui-notifications.ts."
-    );
+    expect(
+      seeded,
+      "Needs the notification fixture from scripts/seed-ui-notifications.ts"
+    ).toBe(true);
     await expect(assigned).toBeVisible();
 
     await page.getByRole("tab", { name: /^Comments/u }).click();

@@ -18,7 +18,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    // The no-try-catch guard reads every source file; a loaded machine needs more than 5 s.
-    testTimeout: 30_000,
+    // Keep Vitest's default 5 s cap; the source-parsing guard finishes well under it.
+    testTimeout: 5_000,
   },
 });

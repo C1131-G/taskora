@@ -6,6 +6,60 @@ import { fileURLToPath } from "node:url";
 
 import { Pool } from "pg";
 
+// Validate env config before any DB setup so misconfiguration fails fast,
+// including in no-database smoke checks.
+const readIntegerEnv = (
+  name: string,
+  raw: string | undefined
+): number | undefined => {
+  if (raw === undefined) {
+    return undefined;
+  }
+  const value = Number(raw);
+  if (raw.trim() === "" || !Number.isInteger(value)) {
+    throw new Error(`${name} must be an integer, received "${raw}".`);
+  }
+  return value;
+};
+
+const shardIndex = readIntegerEnv(
+  "TEST_SHARD_INDEX",
+  process.env["TEST_SHARD_INDEX"]
+);
+const shardCount = readIntegerEnv(
+  "TEST_SHARD_COUNT",
+  process.env["TEST_SHARD_COUNT"]
+);
+
+if ((shardIndex === undefined) !== (shardCount === undefined)) {
+  throw new Error(
+    "TEST_SHARD_INDEX and TEST_SHARD_COUNT must be supplied together or neither."
+  );
+}
+if (shardIndex !== undefined && shardCount !== undefined) {
+  if (shardCount < 1) {
+    throw new Error(
+      `TEST_SHARD_COUNT must be a positive integer, received ${shardCount}.`
+    );
+  }
+  if (shardIndex < 0) {
+    throw new Error(
+      `TEST_SHARD_INDEX must be a non-negative integer, received ${shardIndex}.`
+    );
+  }
+  if (shardIndex >= shardCount) {
+    throw new Error(
+      `TEST_SHARD_INDEX (${shardIndex}) must be less than TEST_SHARD_COUNT (${shardCount}).`
+    );
+  }
+}
+
+const configuredSeed = readIntegerEnv(
+  "TEST_ORDER_SEED",
+  process.env["TEST_ORDER_SEED"]
+);
+const orderSeed = configuredSeed ?? Math.floor(Math.random() * 4_294_967_296);
+
 const sourceUrl =
   process.env["TEST_DATABASE_URL"] ?? process.env["DATABASE_URL"];
 if (!sourceUrl) {
@@ -85,9 +139,57 @@ if (verification.status !== 0) {
 const testDirectory = fileURLToPath(
   new URL("../tests/backend", import.meta.url)
 );
-const testFiles = readdirSync(testDirectory)
+// Small seeded PRNG (mulberry32) so file order is reproducible from the seed.
+/* eslint-disable no-bitwise */
+const mulberry32 = (seed: number): (() => number) => {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d_2b_79_f5) >>> 0;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
+  };
+};
+/* eslint-enable no-bitwise */
+
+// Random order lets state leaks surface across runs.
+const shuffle = <TItem>(
+  items: readonly TItem[],
+  random: () => number
+): TItem[] => {
+  const remaining = [...items];
+  const result: TItem[] = [];
+  while (remaining.length > 0) {
+    const index = Math.floor(random() * remaining.length);
+    const [picked] = remaining.splice(index, 1);
+    if (picked !== undefined) {
+      result.push(picked);
+    }
+  }
+  return result;
+};
+
+const allTestFiles = readdirSync(testDirectory)
   .filter((file) => file.endsWith(".test.ts"))
   .toSorted();
+const orderedTestFiles = shuffle(allTestFiles, mulberry32(orderSeed));
+const testFiles =
+  shardIndex === undefined || shardCount === undefined
+    ? orderedTestFiles
+    : orderedTestFiles.filter(
+        (_file, index) => index % shardCount === shardIndex
+      );
+
+console.log(`Test order seed: ${orderSeed}`);
+console.log(
+  `Running ${testFiles.length} backend test file(s)${
+    shardIndex === undefined ? "" : ` [shard ${shardIndex}/${shardCount}]`
+  }:`
+);
+for (const file of testFiles) {
+  console.log(`  ${file}`);
+}
 
 // Tables that legitimately change outside a test's own fixtures: the company
 // singleton, auth rate-limit counters, and verification tokens.
@@ -106,11 +208,11 @@ const countRows = async (): Promise<Map<string, number>> => {
     .map(({ table_name: name }) => name)
     .filter((name) => !RESIDUE_IGNORED_TABLES.has(name));
   const counts = await Promise.all(
-    names.map(async (name) => {
+    names.map(async (name): Promise<readonly [string, number]> => {
       const result = await residuePool.query<{ count: number }>(
         `SELECT count(*)::int AS count FROM "${name}"`
       );
-      return [name, result.rows[0]?.count ?? 0] as const;
+      return [name, result.rows[0]?.count ?? 0];
     })
   );
   return new Map(counts);
@@ -126,7 +228,8 @@ try {
       [
         "test",
         "--max-concurrency=1",
-        // Database fixtures create and sign in several users before each file.
+        // 30s covers DB fixture setup (several users created and signed in per
+        // file); an accepted exception, not a hidden failure or a retry.
         "--timeout=30000",
         "--preload",
         path.join(testDirectory, "support/server-only-stub.ts"),

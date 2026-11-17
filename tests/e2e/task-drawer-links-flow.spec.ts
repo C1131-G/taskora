@@ -52,7 +52,10 @@ test.describe("task drawer links", () => {
     await page.goto("/my-tasks");
     await page.waitForLoadState("networkidle");
     const rows = page.getByRole("button", { name: /^Open details for/u });
-    test.skip((await rows.count()) === 0, "No tasks are assigned to the admin");
+    expect(
+      await rows.count(),
+      "No tasks are assigned to the admin"
+    ).toBeGreaterThan(0);
     await expect(async () => {
       await rows.first().click();
       await expect(page).toHaveURL(TASK_PARAM, { timeout: 2000 });
@@ -66,7 +69,7 @@ test.describe("task drawer links", () => {
     await page.goto("/tasks?status=open");
     await page.waitForLoadState("networkidle");
     const opener = page.getByRole("button", { name: /^Open details for/u });
-    test.skip((await opener.count()) === 0, "No tasks are available");
+    expect(await opener.count(), "No tasks are available").toBeGreaterThan(0);
 
     await opener.first().click();
     await expectDrawerOpen(page);
@@ -93,7 +96,9 @@ test.describe("task drawer links", () => {
     await page.goto("/tasks?view=list");
     await page.waitForLoadState("networkidle");
     const targetRow = page.locator(".trow").first();
-    test.skip((await targetRow.count()) === 0, "No tasks are available");
+    expect(await targetRow.count(), "No tasks are available").toBeGreaterThan(
+      0
+    );
     const taskLink = targetRow.locator("a.trunc");
     const taskText = await taskLink.textContent();
     const taskTitle = taskText?.trim() ?? "";

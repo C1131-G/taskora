@@ -80,13 +80,13 @@ const detailGuard = (list: string, prefix: string, loading: string) => {
     const first = page
       .locator(`a[href^="${prefix}/"]:not([href$="/audit"])`)
       .first();
-    // The record only exists once an earlier flow has filed one; a fresh
-    // seeded database has none, so there is no detail page to guard yet.
+    // A record must exist once an earlier flow has filed one; a missing one
+    // means seeding broke, so fail instead of silently skipping.
     const hasRecord = await first
       .waitFor({ timeout: 10_000 })
       .then(() => true)
       .catch(() => false);
-    test.skip(!hasRecord, `No record is listed at ${list} to open.`);
+    expect(hasRecord, `No record is listed at ${list} to open`).toBe(true);
     const href = await first.getAttribute("href");
     expect(href).toBeTruthy();
     await instant(

@@ -10,3 +10,18 @@ pre-commit:
         - "*.jsonc"
         - "*.css"
       stage_fixed: true
+
+pre-push:
+  jobs:
+    - name: check changed files
+      run: bunx ultracite check {files}
+      glob:
+        - "*.js"
+        - "*.jsx"
+        - "*.ts"
+        - "*.tsx"
+        - "*.json"
+        - "*.jsonc"
+        - "*.css"
+    - name: typecheck
+      run: bun run typecheck

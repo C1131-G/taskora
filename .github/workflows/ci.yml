@@ -3,6 +3,12 @@ name: CI
 on:
   push:
   pull_request:
+    # PR feedback is narrowed to code changes; the merge queue still runs
+    # everything before a commit reaches main.
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,9 +17,25 @@ concurrency:
 permissions:
   contents: read
 
+# CI-only values. No production secret is ever present in this workflow.
+env:
+  BETTER_AUTH_SECRET: ci-only-secret-that-is-long-enough-for-auth
+  BETTER_AUTH_URL: http://localhost:3000
+  BETTER_AUTH_TRUSTED_ORIGINS: http://localhost:3000
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  SCHEDULER_TOKEN: ci-only-scheduler-token-long-enough
+  S3_ENDPOINT: http://localhost:9000
+  S3_PUBLIC_ENDPOINT: http://localhost:9000
+  S3_REGION: us-east-1
+  S3_ACCESS_KEY_ID: taskora
+  S3_SECRET_ACCESS_KEY: local-minio-password
+
 jobs:
+  # Cheap checks: every PR sees these first. Migration/DB work lives here so
+  # the heavy test jobs can start in parallel with it.
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     services:
       postgres:
         image: postgres:18-alpine
@@ -27,35 +49,32 @@ jobs:
           --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
       DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
-      BETTER_AUTH_SECRET: ci-only-secret-that-is-long-enough-for-auth
-      BETTER_AUTH_URL: http://localhost:3000
-      BETTER_AUTH_TRUSTED_ORIGINS: http://localhost:3000
-      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-      SCHEDULER_TOKEN: ci-only-scheduler-token-long-enough
-      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test?sslmode=disable
-      TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
       MIGRATION_CHECK_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_migrations?sslmode=disable
-      S3_ENDPOINT: http://localhost:9000
-      S3_PUBLIC_ENDPOINT: http://localhost:9000
-      S3_REGION: us-east-1
-      S3_BUCKET: taskora-private
-      S3_ACCESS_KEY_ID: taskora
-      S3_SECRET_ACCESS_KEY: local-minio-password
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
+          filter: blob:none
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
+      - name: Cache dependencies
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
       - run: bun install --frozen-lockfile
-      # Critical advisories fail the build. High advisories in tooling-only
-      # dependency chains are reported without blocking; see docs/operations.md.
       - name: Audit dependencies (blocking at critical)
         run: bun audit --audit-level=critical
-      - name: Audit dependencies (report high)
-        continue-on-error: true
-        run: bun audit --audit-level=high
+      # All 19 known high advisories are tooling-only (shadcn, Prisma CLI,
+      # Expo, ultracite, better-auth) and are listed explicitly. Any NEW high
+      # advisory fails this step instead of being silently ignored.
+      - name: Audit dependencies (high, explicit tooling allowlist)
+        run: >-
+          bun audit --audit-level=high --ignore=GHSA-27r3-jxmh-p828 --ignore=GHSA-2m5v-pch6-74hx --ignore=GHSA-3f7j-7jwc-fxfj --ignore=GHSA-4w7w-5xrc-9h26 --ignore=GHSA-5x38-2vff-x55p --ignore=GHSA-6qrw-m8cv-hcxf --ignore=GHSA-7wch-p9px-956x --ignore=GHSA-86w9-cpqp-85rv --ignore=GHSA-88fw-hqm2-52qc --ignore=GHSA-8hrf-8g6f-7xwp --ignore=GHSA-hqq3-7jhf-c5jx --ignore=GHSA-jc66-7q78-782g --ignore=GHSA-mrhx-c7xc-m3w5 --ignore=GHSA-q5qw-h33p-qvwr --ignore=GHSA-qrxm-fqhp-jwvm --ignore=GHSA-r5fr-rjxr-66jc --ignore=GHSA-rhr8-3pm8-cq29 --ignore=GHSA-wc8c-qw6v-h7f6 --ignore=GHSA-xjj6-f33q-929c
       - name: Check migrations reproduce the contract
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_migrations
@@ -65,25 +84,138 @@ jobs:
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_test
           bun run db:init
-          DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
+          DATABASE_URL="postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test?sslmode=disable" bun run db:init
           bun run db:verify
-          DATABASE_URL="$TEST_DATABASE_URL" bun run db:verify
+          DATABASE_URL="postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test?sslmode=disable" bun run db:verify
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run test:ui
+
+  # Each shard owns its database, so parallel test files cannot contaminate
+  # each other. scripts/test-backend.ts reads TEST_SHARD_INDEX/TEST_SHARD_COUNT.
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: taskora
+          POSTGRES_PASSWORD: local-dev-password
+          POSTGRES_DB: taskora_ci
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_backend_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          filter: blob:none
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - name: Cache dependencies
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+      - run: bun install --frozen-lockfile
+      - name: Initialize isolated database
+        run: |
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_backend_${{ matrix.shard }}
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_test_${{ matrix.shard }}
+          bun run db:init
+          DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
+      - name: Run backend tests (shard ${{ matrix.shard }}/4)
+        env:
+          TEST_SHARD_INDEX: ${{ matrix.shard }}
+          TEST_SHARD_COUNT: 4
+        run: bun run test:backend
+
+  # Browser checks are split out of verify so they run in parallel with the
+  # cheap jobs. Each shard gets its own database, bucket and server.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: taskora
+          POSTGRES_PASSWORD: local-dev-password
+          POSTGRES_DB: taskora_ci
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_test_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
+      S3_BUCKET: taskora-private-${{ matrix.shard }}
+      VAPID_PUBLIC_KEY: BNtY7A-WEvx4jLtUWxVc0Tjt8O-Jh1HfU8Iji8YBRMCVdZBe_TCwmfTtUD4X1LTf3K9-ZXElC9Yand2_n4JH9v8
+      VAPID_PRIVATE_KEY: FkqhqoM8Xi8leMHLVZ_xr5dyYhdT9d3h_LlgkZ6hfpI
+      VAPID_SUBJECT: mailto:ci@taskora.test
+      E2E_CHROMIUM_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          filter: blob:none
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - name: Cache dependencies
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+      - run: bun install --frozen-lockfile
+      - name: Initialize isolated database
+        run: |
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_${{ matrix.shard }}
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_test_${{ matrix.shard }}
+          bun run db:init
+          DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
+          bun run db:verify
+      - name: Build object storage images
+        run: |
+          docker build -f docker/minio.Dockerfile --target server \
+            --cache-from=type=gha,scope=minio-server \
+            --cache-to=type=gha,mode=max,scope=minio-server \
+            -t taskora-minio-server:ci .
+          docker build -f docker/minio.Dockerfile --target client \
+            --cache-from=type=gha,scope=minio-client \
+            --cache-to=type=gha,mode=max,scope=minio-client \
+            -t taskora-minio-client:ci .
       - name: Start object storage
         run: |
-          # MinIO ships as source only, so build the server and client from the
-          # same Dockerfile compose uses instead of pulling Docker Hub images.
-          docker build -f docker/minio.Dockerfile --target server -t taskora-minio-server:ci .
-          docker build -f docker/minio.Dockerfile --target client -t taskora-minio-client:ci .
           docker run -d --name taskora-minio -p 9000:9000 -e MINIO_ROOT_USER=taskora -e MINIO_ROOT_PASSWORD=local-minio-password -e MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:3000,http://localhost:3001 taskora-minio-server:ci server /data
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://localhost:9000/minio/health/live; then break; fi
             sleep 2
           done
-          docker run --rm --network host -e MC_HOST_local=http://taskora:local-minio-password@localhost:9000 taskora-minio-client:ci mb --ignore-existing local/taskora-private
-      - run: bun run test:backend
+          curl --fail http://localhost:9000/minio/health/live
+          docker run --rm --network host -e MC_HOST_local=http://taskora:local-minio-password@localhost:9000 taskora-minio-client:ci mb --ignore-existing "local/$S3_BUCKET"
       - name: Generate ephemeral browser credentials
         run: |
           echo "E2E_ADMIN_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
@@ -93,12 +225,17 @@ jobs:
         run: |
           bun --preload ./tests/backend/support/server-only-stub.ts scripts/seed-e2e-accounts.ts
           UI_FIXTURE_ADMIN_EMAIL=ui-admin@taskora.test UI_FIXTURE_EMPLOYEE_EMAIL=handler-one@taskora.test UI_FIXTURE_NOTIFIED_EMAIL=ui-employee@taskora.test UI_FIXTURE_CLIENT_EMAIL=client-one@acme.test bun --preload ./tests/backend/support/server-only-stub.ts scripts/seed-ui-fixtures.ts
+      - name: Cache Playwright browsers
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('bun.lock') }}
       - run: bunx playwright install --with-deps chromium
       - name: Build with instant-navigation testing API
         run: bun run build
         env:
           EXPOSE_TESTING_API: "1"
-      - name: Run production server and browser checks
+      - name: Run production server and browser checks (shard ${{ matrix.shard + 1 }}/4)
         run: |
           EXPOSE_TESTING_API=1 bun run start --port 3000 > /tmp/taskora-next.log 2>&1 &
           for attempt in $(seq 1 60); do
@@ -106,18 +243,31 @@ jobs:
             sleep 2
           done
           curl --fail http://localhost:3000/api/health
-          bunx playwright test --project=chromium --workers=1
+          # Auth states must all exist in this shard before spec sharding,
+          # otherwise a spec can be split from the setup that creates its state.
+          bunx playwright test --project=setup
+          bunx playwright test --project=chromium --workers=1 --shard=${{ matrix.shard + 1 }}/4 --no-deps
 
   # Checks the app's code only. CI never builds, signs or publishes an APK.
   mobile:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
+          filter: blob:none
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
+      - name: Cache dependencies
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
       - run: bun install --frozen-lockfile
       - name: Audit dependencies (blocking at critical)
         run: bun audit --audit-level=critical
@@ -132,13 +282,12 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    env:
-      # Throwaway key: CI images are never pushed or deployed.
-      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
+          filter: blob:none
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build app image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -147,12 +296,13 @@ jobs:
           target: runner
           push: false
           secret-envs: next_server_actions_encryption_key=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
       - name: Build worker image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           target: worker
           push: false
-          cache-from: type=gha
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
