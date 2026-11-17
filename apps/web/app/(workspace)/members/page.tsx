@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import { HeaderActionPlaceholder } from "@/components/workspace/header-action-placeholder";
 import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import {
   MembersActions,
@@ -15,6 +14,7 @@ import {
   MembersSectionSkeleton,
 } from "@/features/people/components/members-section";
 import { parseMembersSection } from "@/features/people/members-section-param";
+import { SearchParamFallback } from "@/features/projects/components/search-param-fallback";
 
 export const metadata: Metadata = { title: "Members | Taskora" };
 
@@ -25,23 +25,27 @@ const MembersPage = ({ searchParams }: PageProps<"/members">) => (
         <div>
           <h1>Members</h1>
           <p>
-            <Suspense
-              fallback={
-                <span aria-hidden="true">
-                  <SkeletonBone />
-                </span>
-              }
-            >
+            <Suspense fallback={<SkeletonBone shape="line" width="26ch" />}>
               <MembersCount />
             </Suspense>
           </p>
         </div>
-        <Suspense fallback={<HeaderActionPlaceholder label="Add employee" />}>
+        {/* Most people are not admins and never get this button, so no space
+            is held for it while the role loads; it never changes the row height. */}
+        <Suspense fallback={null}>
           <MembersActions />
         </Suspense>
       </div>
       <SectionErrorBoundary title="Members couldn't load">
-        <SuspenseReveal fallback={<MembersSectionSkeleton />}>
+        <SuspenseReveal
+          fallback={
+            <SearchParamFallback
+              cases={{ roles: <MembersSectionSkeleton section="roles" /> }}
+              fallback={<MembersSectionSkeleton section="members" />}
+              name="section"
+            />
+          }
+        >
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (
             <MembersSection section={parseMembersSection(params["section"])} />

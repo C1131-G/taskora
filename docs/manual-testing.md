@@ -1,6 +1,13 @@
-# Manual testing guide
+---
+title: Manual testing guide
+type: how-to
+status: current
+updated: 2026-11-13
+---
 
-> Type: how-to. Status: current. Updated: 2026-10-30
+<!-- markdownlint-disable MD025 -->
+
+# Manual testing guide
 
 You need to test Taskora by hand and want ready-made accounts, companies, and data. This guide gives you every login, what each account can do, and a checklist of things to try.
 
@@ -44,7 +51,7 @@ These values come from `.env.example`. If you changed them in `.env`, use yours.
 
 Every seeded account uses the same password:
 
-```
+```text
 Taskora#Dev2026
 ```
 
@@ -124,7 +131,7 @@ Every table has data. The main parts are:
 - **Calendar:** six events with attendees.
 - **Integrations:** a GitHub connection on Acme Web Platform with three pull requests, two webhook endpoints with deliveries in each state, and three automation rules.
 - **Custom fields:** Acme Web Platform and Initech Portal Rebuild each have a text, number, select, date, and checkbox field.
-- **Per-user data:** notifications, saved views, favorites, recent searches, notification preferences, and email settings for every staff account.
+- **Per-user data:** notifications, favorites, recent searches, notification preferences, and email settings for every staff account.
 
 ## Test checklist
 
@@ -178,7 +185,6 @@ Work through these. Each line names the account to use.
 
 - Open the calendar as `dana@taskora.test` and check the events she attends.
 - Open the inbox, mark notifications read, and change notification preferences.
-- Create a saved view and mark it shared. Open it as another employee.
 
 ### Admin
 
@@ -197,3 +203,16 @@ Work through these. Each line names the account to use.
 ## Reset
 
 Run `bun run seed:dev` to put everything back to the starting state. To start from an empty database instead, run `bun run db:down`, delete the `taskora-postgres-data` volume, then run `bun run setup:dev`.
+
+## Verify
+
+Setup worked when `http://localhost:3000/api/health` answers, `/login` loads, and `owner@taskora.test` with the seed password reaches the workspace.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| `bun run setup:dev` fails to reach PostgreSQL | Start Docker Desktop, then rerun `bun run db:up`. The development database listens on port `5434`. |
+| Seed refuses to run | It only runs against a local, non-`_test` database. Check `DATABASE_URL` in `.env`. |
+| Sign-in is blocked | The rate limit or a five-failure lock applies. Wait, or run `bun run seed:dev` to clear it. |
+| Opening a seeded file fails | Expected: the seed does not upload files to MinIO. Upload a new file instead. |

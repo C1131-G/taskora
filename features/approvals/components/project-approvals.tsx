@@ -1,6 +1,14 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
 import { LocalTime } from "@/components/workspace/local-time";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { listProjectApprovals } from "@/features/approvals/approval-queries";
 import { APPROVAL_STATUS_BADGES } from "@/features/approvals/approval-status";
 import { ProjectApprovalForm } from "@/features/approvals/components/project-approval-form";
@@ -126,13 +134,41 @@ export const ProjectApprovals = async ({
   );
 };
 
+// Mirrors ProjectApprovals: the panel and its heading are static; the count
+// and request rows are data. The admin-only request form is not reserved.
 export const ProjectApprovalsSkeleton = () => (
-  <div aria-hidden="true" className="stack">
-    <section className="panel">
-      <div className="panel-h">
-        <h2>Client approvals</h2>
-      </div>
-      <div className="panel-b" />
-    </section>
-  </div>
+  <SkelterSurface label="Loading approvals…">
+    <div className="stack">
+      <section className="panel">
+        <div className="panel-h">
+          <h2>
+            <SkeletonKeep>Client approvals</SkeletonKeep>
+          </h2>
+          <span className="ct">
+            <SkeletonBone shape="short" />
+          </span>
+        </div>
+        <div className="approval-body">
+          <ul className="approval-requests">
+            {SKELETON_KEYS.slice(0, 3).map((key) => (
+              <li className="approval-request" key={key}>
+                <div className="approval-request-main">
+                  <div className="approval-request-title">
+                    <SkeletonBone />
+                  </div>
+                  <p className="approval-request-meta">
+                    <SkeletonBone />
+                  </p>
+                  <p className="approval-request-decision">
+                    <SkeletonBone shape="short" />
+                  </p>
+                </div>
+                <SkeletonBone shape="short" />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </div>
+  </SkelterSurface>
 );

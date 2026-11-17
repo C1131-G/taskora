@@ -1,6 +1,13 @@
-# Architecture
+---
+title: Architecture
+type: architecture
+status: current
+updated: 2026-10-29
+---
 
-> Type: architecture · Status: current · Updated: 2026-10-29
+<!-- markdownlint-disable MD025 -->
+
+# Architecture
 
 Taskora is a team and client work-management system with a Next.js web application and an Expo mobile app. The web and mobile clients reach shared server-side domain logic, backed by PostgreSQL; the server also runs durable background jobs and integrates with object storage and external delivery providers.
 

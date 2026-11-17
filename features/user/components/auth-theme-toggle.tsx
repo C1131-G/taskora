@@ -6,10 +6,12 @@ import { Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
+import { switchTheme } from "@/components/workspace/switch-theme";
 
 const AuthThemeToggle = () => {
   const { resolvedTheme, setTheme } = useTheme();
-  const toggle = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  const toggle = () =>
+    switchTheme(setTheme, resolvedTheme === "dark" ? "light" : "dark");
 
   return (
     <Button

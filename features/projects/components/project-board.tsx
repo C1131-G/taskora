@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useOptimistic, useRef, useTransition } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -12,8 +12,14 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
+import {
+  clearBoardDragState,
+  markDropColumn,
+  unmarkDropColumn,
+} from "@/features/tasks/board-drag-state";
 import { BoardCardTransition } from "@/features/tasks/components/board-card-transition";
 import { useBoardReorder } from "@/features/tasks/hooks/use-board-reorder";
+import { withTaskStatus } from "@/features/tasks/task-status-move";
 import { changeTaskColumnAction } from "@/features/tasks/tasks-actions";
 import type { LabelSummary } from "@/src/server/tasks/label-management";
 
@@ -60,6 +66,8 @@ export const ProjectBoard = ({
   readonly toolbarAction?: ReactNode;
 }) => {
   const [pending, startTransition] = useTransition();
+  // A dropped card sits in its new column at once; a refused move falls back.
+  const [boardTasks, showMove] = useOptimistic(tasks, withTaskStatus<Task>);
   const draggedTaskId = useRef<string | null>(null);
   const moveInFlight = useRef(false);
   const { search, update: updateSearch } = useProjectViewSearch();
@@ -80,11 +88,11 @@ export const ProjectBoard = ({
         toast.error(message);
       }
     },
-    tasks,
+    tasks: boardTasks,
   });
   const handleMove = reorder.move;
 
-  const visibleTasks = tasks
+  const visibleTasks = reorder.orderedTasks
     .filter((task) => {
       const normalizedQuery = query.trim().toLowerCase();
       const matchesQuery =
@@ -117,13 +125,14 @@ export const ProjectBoard = ({
     if (pending || moveInFlight.current) {
       return;
     }
-    const task = tasks.find(({ id }) => id === draggedTaskId.current);
+    const task = boardTasks.find(({ id }) => id === draggedTaskId.current);
     if (!task || task.status === status) {
       draggedTaskId.current = null;
       return;
     }
     moveInFlight.current = true;
     startTransition(async () => {
+      showMove({ status, taskId: task.id });
       try {
         const result = await changeTaskColumnAction({
           expectedVersion: task.version,
@@ -229,9 +238,11 @@ export const ProjectBoard = ({
               </header>
               <div
                 className="bcol-b"
-                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={unmarkDropColumn}
+                onDragOver={markDropColumn}
                 onDrop={(event) => {
                   event.preventDefault();
+                  clearBoardDragState();
                   moveTask(column.id);
                 }}
               >
@@ -251,6 +262,7 @@ export const ProjectBoard = ({
                       labelsById={labelsById}
                       onDragCancel={() => {
                         draggedTaskId.current = null;
+                        clearBoardDragState();
                       }}
                       onDragStart={(taskId) => {
                         draggedTaskId.current = taskId;

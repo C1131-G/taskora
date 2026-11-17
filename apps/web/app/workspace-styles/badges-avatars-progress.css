@@ -5,7 +5,7 @@
   gap: 5px;
   height: 20px;
   padding: 0 7px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   font-size: var(--fs-xs);
   font-weight: 500;
   white-space: nowrap;
@@ -55,7 +55,7 @@
   gap: 5px;
   height: 20px;
   padding: 0 7px 0 6px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   font-size: var(--fs-xs);
   color: var(--text-2);
   border: 1px solid var(--border);
@@ -183,7 +183,7 @@
 /* progress */
 .workspace-app .prog {
   height: 4px;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   background: var(--surface-3);
   overflow: hidden;
   flex: 1;
@@ -193,7 +193,7 @@
   display: block;
   height: 100%;
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   background: var(--accent);
   transform-origin: left;
   transform: scaleX(var(--p, 0));
@@ -211,7 +211,7 @@
 .workspace-app .stackbar {
   display: flex;
   height: 6px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   overflow: hidden;
   gap: 2px;
   background: var(--surface-3);

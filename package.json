@@ -99,7 +99,8 @@
       "@prisma/orm-postgres",
       "prisma",
       "ultracite",
-      "dotenv"
+      "dotenv",
+      "@tanstack/*"
     ]
   },
   "patchedDependencies": {

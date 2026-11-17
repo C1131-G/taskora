@@ -25,7 +25,7 @@
 [data-slot="dialog-content"][data-workspace] .clients-note {
   margin: 0;
   border: 1px solid var(--workspace-portal-border);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--workspace-portal-sunken);
   padding: 8px 10px;
   color: var(--workspace-portal-text-muted);
@@ -36,7 +36,7 @@
   max-height: min(44dvh, 340px);
   margin: 0;
   border: 1px solid var(--workspace-portal-border);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -46,7 +46,7 @@
   min-height: 40px;
   align-items: center;
   gap: 10px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 6px 8px;
   cursor: pointer;
 }
@@ -89,7 +89,7 @@
   flex: 1;
   min-width: 0;
   border: 1px solid var(--workspace-portal-border);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--workspace-portal-sunken);
   padding: 6px 10px;
   overflow-wrap: anywhere;

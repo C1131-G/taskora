@@ -50,6 +50,8 @@ function CommandDialog({
   showCloseButton?: boolean
   workspace?: boolean
 }) {
+  // Opened from a keyboard shortcut many times a day: open and close instantly.
+  const instant = "data-open:animate-none! data-closed:animate-none!"
   return (
     <Dialog {...props}>
       <DialogHeader className="sr-only">
@@ -60,9 +62,11 @@ function CommandDialog({
         className={cn(
           "top-1/3 translate-y-0 overflow-hidden p-0",
           workspace ? "rounded-[10px]!" : "rounded-4xl!",
+          instant,
           className
         )}
         onCloseAutoFocus={onCloseAutoFocus}
+        overlayClassName={instant}
         showCloseButton={showCloseButton}
         workspace={workspace}
       >

@@ -1,7 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal pages reuse the workspace stylesheet classes. */
 
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
@@ -32,9 +31,9 @@ const Page = ({ params }: PageProps<"/portal/bugs/[bugId]">) => (
               bugId={bugId}
               responseNotice={
                 <SectionErrorBoundary title="Response-time guidance is unavailable">
-                  <Suspense fallback={<PortalResponseNoticeSkeleton />}>
+                  <SuspenseReveal fallback={<PortalResponseNoticeSkeleton />}>
                     <PortalResponseNotice bugId={bugId} />
-                  </Suspense>
+                  </SuspenseReveal>
                 </SectionErrorBoundary>
               }
             />

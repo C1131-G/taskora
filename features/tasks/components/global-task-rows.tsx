@@ -130,3 +130,21 @@ export const GlobalTaskRows = (props: GlobalTaskRowsProps) => {
     </>
   );
 };
+
+// The selection bar as it first renders (nothing selected), inert while the
+// tasks load. The real bar's count line is static until a task is selected.
+export const GlobalTaskSelectionBarSkeleton = ({
+  viewSwitch,
+}: {
+  readonly viewSwitch: ReactNode;
+}) => (
+  <div aria-hidden="true" className="row global-task-selection-bar" inert>
+    {viewSwitch}
+    <label className="row" htmlFor="global-task-select-all-loading">
+      <Checkbox checked={false} id="global-task-select-all-loading" />
+      Select all tasks
+    </label>
+    <span className="selection-count">0 selected</span>
+    <span className="sp" />
+  </div>
+);

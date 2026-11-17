@@ -5,11 +5,22 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SKELETON_KEYS,
   SkeletonBone,
-  SkeletonDataGrid,
 } from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
+import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { getClientCompanyRecord } from "@/features/clients/clients-queries";
 import { ClientCompanyWorkspace } from "@/features/clients/components/client-company-workspace";
 import { listAllEmployees } from "@/features/people/people-queries";
@@ -50,64 +61,162 @@ const ClientCompanyDetailView = async ({
 
 const USER_COLUMNS = ["User", "Status", "Last active", "Actions"] as const;
 
-// Mirrors ClientCompanyWorkspace: titles, the logo copy, tab names and column
-// headings are static; the company, counts and users are data.
+const USER_ROWS = SKELETON_KEYS.slice(0, 4);
+
+const TAB_LABELS = [
+  "Users",
+  "Projects",
+  "Handlers",
+  "Bugs summary",
+  "Insight",
+] as const;
+
+// Mirrors ClientCompanyWorkspace: titles, the logo copy, tab names, buttons and
+// column headings are static; the company, counts and users are data.
 const ClientCompanyDetailSkeleton = () => (
-  <div className="clients-workspace">
-    <Link
-      className="clients-back"
-      href="/clients"
-      transitionTypes={["nav-back"]}
-    >
-      <ArrowLeft aria-hidden="true" size={14} />
-      All clients
-    </Link>
-    <header className="ph clients-heading">
-      <div>
-        <p className="eyebrow">Client company</p>
-        <div className="clients-title">
-          <SkeletonBone shape="title" />
-        </div>
-        <p>
-          <SkeletonBone />
-        </p>
-      </div>
-    </header>
-    <section className="panel clients-panel">
-      <div className="panel-h clients-panel-h">
+  <SkeletonRegion label="Loading client company…">
+    <div className="clients-workspace">
+      <Link
+        className="clients-back"
+        href="/clients"
+        transitionTypes={["nav-back"]}
+      >
+        <ArrowLeft aria-hidden="true" size={14} />
+        All clients
+      </Link>
+      <header className="ph clients-heading">
         <div>
-          <h2>Logo</h2>
-          <p className="muted">
-            Shown next to the company name in the client portal. PNG, JPEG, or
-            WebP up to 2 MB.
+          <p className="eyebrow">Client company</p>
+          <div className="clients-title">
+            <h1>
+              <SkeletonBone shape="line" width="10ch" />
+            </h1>
+            <Badge variant="secondary">
+              <SkeletonBone shape="line" width="5ch" />
+            </Badge>
+          </div>
+          <p>
+            <SkeletonBone shape="line" width="52ch" />
           </p>
         </div>
-      </div>
-    </section>
-    <Tabs className="clients-tabs" value="users">
-      <TabsList inert>
-        <TabsTrigger value="users">Users</TabsTrigger>
-        <TabsTrigger value="projects">Projects</TabsTrigger>
-        <TabsTrigger value="handlers">Handlers</TabsTrigger>
-        <TabsTrigger value="bugs">Bugs summary</TabsTrigger>
-        <TabsTrigger value="insight">Insight</TabsTrigger>
-      </TabsList>
-    </Tabs>
-    <section className="panel clients-panel">
-      <div className="panel-h clients-panel-h">
-        <div>
-          <h2>Users</h2>
-          <p className="muted">Read-only preview; recorded in the audit log.</p>
+        <div className="acts">
+          <WorkspaceButton className="btn btn-sm btn-secondary" type="button">
+            Rename
+          </WorkspaceButton>
+          <WorkspaceButton className="btn btn-sm btn-ghost" type="button">
+            Deactivate
+          </WorkspaceButton>
         </div>
-      </div>
-      <SkeletonDataGrid
-        columns={USER_COLUMNS}
-        label="Loading client company…"
-        rows={4}
-        widths="2fr 1fr 1.5fr 2.5fr"
-      />
-    </section>
-  </div>
+      </header>
+      <section className="panel clients-panel">
+        <div className="panel-h clients-panel-h">
+          <div>
+            <h2>Logo</h2>
+            <p className="muted">
+              Shown next to the company name in the client portal. PNG, JPEG, or
+              WebP up to 2 MB.
+            </p>
+          </div>
+        </div>
+        <div className="panel-b clients-logo">
+          <span className="clients-logo-placeholder">No logo</span>
+          <div className="acts clients-logo-acts">
+            <WorkspaceButton
+              size="sm"
+              type="button"
+              variant="secondary"
+              workspace
+            >
+              Upload logo
+            </WorkspaceButton>
+          </div>
+        </div>
+      </section>
+      <Tabs className="clients-tabs" value="users">
+        <TabsList aria-label="Client company sections">
+          {TAB_LABELS.map((label) => (
+            <TabsTrigger key={label} value={label.toLowerCase()}>
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="users">
+          <section className="panel clients-panel">
+            <div className="panel-h clients-panel-h">
+              <div>
+                <h2>Users</h2>
+                <p className="clients-preview-note">
+                  Read-only preview; recorded in the audit log
+                </p>
+              </div>
+              <WorkspaceButton className="btn btn-primary btn-sm" type="button">
+                Add client user
+              </WorkspaceButton>
+            </div>
+            <Table className="clients-table clients-users-table">
+              <TableHeader>
+                <TableRow>
+                  {USER_COLUMNS.map((column) => (
+                    <TableHead key={column}>{column}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {USER_ROWS.map((key) => (
+                  <TableRow key={key}>
+                    <TableCell>
+                      <span className="clients-person">
+                        <strong>
+                          <SkeletonBone shape="line" width="12ch" />
+                        </strong>
+                        <span>
+                          <SkeletonBone shape="line" width="18ch" />
+                        </span>
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="clients-badges">
+                        <Badge variant="secondary">
+                          <SkeletonBone shape="line" width="5ch" />
+                        </Badge>
+                      </span>
+                    </TableCell>
+                    <TableCell className="clients-nowrap">
+                      <SkeletonBone shape="line" width="18ch" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="clients-row-actions">
+                        <div className="clients-row-buttons">
+                          <WorkspaceButton
+                            className="btn btn-sm btn-ghost"
+                            type="button"
+                          >
+                            Reset password
+                          </WorkspaceButton>
+                          <WorkspaceButton
+                            className="btn btn-sm btn-ghost"
+                            type="button"
+                          >
+                            View as client
+                          </WorkspaceButton>
+                          <WorkspaceButton
+                            className="btn btn-sm btn-ghost"
+                            type="button"
+                          >
+                            Deactivate
+                          </WorkspaceButton>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </section>
+        </TabsContent>
+      </Tabs>
+    </div>
+  </SkeletonRegion>
 );
 
 export { ClientCompanyDetailView, ClientCompanyDetailSkeleton };

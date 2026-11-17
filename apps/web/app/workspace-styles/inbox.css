@@ -310,6 +310,7 @@
   border-radius: var(--r-full);
   height: 8px;
   margin-top: 6px;
+  transition: opacity var(--dur) var(--ease);
   width: 8px;
 }
 .workspace-app .inbox-item-read {
@@ -317,10 +318,10 @@
   right: 8px;
   top: 8px;
   transition:
-    opacity var(--dur),
-    color var(--dur);
+    opacity var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .workspace-app .inbox-item-read {
     opacity: 0;
   }

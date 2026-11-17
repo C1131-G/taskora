@@ -1,7 +1,9 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
+import { ClockCounterClockwise } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
+import { EmptyState } from "@/components/workspace/empty-state";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   formatActivityGroup,
@@ -41,10 +43,13 @@ export const ProjectActivityFeed = ({
 
   if (!entries.length) {
     return (
-      <section className="panel panel-b project-activity-empty">
-        <h2>No activity yet</h2>
-        <p className="muted">Changes to this project will appear here.</p>
-      </section>
+      <EmptyState
+        description="Changes to this project will appear here."
+        headingLevel={2}
+        icon={ClockCounterClockwise}
+        size="panel"
+        title="No activity yet"
+      />
     );
   }
 

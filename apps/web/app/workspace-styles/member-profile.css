@@ -97,7 +97,7 @@
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
-.workspace-app .member-profile-tabs a {
+.workspace-app .member-profile-tabs :is(a, span) {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -107,7 +107,7 @@
   text-decoration: none;
   white-space: nowrap;
 }
-.workspace-app .member-profile-tabs a[aria-current="page"] {
+.workspace-app .member-profile-tabs :is(a, span)[aria-current="page"] {
   border-bottom: 2px solid var(--text);
   color: var(--text);
 }
@@ -184,7 +184,7 @@
 .workspace-app .member-profile-empty {
   padding-top: 14px;
 }
-.workspace-app .member-profile-project-list a {
+.workspace-app .member-profile-project-list :is(a, .member-profile-project-link) {
   display: flex;
   min-width: 0;
   min-height: 43px;
@@ -199,7 +199,7 @@
 .workspace-app .member-profile-project-list a:hover {
   background: var(--surface-2);
 }
-.workspace-app .member-profile-project-list a > span:nth-child(2) {
+.workspace-app .member-profile-project-list :is(a, .member-profile-project-link) > span:nth-child(2) {
   min-width: 0;
   flex: 1;
   overflow: hidden;

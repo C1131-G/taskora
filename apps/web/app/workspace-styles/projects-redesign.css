@@ -166,3 +166,18 @@
   justify-content: space-between;
   min-width: 150px;
 }
+
+/* project counts while loading: the bar sits inside the text's own line box */
+.workspace-app .ph p .project-counts-skeleton .skeleton-bone {
+  display: inline-block;
+  vertical-align: middle;
+  width: 140px;
+}
+
+/* table layout while loading: the real header band and row height */
+.workspace-app .project-table-skeleton .skeleton-grid-head {
+  background: var(--surface-2);
+}
+.workspace-app .project-table-skeleton .skeleton-grid-row {
+  min-height: 55px;
+}

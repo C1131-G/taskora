@@ -114,13 +114,6 @@
 .workspace-app .project-activity-feed .feed.lined .fitem::before {
   display: none;
 }
-.workspace-app .project-activity-feed .fitem {
-  align-items: center;
-  border-bottom: 1px solid var(--divider);
-  gap: 12px;
-  padding: 12px 16px;
-  transition: background-color 0.12s;
-}
 .workspace-app .project-activity-feed .fitem:last-child {
   border-bottom: 0;
 }
@@ -152,4 +145,95 @@
 }
 .workspace-app .project-activity-empty {
   border-radius: var(--r);
+}
+
+/* project activity: padded timeline, one card per day, avatar rail */
+.workspace-app .project-activity-feed {
+  display: grid;
+  gap: 20px;
+  padding: 16px var(--gutter) 28px;
+}
+.workspace-app .project-activity-feed .day-h {
+  background: transparent;
+  border: 0;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+  padding: 0;
+  position: static;
+  text-transform: uppercase;
+}
+.workspace-app .project-activity-feed .feed {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, var(--r));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 4px 0;
+  position: relative;
+}
+.workspace-app .project-activity-feed .feed::before {
+  background: var(--border);
+  bottom: 18px;
+  content: "";
+  left: 30px;
+  position: absolute;
+  top: 18px;
+  width: 1px;
+}
+.workspace-app .project-activity-feed .fitem {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: flex;
+  gap: 12px;
+  padding: 9px 16px;
+  position: relative;
+  transition: background-color var(--dur) var(--ease);
+}
+.workspace-app .project-activity-feed .fitem:hover {
+  background: var(--surface-2);
+}
+.workspace-app .project-activity-feed .fitem .av {
+  align-items: center;
+  background: var(--surface-3);
+  border: 2px solid var(--surface);
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  display: inline-flex;
+  flex: 0 0 28px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  height: 28px;
+  justify-content: center;
+  position: relative;
+  width: 28px;
+  z-index: 1;
+}
+.workspace-app .project-activity-feed .activity-copy {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  min-width: 0;
+}
+.workspace-app .project-activity-feed .activity-link {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.workspace-app .project-activity-feed .activity-link:hover {
+  color: var(--accent);
+}
+.workspace-app .project-activity-feed .fitem time {
+  background: transparent;
+  color: var(--text-3);
+  flex: none;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  padding: 0;
+}
+.workspace-app .project-activity-feed .feed.lined .fitem::before {
+  content: none;
 }

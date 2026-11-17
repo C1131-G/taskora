@@ -1,16 +1,17 @@
 "use client";
 
 import { useSelector } from "@tanstack/react-store";
-import { useRef, useTransition } from "react";
+import { useOptimistic, useRef, useTransition } from "react";
 
 import { useProjectViewStore } from "@/features/projects/providers/project-view-store-provider";
 import { reorderTasksAction } from "@/features/tasks/tasks-actions";
 
 import type { OrderableTask } from "../board-order";
-import { moveTaskInColumn } from "../board-order";
+import { moveTaskInColumn, withTaskPositions } from "../board-order";
 
 // Moves a card within its status column. Button, Alt+arrow and the live
-// announcement all go through here so they stay consistent.
+// announcement all go through here so they stay consistent. The returned
+// `orderedTasks` show the move at once, before the server confirms it.
 export const useBoardReorder = <
   Task extends OrderableTask & {
     readonly status: string;
@@ -26,6 +27,10 @@ export const useBoardReorder = <
   readonly tasks: readonly Task[];
 }) => {
   const [pending, startTransition] = useTransition();
+  const [orderedTasks, showPositions] = useOptimistic(
+    tasks,
+    withTaskPositions<Task>
+  );
   const requestInFlight = useRef(false);
   const projectViewStore = useProjectViewStore();
   const announcement = useSelector(
@@ -41,7 +46,9 @@ export const useBoardReorder = <
     if (!canReorder || pending || requestInFlight.current) {
       return;
     }
-    const columnTasks = tasks.filter((task) => task.status === column.id);
+    const columnTasks = orderedTasks.filter(
+      (task) => task.status === column.id
+    );
     const result = moveTaskInColumn(columnTasks, taskId, direction);
     if (!result) {
       return;
@@ -50,6 +57,7 @@ export const useBoardReorder = <
       columnTasks.find((task) => task.id === taskId)?.title ?? "Task";
     requestInFlight.current = true;
     startTransition(async () => {
+      showPositions(result.changes);
       try {
         const response = await reorderTasksAction({
           changes: [...result.changes],
@@ -70,5 +78,5 @@ export const useBoardReorder = <
     });
   };
 
-  return { announcement, move, pending };
+  return { announcement, move, orderedTasks, pending };
 };

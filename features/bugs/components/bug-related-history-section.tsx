@@ -9,12 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { relateBugAction } from "@/features/bugs/bugs-actions";
 
 import { formatBugDate } from "../bug-workflow-ui-shared";
@@ -70,15 +67,18 @@ export const BugRelatedHistorySection = ({
           </div>
           <div className="bug-form-field">
             <Label htmlFor="bug-relation-type">Relationship</Label>
-            <Select onValueChange={setRelationType} value={relationType}>
-              <SelectTrigger id="bug-relation-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recurrence">Recurrence of</SelectItem>
-                <SelectItem value="duplicate">Duplicate of</SelectItem>
-              </SelectContent>
-            </Select>
+            <WorkspaceSelect
+              onValueChange={setRelationType}
+              value={relationType}
+              id="bug-relation-type"
+            >
+              <WorkspaceSelectItem value="recurrence">
+                Recurrence of
+              </WorkspaceSelectItem>
+              <WorkspaceSelectItem value="duplicate">
+                Duplicate of
+              </WorkspaceSelectItem>
+            </WorkspaceSelect>
           </div>
           <Button type="submit">Link bug history</Button>
         </form>

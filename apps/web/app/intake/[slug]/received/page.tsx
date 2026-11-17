@@ -25,6 +25,19 @@ const ReferenceNote = ({ reference }: { readonly reference: unknown }) =>
     </p>
   ) : null;
 
+// The note wraps to two lines in the card, so the fallback holds two.
+const ReferenceNoteSkeleton = () => (
+  <output
+    aria-busy="true"
+    aria-label="Loading your report reference"
+    className="auth-foot-note block"
+  >
+    <span className="sr-only">Loading your report reference</span>
+    <span aria-hidden="true" className="auth-skeleton-text" />
+    <span aria-hidden="true" className="auth-skeleton-text" />
+  </output>
+);
+
 const Page = ({ searchParams }: PageProps<"/intake/[slug]/received">) => (
   <PageTransition>
     <AuthCard
@@ -33,7 +46,7 @@ const Page = ({ searchParams }: PageProps<"/intake/[slug]/received">) => (
       title="Thank you, your report was received"
       titleId="intake-received-title"
     >
-      <SuspenseReveal fallback={<span className="auth-skeleton-text" />}>
+      <SuspenseReveal fallback={<ReferenceNoteSkeleton />}>
         {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
         {searchParams.then(({ ref }) => (
           <ReferenceNote reference={ref} />

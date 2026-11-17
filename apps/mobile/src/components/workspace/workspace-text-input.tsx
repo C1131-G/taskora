@@ -32,6 +32,7 @@ export const WorkspaceTextInput = ({
     <View
       style={[
         styles.frame,
+        multiline ? styles.multiline : null,
         { backgroundColor: palette.sunken, borderColor: invalid ? palette.red : palette.border },
       ]}
     >
@@ -59,6 +60,9 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: spacing.s3,
     paddingVertical: spacing.s2,
+  },
+  multiline: {
+    minHeight: 96,
   },
   input: {
     flex: 1,

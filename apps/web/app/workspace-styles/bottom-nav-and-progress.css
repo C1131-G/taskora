@@ -32,16 +32,17 @@
   border-radius: 50%;
   background: var(--accent);
   opacity: 0;
-  transition: opacity 120ms ease;
 }
 
+/* Delay the show so fast navigations never flash the dot; hide instantly. */
 .workspace-app .nav-pending[data-pending="true"] {
   opacity: 1;
+  transition: opacity 120ms cubic-bezier(0.23, 1, 0.32, 1) 100ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .workspace-app .nav-pending {
-    transition: none;
+  .workspace-app .nav-pending[data-pending="true"] {
+    transition: opacity 0s 100ms;
   }
 }
 
@@ -78,16 +79,16 @@
 }
 
 .workspace-app progress.prog::-webkit-progress-bar {
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   background: var(--surface-3);
 }
 
 .workspace-app progress.prog::-webkit-progress-value {
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   background: var(--accent);
 }
 
 .workspace-app progress.prog::-moz-progress-bar {
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   background: var(--accent);
 }

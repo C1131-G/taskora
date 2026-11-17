@@ -9,6 +9,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 
+import { defaultGlobalTaskSearch } from "../global-task-view-state";
 import type { GlobalTaskSearch } from "../global-task-view-state";
 
 const STATUS_LABELS: Readonly<Record<string, string>> = {
@@ -53,18 +54,24 @@ const labelFor = (
 // server round trip, because the rows are already loaded.
 export const GlobalTaskFilterBar = ({
   idPrefix,
+  loading = false,
   onChange,
   raw,
   searchLabel,
   showGroup,
 }: {
   readonly idPrefix: string;
+  readonly loading?: boolean;
   readonly onChange: (patch: Partial<GlobalTaskSearch>) => void;
   readonly raw: GlobalTaskSearch;
   readonly searchLabel: string;
   readonly showGroup: boolean;
 }) => (
-  <div className="toolbar task-filter">
+  <div
+    aria-hidden={loading || undefined}
+    className="toolbar task-filter"
+    inert={loading}
+  >
     <label className="field" htmlFor={`${idPrefix}-search`}>
       <span className="sr-only">{searchLabel}</span>
       <WorkspaceInput
@@ -169,4 +176,29 @@ export const GlobalTaskFilterBar = ({
       </WorkspaceButton>
     ) : null}
   </div>
+);
+
+const ignoreFilterChange = () => {
+  // The loading row is inert, so no change can reach this.
+};
+
+// The loading state shows the real filter row with its default values, inert,
+// so the row keeps its exact size while the tasks load.
+export const GlobalTaskFilterBarSkeleton = ({
+  idPrefix,
+  searchLabel,
+  showGroup,
+}: {
+  readonly idPrefix: string;
+  readonly searchLabel: string;
+  readonly showGroup: boolean;
+}) => (
+  <GlobalTaskFilterBar
+    idPrefix={`${idPrefix}-loading`}
+    loading
+    onChange={ignoreFilterChange}
+    raw={defaultGlobalTaskSearch}
+    searchLabel={searchLabel}
+    showGroup={showGroup}
+  />
 );

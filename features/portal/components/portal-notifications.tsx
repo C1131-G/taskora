@@ -3,10 +3,13 @@
 import { Bell } from "@phosphor-icons/react/dist/ssr";
 
 import {
+  SKELETON_KEYS,
   SkeletonBone,
-  SkeletonRows,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { PortalNotificationList } from "@/features/portal/components/portal-notification-list";
 import { getPortalCompany } from "@/features/portal/portal-company";
 import { listPortalNotifications } from "@/features/portal/portal-queries";
@@ -56,15 +59,36 @@ const PortalNotifications = async () => {
 
 const PortalNotificationsSkeleton = () => (
   <SkelterSurface label="Loading notifications">
-    <div className="panel">
-      <div className="panel-h portal-notif-bar">
-        <SkeletonBone shape="title" />
-        <SkeletonBone shape="control" />
-      </div>
-      <div className="panel-b">
-        <SkeletonRows rows={5} />
+    <div className="ph">
+      <div>
+        <SkeletonKeep>
+          <h1>Notifications</h1>
+        </SkeletonKeep>
+        <p>
+          <SkeletonBone shape="short" />
+        </p>
       </div>
     </div>
+    <section className="panel">
+      <div className="panel-h portal-notif-bar">
+        <SkeletonBone shape="short" />
+        <div className="acts">
+          <SkeletonBone shape="control" />
+        </div>
+      </div>
+      <ul className="portal-notifs">
+        {SKELETON_KEYS.slice(0, 4).map((key) => (
+          <li className="portal-notif" key={key}>
+            <span className="portal-notif-main">
+              <span className="portal-notif-text">
+                <SkeletonBone />
+              </span>
+              <SkeletonBone shape="short" />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   </SkelterSurface>
 );
 

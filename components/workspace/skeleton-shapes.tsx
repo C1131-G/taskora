@@ -4,11 +4,30 @@ import { SkelterSurface } from "@/components/workspace/skelter-surface";
 
 const SKELETON_KEYS = Array.from({ length: 42 }, (_, index) => `bone-${index}`);
 
+// "line" sits inside a text element's line box, so the real line-height (not
+// the bone) decides the height; `width` sizes it like the text it stands for.
 const SkeletonBone = ({
   shape = "text",
+  width,
 }: {
-  readonly shape?: "text" | "short" | "avatar" | "control" | "title" | "block";
-}) => <span className={`sk skeleton-bone skeleton-${shape}`}>&nbsp;</span>;
+  readonly shape?:
+    | "text"
+    | "short"
+    | "avatar"
+    | "control"
+    | "title"
+    | "block"
+    | "line";
+  readonly width?: string;
+}) => (
+  <span
+    aria-hidden="true"
+    className={`sk skeleton-bone skeleton-${shape}`}
+    style={width ? { width } : undefined}
+  >
+    &nbsp;
+  </span>
+);
 
 const SkeletonToolbar = ({ count = 4 }: { readonly count?: number }) => (
   <div className="toolbar skeleton-toolbar">
@@ -67,71 +86,12 @@ const SkeletonStats = ({ count = 4 }: { readonly count?: number }) => (
   </div>
 );
 
-const SkeletonCards = ({ rows = 6 }: { readonly rows?: number }) => (
-  <div className="pgrid">
-    {SKELETON_KEYS.slice(0, rows).map((key) => (
-      <article className="pcard skeleton-card" key={key}>
-        <div className="row">
-          <SkeletonBone shape="avatar" />
-          <div className="grow">
-            <SkeletonBone />
-          </div>
-          <SkeletonBone shape="short" />
-        </div>
-        <div className="desc skeleton-copy">
-          <SkeletonBone />
-          <SkeletonBone />
-        </div>
-        <SkeletonBone />
-        <div className="foot">
-          <SkeletonBone shape="short" />
-          <SkeletonBone shape="short" />
-        </div>
-      </article>
-    ))}
-  </div>
-);
-
-const SkeletonTable = ({
-  rows = 5,
-  columns = 5,
-}: {
-  readonly rows?: number;
-  readonly columns?: number;
-}) => (
-  <div className="skeleton-table-scroll">
-    <table className="perm-t skeleton-table">
-      <caption className="sr-only">Loading table</caption>
-      <thead>
-        <tr>
-          {SKELETON_KEYS.slice(0, columns).map((key) => (
-            <th key={key} scope="col">
-              <SkeletonBone shape="short" />
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {SKELETON_KEYS.slice(0, rows).map((key) => (
-          <tr key={key}>
-            {SKELETON_KEYS.slice(0, columns).map((column) => (
-              <td key={column}>
-                <SkeletonBone shape={column === "bone-0" ? "text" : "short"} />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
 // Skelter draws a bone for every td/th, so data tables are skeletoned as a grid:
 // the column titles stay static outside the measured rows.
 const SkeletonDataGrid = ({
   columns,
   label,
-  rows = 10,
+  rows = 5,
   widths,
 }: {
   readonly columns: readonly string[];
@@ -163,10 +123,8 @@ export {
   SkeletonDataGrid,
   SKELETON_KEYS,
   SkeletonBone,
-  SkeletonCards,
   SkeletonRows,
   SkeletonStats,
-  SkeletonTable,
   SkeletonTabs,
   SkeletonToolbar,
 };

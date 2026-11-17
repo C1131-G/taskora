@@ -103,7 +103,7 @@
 .workspace-app .team-project-row,
 .workspace-app .team-open-task-row,
 .workspace-app .team-member-row {
-  transition: background-color 0.12s;
+  transition: background-color var(--dur) var(--ease);
 }
 .workspace-app .team-project-row:hover,
 .workspace-app .team-open-task-row:hover,
@@ -140,10 +140,12 @@
   max-height: 420px;
   overflow-y: auto;
 }
+/* Open tasks streams in after the rest; keeping it last in one column (as it
+   is below both panels on wide screens) means it never pushes Members down. */
 @media (max-width: 820px) {
   .workspace-app .team-overview-grid > .panel:nth-child(2) {
-    grid-column: auto;
     grid-row: auto;
+    order: 1;
   }
 }
 .workspace-app .team-overview-heading {

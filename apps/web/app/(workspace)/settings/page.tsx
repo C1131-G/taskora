@@ -5,13 +5,21 @@ import type { Metadata } from "next";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import {
-  SettingsPanel,
-  SettingsPanelSkeleton,
-} from "@/features/settings/components/settings-panel";
+import { SearchParamFallback } from "@/features/projects/components/search-param-fallback";
+import { SettingsPanel } from "@/features/settings/components/settings-panel";
+import { SettingsPanelSkeleton } from "@/features/settings/components/settings-panel-skeleton";
 import { parseSettingsSection } from "@/features/settings/settings-section";
 
 export const metadata: Metadata = { title: "Settings | Taskora" };
+
+const SECTION_FALLBACKS = {
+  intake: <SettingsPanelSkeleton section="intake" />,
+  preferences: <SettingsPanelSkeleton section="preferences" />,
+  profile: <SettingsPanelSkeleton section="profile" />,
+  sessions: <SettingsPanelSkeleton section="sessions" />,
+  sla: <SettingsPanelSkeleton section="sla" />,
+  workspace: <SettingsPanelSkeleton section="workspace" />,
+};
 
 const SettingsPage = ({ searchParams }: PageProps<"/settings">) => (
   <PageTransition>
@@ -23,7 +31,15 @@ const SettingsPage = ({ searchParams }: PageProps<"/settings">) => (
         </div>
       </div>
       <SectionErrorBoundary title="Settings couldn't load">
-        <SuspenseReveal fallback={<SettingsPanelSkeleton />}>
+        <SuspenseReveal
+          fallback={
+            <SearchParamFallback
+              cases={SECTION_FALLBACKS}
+              fallback={<SettingsPanelSkeleton section="appearance" />}
+              name="section"
+            />
+          }
+        >
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (
             <SettingsPanel

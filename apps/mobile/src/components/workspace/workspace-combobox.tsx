@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CaretDown, Check } from "phosphor-react-native";
 
 import { WorkspaceSheet } from "@/components/workspace/workspace-sheet";
 import { WorkspaceTextInput } from "@/components/workspace/workspace-text-input";
@@ -51,7 +52,7 @@ export const WorkspaceCombobox = ({
         <Text style={[typeStyle("md"), { color: selected === null ? palette.text3 : palette.text }]}>
           {selected?.label ?? placeholder}
         </Text>
-        <Text style={{ color: palette.text3 }}>▾</Text>
+        <CaretDown color={palette.text3} size={16} weight="bold" />
       </Pressable>
       <WorkspaceSheet onClose={() => setOpen(false)} title={label} visible={open}>
         <WorkspaceTextInput
@@ -74,7 +75,10 @@ export const WorkspaceCombobox = ({
               { backgroundColor: pressed ? palette.surface2 : "transparent" },
             ]}
           >
-            <Text style={[typeStyle("md"), { color: palette.text }]}>{option.label}</Text>
+            <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>{option.label}</Text>
+            {option.value === value ? (
+              <Check color={palette.accent} size={18} weight="bold" />
+            ) : null}
           </Pressable>
         ))}
       </WorkspaceSheet>
@@ -84,7 +88,9 @@ export const WorkspaceCombobox = ({
 
 const styles = StyleSheet.create({
   option: {
+    alignItems: "center",
     borderRadius: radii.md,
+    flexDirection: "row",
     minHeight: 44,
     paddingHorizontal: spacing.s3,
     paddingVertical: spacing.s2,

@@ -3,6 +3,7 @@
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
@@ -25,7 +26,7 @@ const ProjectTimePage = ({
   searchParams,
 }: PageProps<"/projects/[projectId]/time">) => {
   // oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell.
-  const route = Promise.all([params, searchParams]).then(
+  const route = Promise.all([params, searchParams, connection()]).then(
     ([{ projectId }, query]) => ({
       projectId,
       range: projectReportRange(query["from"], query["to"], getUtcToday()),
@@ -49,7 +50,7 @@ const ProjectTimePage = ({
           </div>
         </div>
         <SectionErrorBoundary title="The budget couldn't load">
-          <SuspenseReveal fallback={<ProjectBudgetPanelSkeleton />}>
+          <SuspenseReveal fallback={<ProjectBudgetPanelSkeleton reserveSpace={false} />}>
             {/* oxlint-disable-next-line promise/prefer-await-to-then -- Route values resolve inside the boundary. */}
             {route.then(({ projectId }) => (
               <ProjectBudgetPanel editable={false} projectId={projectId} />

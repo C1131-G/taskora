@@ -5,8 +5,10 @@ import type { Metadata } from "next";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
-import { InboxFeed } from "@/features/notifications/components/inbox-feed";
+import {
+  InboxFeed,
+  InboxFeedSkeleton,
+} from "@/features/notifications/components/inbox-feed";
 
 export const metadata: Metadata = { title: "Inbox | Taskora" };
 
@@ -19,11 +21,7 @@ const InboxPage = () => (
         </div>
       </div>
       <SectionErrorBoundary title="Inbox couldn't load">
-        <SuspenseReveal
-          fallback={
-            <PanelSkeleton label="Loading inbox…" rows={5} variant="inbox" />
-          }
-        >
+        <SuspenseReveal fallback={<InboxFeedSkeleton />}>
           <InboxFeed />
         </SuspenseReveal>
       </SectionErrorBoundary>

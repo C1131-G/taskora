@@ -172,10 +172,20 @@
     transform: translateX(300%);
   }
 }
+/* no sweeping bar under reduced motion, but a full bar must still read as
+   "loading", not "done": it breathes in place instead */
 @media (prefers-reduced-motion: reduce) {
   .task-drawer-progress::after {
-    animation: none;
+    animation: task-drawer-pulse 1s ease-in-out infinite alternate;
     width: 100%;
+  }
+}
+@keyframes task-drawer-pulse {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
   }
 }
 

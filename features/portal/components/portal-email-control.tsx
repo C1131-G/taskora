@@ -8,6 +8,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import { EMAIL_COPY } from "@/features/portal/components/portal-account-copy";
 import { setPortalEmailUpdatesAction } from "@/features/portal/portal-notification-actions";
 
 const PortalEmailControl = ({ enabled }: { readonly enabled: boolean }) => {
@@ -41,10 +42,7 @@ const PortalEmailControl = ({ enabled }: { readonly enabled: boolean }) => {
 
   return (
     <div className="portal-stack">
-      <p className="muted">
-        Get an email when the status of one of your bugs changes. Every email
-        has an unsubscribe link.
-      </p>
+      <p className="muted">{EMAIL_COPY}</p>
       <div>
         <WorkspaceButton
           aria-pressed={on}

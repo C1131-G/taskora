@@ -141,12 +141,22 @@
   overflow: hidden;
   width: 100%;
 }
+/* the fill spans the track and is clipped to the day's share (0-1), so the
+   change animates without layout and the rounded top keeps its shape */
 .workspace-app .mt-day-fill {
   background: var(--accent);
-  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  clip-path: inset(
+    calc((1 - var(--fill, 0)) * 100%) 0 0 0 round var(--r-sm) var(--r-sm) 0 0
+  );
   display: block;
-  transition: height var(--dur);
+  height: 100%;
+  transition: clip-path 200ms var(--ease);
   width: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-app .mt-day-fill {
+    transition: none;
+  }
 }
 .workspace-app .mt-day-name {
   color: var(--text-2);

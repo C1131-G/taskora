@@ -5,10 +5,8 @@ import type { Metadata } from "next";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import {
-  SearchPanel,
-  SearchPanelSkeleton,
-} from "@/features/discovery/components/search-panel";
+import { SearchPanel } from "@/features/discovery/components/search-panel";
+import { SearchPanelSkeleton } from "@/features/discovery/components/search-panel-skeleton";
 import { parseSearchQuery } from "@/features/discovery/search-query";
 
 export const metadata: Metadata = { title: "Search | Taskora" };

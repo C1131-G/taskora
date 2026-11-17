@@ -6,12 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { triageBugAction } from "@/features/bugs/bugs-actions";
 
 import type { BugHistory, BugSubmit } from "../bug-workflow-ui-shared";
@@ -57,33 +54,33 @@ export const BugTriageSection = ({
         <div className="bug-detail-facts">
           <div className="bug-form-field">
             <Label htmlFor="triage-severity">Severity</Label>
-            <Select defaultValue={history.bug.severity} name="severity">
-              <SelectTrigger id="triage-severity">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="blocker">Blocker</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="major">Major</SelectItem>
-                <SelectItem value="minor">Minor</SelectItem>
-                <SelectItem value="trivial">Trivial</SelectItem>
-              </SelectContent>
-            </Select>
+            <WorkspaceSelect
+              defaultValue={history.bug.severity}
+              name="severity"
+              id="triage-severity"
+            >
+              <WorkspaceSelectItem value="blocker">Blocker</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="critical">
+                Critical
+              </WorkspaceSelectItem>
+              <WorkspaceSelectItem value="major">Major</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="minor">Minor</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="trivial">Trivial</WorkspaceSelectItem>
+            </WorkspaceSelect>
           </div>
           <div className="bug-form-field">
             <Label htmlFor="triage-priority">Priority</Label>
-            <Select defaultValue={history.priority} name="priority">
-              <SelectTrigger id="triage-priority">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="none">None</SelectItem>
-              </SelectContent>
-            </Select>
+            <WorkspaceSelect
+              defaultValue={history.priority}
+              name="priority"
+              id="triage-priority"
+            >
+              <WorkspaceSelectItem value="urgent">Urgent</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="high">High</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="medium">Medium</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="low">Low</WorkspaceSelectItem>
+              <WorkspaceSelectItem value="none">None</WorkspaceSelectItem>
+            </WorkspaceSelect>
           </div>
         </div>
         <fieldset className="bug-employee-picker">

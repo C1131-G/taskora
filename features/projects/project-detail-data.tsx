@@ -63,6 +63,87 @@ const getEditableTaskIds = (
   return editableTaskIds;
 };
 
+const TASK_LIST_VIEWS = [
+  "overview",
+  "board",
+  "list",
+  "table",
+  "calendar",
+  "timeline",
+] as const;
+
+const needsTaskList = (view: string) =>
+  (TASK_LIST_VIEWS as readonly string[]).includes(view);
+
+const getCalendarRange = (
+  view: string,
+  calendarMode: CalendarMode,
+  monthOffset: number
+) =>
+  view === "calendar" ? calendarPeriod(calendarMode, monthOffset).range : null;
+
+const wantsAutomations = (view: string, isAdmin: boolean) =>
+  view === "automations" && isAdmin;
+
+const wantsFiles = (view: string) => view === "files";
+
+const wantsActivity = (view: string) =>
+  view === "activity" || view === "overview";
+
+const wantsBugs = (view: string) => view === "bugs";
+
+const wantsCustomFields = (view: string) => view === "table";
+
+type Project = Awaited<ReturnType<typeof getProject>>;
+type CalendarRange = ReturnType<typeof getCalendarRange>;
+
+const fetchTaskResult = (view: string, project: Project) =>
+  needsTaskList(view)
+    ? listProjectTaskPages(project.id, project.taskCount)
+    : Promise.resolve(null);
+
+const fetchFileResult = (view: string, project: Project) =>
+  wantsFiles(view) ? listProjectFiles({ projectId: project.id }) : null;
+
+const fetchActivityResult = (view: string, project: Project) =>
+  wantsActivity(view)
+    ? listActivity({ limit: 100, projectId: project.id })
+    : null;
+
+const fetchBugResult = (view: string, project: Project) =>
+  wantsBugs(view) ? listBugs({ projectId: project.id }) : null;
+
+const fetchCalendarResult = (calendarRange: CalendarRange) =>
+  calendarRange
+    ? listCalendarEvents({
+        from: calendarRange.fromInstant,
+        to: calendarRange.toInstant,
+      })
+    : null;
+
+const fetchAutomationResult = (
+  view: string,
+  isAdmin: boolean,
+  project: Project
+) =>
+  wantsAutomations(view, isAdmin)
+    ? listAutomationRules({ projectId: project.id })
+    : null;
+
+const fetchRunResult = (view: string, isAdmin: boolean, project: Project) =>
+  wantsAutomations(view, isAdmin)
+    ? listAutomationRuns({
+        limit: AUTOMATION_RUNS_SHOWN,
+        projectId: project.id,
+      })
+    : null;
+
+// Only the table has custom field columns.
+const fetchCustomFieldResult = (view: string, project: Project) =>
+  wantsCustomFields(view)
+    ? getProjectCustomFieldTable({ projectId: project.id })
+    : null;
+
 const loadProjectViewData = async ({
   calendarMode,
   isAdmin,
@@ -78,19 +159,7 @@ const loadProjectViewData = async ({
   readonly project: Awaited<ReturnType<typeof getProject>>;
   readonly view: string;
 }) => {
-  const requiresTaskList = [
-    "overview",
-    "board",
-    "list",
-    "table",
-    "calendar",
-    "timeline",
-  ].includes(view);
-  const calendarRange =
-    view === "calendar"
-      ? calendarPeriod(calendarMode, monthOffset).range
-      : null;
-  const wantsAutomations = view === "automations" && isAdmin;
+  const calendarRange = getCalendarRange(view, calendarMode, monthOffset);
   const [
     taskResult,
     fileResult,
@@ -101,31 +170,14 @@ const loadProjectViewData = async ({
     runResult,
     customFieldResult,
   ] = await Promise.all([
-    requiresTaskList
-      ? listProjectTaskPages(project.id, project.taskCount)
-      : Promise.resolve(null),
-    view === "files" ? listProjectFiles({ projectId: project.id }) : null,
-    view === "activity" || view === "overview"
-      ? listActivity({ limit: 100, projectId: project.id })
-      : null,
-    view === "bugs" ? listBugs({ projectId: project.id }) : null,
-    calendarRange
-      ? listCalendarEvents({
-          from: calendarRange.fromInstant,
-          to: calendarRange.toInstant,
-        })
-      : null,
-    wantsAutomations ? listAutomationRules({ projectId: project.id }) : null,
-    wantsAutomations
-      ? listAutomationRuns({
-          limit: AUTOMATION_RUNS_SHOWN,
-          projectId: project.id,
-        })
-      : null,
-    // Only the table has custom field columns.
-    view === "table"
-      ? getProjectCustomFieldTable({ projectId: project.id })
-      : null,
+    fetchTaskResult(view, project),
+    fetchFileResult(view, project),
+    fetchActivityResult(view, project),
+    fetchBugResult(view, project),
+    fetchCalendarResult(calendarRange),
+    fetchAutomationResult(view, isAdmin, project),
+    fetchRunResult(view, isAdmin, project),
+    fetchCustomFieldResult(view, project),
   ]);
   const customFieldTable = customFieldResult?.ok
     ? customFieldResult.data

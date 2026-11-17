@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CaretDown, Check } from "phosphor-react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -46,7 +47,7 @@ export const WorkspaceSelect = ({
         <Text style={[typeStyle("md"), { color: selected === null ? palette.text3 : palette.text }]}>
           {selected?.label ?? placeholder}
         </Text>
-        <Text style={{ color: palette.text3 }}>▾</Text>
+        <CaretDown color={palette.text3} size={16} weight="bold" />
       </Pressable>
       <WorkspaceSheet onClose={() => setOpen(false)} title={label} visible={open}>
         {options.map((option) => (
@@ -65,7 +66,7 @@ export const WorkspaceSelect = ({
           >
             <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>{option.label}</Text>
             {option.value === value ? (
-              <Text style={{ color: palette.accent }}>✓</Text>
+              <Check color={palette.accent} size={18} weight="bold" />
             ) : null}
           </Pressable>
         ))}

@@ -12,6 +12,10 @@ import {
   WorkspaceFieldError,
   WorkspaceFormError,
 } from "@/components/workspace/workspace-field-error";
+import {
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { createGithubConnectionAction } from "@/features/github/github-actions";
 import { WebhookSecretNotice } from "@/features/webhooks/components/webhook-secret-notice";
 
@@ -98,18 +102,18 @@ export const GithubConnectionForm = ({
         </div>
         <div className="field">
           <label htmlFor={`${formId}-projectId`}>Project</label>
-          <select
-            className="input"
+          <WorkspaceSelect
+            defaultValue={projects[0]?.id ?? ""}
             id={`${formId}-projectId`}
             name="projectId"
             required
           >
             {projects.map((project) => (
-              <option key={project.id} value={project.id}>
+              <WorkspaceSelectItem key={project.id} value={project.id}>
                 {project.label}
-              </option>
+              </WorkspaceSelectItem>
             ))}
-          </select>
+          </WorkspaceSelect>
           <WorkspaceFieldError
             errors={errors}
             field="projectId"

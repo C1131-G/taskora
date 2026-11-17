@@ -78,14 +78,28 @@ export const TaskCalendarDays = ({
             className={`cday${isCurrentMonth ? "" : " out"}${key === today ? " today" : ""}${overKey === key ? " over" : ""}`}
             data-day={key}
             key={key}
-            onDragEnter={onMoveTask ? () => setOverKey(key) : undefined}
-            onDragLeave={onMoveTask ? () => setOverKey(null) : undefined}
+            onDragLeave={
+              onMoveTask
+                ? (event) => {
+                    // Moving onto a chip inside the cell is not leaving it.
+                    const { relatedTarget } = event;
+                    if (
+                      relatedTarget instanceof Node &&
+                      event.currentTarget.contains(relatedTarget)
+                    ) {
+                      return;
+                    }
+                    setOverKey((current) => (current === key ? null : current));
+                  }
+                : undefined
+            }
             onDragOver={
               onMoveTask
                 ? (event) => {
                     // Only task drags reach a day cell here; the drop reads the ID.
                     event.preventDefault();
                     event.dataTransfer.dropEffect = "move";
+                    setOverKey(key);
                   }
                 : undefined
             }
@@ -136,10 +150,10 @@ export const TaskCalendarDays = ({
             })}
             {dayTasks.slice(0, visibleTaskCount).map((task) => (
               <CalendarTaskChip
+                key={task.id}
                 currentUserId={currentUserId}
                 employees={employees}
                 isAdmin={isAdmin}
-                key={task.id}
                 onMove={onMoveTask}
                 projectColor={
                   projectById.get(task.projectId)?.color ?? "var(--muted)"

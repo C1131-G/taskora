@@ -1,5 +1,4 @@
 import type { Store } from "@tanstack/store";
-import { createStore } from "@tanstack/store";
 
 import { MAX_BULK_SELECTION } from "@/features/projects/providers/project-view-store";
 
@@ -71,13 +70,7 @@ export const createInitialGlobalTaskViewState = (
   selectedTaskIds: [],
 });
 
-export const createGlobalTaskViewStore = (
-  search: GlobalTaskSearch,
-  columnWidths: GlobalTaskViewState["columnWidths"] = {}
-) =>
-  createStore<GlobalTaskViewState, GlobalTaskViewActions>(
-    createInitialGlobalTaskViewState(search, columnWidths),
-    globalTaskViewActions
-  );
-
-export type GlobalTaskViewStore = ReturnType<typeof createGlobalTaskViewStore>;
+export type GlobalTaskViewStore = Store<
+  GlobalTaskViewState,
+  GlobalTaskViewActions
+>;

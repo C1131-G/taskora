@@ -9,5 +9,5 @@ const isHomeTaskView = (value: unknown): value is HomeTaskView =>
 const parseHomeTaskView = (value: unknown): HomeTaskView =>
   isHomeTaskView(value) ? value : "upcoming";
 
-export { parseHomeTaskView };
+export { HOME_TASK_VIEWS, parseHomeTaskView };
 export type { HomeTaskView };

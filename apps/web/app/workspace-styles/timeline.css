@@ -204,7 +204,7 @@
   position: absolute;
   height: 24px;
   font-size: var(--fs-sm) !important;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--c) 16%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
   display: flex;

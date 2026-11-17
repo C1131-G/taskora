@@ -72,11 +72,10 @@ export const TaskSubtasksSection = ({
         aria-hidden="true"
         className="subtasks-bar"
         style={{
-          "--done": `${Math.round(
-            (subtasks.filter(({ completed }) => completed).length /
-              subtasks.length) *
-              100
-          )}%`,
+          // A 0-1 share: the bar is clipped to it in task-drawer-subtasks.css.
+          "--done":
+            subtasks.filter(({ completed }) => completed).length /
+            subtasks.length,
         }}
       />
     ) : (

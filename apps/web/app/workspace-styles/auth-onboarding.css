@@ -122,7 +122,7 @@
   height: 3px;
   border-radius: 2px;
   background: var(--border-strong);
-  transition: background 0.2s;
+  transition: background-color var(--dur) var(--ease);
 }
 .workspace-app .steps i.on {
   background: var(--accent);

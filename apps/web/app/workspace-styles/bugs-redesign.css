@@ -613,3 +613,98 @@
   color: var(--text);
   font-size: var(--fs-lg);
 }
+
+/* report bug: icon header, pill steps, calmer fields, clearer page header */
+.workspace-app .bug-report-dialog .bug-dialog-head {
+  align-items: center;
+  flex-direction: row;
+  gap: 14px;
+  text-align: left;
+}
+.workspace-app .bug-dialog-icon {
+  align-items: center;
+  background: var(--accent-soft, var(--surface-3));
+  border-radius: var(--r);
+  color: var(--accent);
+  display: inline-flex;
+  flex: 0 0 40px;
+  height: 40px;
+  justify-content: center;
+}
+.workspace-app .bug-dialog-head-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.workspace-app .bug-report-dialog .bug-steps {
+  gap: 6px;
+  margin-top: 14px;
+}
+.workspace-app .bug-report-dialog .bug-step {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  flex: 1 1 0;
+  padding: 4px 12px 4px 4px;
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.workspace-app .bug-report-dialog .bug-step::after {
+  display: none;
+}
+.workspace-app .bug-report-dialog .bug-step.is-current {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+.workspace-app .bug-report-dialog .bug-step-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.workspace-app .bug-report-dialog .bug-step-hint {
+  margin: 12px 0 16px;
+}
+.workspace-app .bug-report-dialog input:focus-visible,
+.workspace-app .bug-report-dialog textarea:focus-visible,
+.workspace-app .bug-report-dialog [data-slot="select-trigger"]:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft, transparent);
+  outline: none;
+}
+.workspace-app .project-bugs-view .bug-page-header,
+.workspace-app .bug-page > .bug-page-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+.workspace-app .bug-page-header [data-slot="button"] {
+  font-weight: 650;
+  height: 38px;
+  padding-inline: 16px;
+}
+/* Wizard step panels fade in when `hidden` lifts. DialogContent carries both
+   classes and is portaled to <body>, so match the compound form too. */
+:is(.workspace-app .bug-report-dialog, .bug-report-dialog.workspace-app)
+  .bug-step-panel:not([hidden]) {
+  transition:
+    opacity 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+@starting-style {
+  :is(.workspace-app .bug-report-dialog, .bug-report-dialog.workspace-app)
+    .bug-step-panel:not([hidden]) {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.workspace-app .bug-report-dialog, .bug-report-dialog.workspace-app)
+    .bug-step-panel:not([hidden]) {
+    transition: opacity 180ms var(--ease);
+  }
+  @starting-style {
+    :is(.workspace-app .bug-report-dialog, .bug-report-dialog.workspace-app)
+      .bug-step-panel:not([hidden]) {
+      transform: none;
+    }
+  }
+}

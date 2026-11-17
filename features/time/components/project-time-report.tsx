@@ -1,6 +1,10 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { getProject } from "@/features/projects/projects-queries";
 import { ProjectTimeExport } from "@/features/time/components/project-time-export";
 import { formatMinutes } from "@/features/time/time-format";
@@ -142,8 +146,80 @@ const ProjectTimeReport = async ({
   );
 };
 
+const SKELETON_RANGE_FIELDS = [
+  ["From", "time-from"],
+  ["To", "time-to"],
+] as const;
+const SKELETON_SUMMARY = ["Total", "Billable", "Not billable"] as const;
+const SKELETON_TABLES = [
+  ["By person", "Person"],
+  ["By task", "Task"],
+] as const;
+
+// ProjectTimeReport's markup: labels, headings and column titles stay; dates,
+// totals and rows are bones.
 const ProjectTimeReportSkeleton = () => (
-  <PanelSkeleton label="Loading the time report…" rows={4} variant="list" />
+  <SkeletonRegion label="Loading the time report…">
+    <div className="stack project-time">
+      <div className="time-range">
+        {SKELETON_RANGE_FIELDS.map(([label, id]) => (
+          <div className="field" key={id}>
+            <label htmlFor={`skeleton-${id}`}>{label}</label>
+            <input
+              className="input"
+              id={`skeleton-${id}`}
+              readOnly
+              tabIndex={-1}
+              type="date"
+            />
+          </div>
+        ))}
+        <span className="btn btn-secondary btn-sm">Update</span>
+        <span className="btn btn-secondary btn-sm">Export CSV</span>
+      </div>
+      <dl className="time-summary">
+        {SKELETON_SUMMARY.map((label) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>
+              <SkeletonBone shape="line" width="4em" />
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {SKELETON_TABLES.map(([heading, firstColumn]) => (
+        <section className="stack" key={heading}>
+          <h2>{heading}</h2>
+          <div className="tbl-wrap">
+            <table className="tbl time-table">
+              <thead>
+                <tr>
+                  <th scope="col">{firstColumn}</th>
+                  <th scope="col">Total</th>
+                  <th scope="col">Billable</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SKELETON_KEYS.slice(0, 3).map((key) => (
+                  <tr key={key}>
+                    <td>
+                      <SkeletonBone shape="line" width="10em" />
+                    </td>
+                    <td>
+                      <SkeletonBone shape="line" width="3em" />
+                    </td>
+                    <td>
+                      <SkeletonBone shape="line" width="3em" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
+    </div>
+  </SkeletonRegion>
 );
 
 export { ProjectTimeReport, ProjectTimeReportSkeleton };

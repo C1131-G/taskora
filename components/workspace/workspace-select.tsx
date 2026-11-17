@@ -78,7 +78,7 @@ const WorkspaceSelect = ({
   readonly defaultValue?: string;
   readonly dataField?: string;
   readonly disabled?: boolean;
-  readonly displayValue?: string;
+  readonly displayValue?: string | undefined;
   readonly id?: string;
   readonly name?: string;
   readonly onValueChange?: (value: string) => void;

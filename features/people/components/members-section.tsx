@@ -3,13 +3,28 @@
 
 import Link from "next/link";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import {
+  SKELETON_KEYS,
   SkeletonBone,
-  SkeletonDataGrid,
 } from "@/components/workspace/skeleton-shapes";
-import { MembersDirectory } from "@/features/people/components/members-directory";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
+import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import {
+  MembersDirectory,
+  RolePermissions,
+} from "@/features/people/components/members-directory";
 import { EmployeeCreateForm } from "@/features/people/components/people-admin-forms";
 import type { MembersSectionName } from "@/features/people/members-section-param";
 import {
@@ -68,52 +83,138 @@ const COLUMNS = [
   "Team",
   "Active projects",
   "Open tasks",
-  "Employee ID",
   "Status",
 ] as const;
 
 const ROLE_FILTERS = ["All", "Admin", "Employee"] as const;
 
-// Mirrors MembersSection + MembersDirectory: titles, tabs, filters and column
-// headings are static; the count and every row cell are data.
-const MembersSectionSkeleton = () => (
-  <div className="members-workspace">
-    <nav aria-label="People" className="members-section-nav">
-      <Link aria-current="page" href="/members">
-        Members
-      </Link>
-      <Link href="/teams">Teams</Link>
-      <Link href="/members?section=roles">Roles &amp; permissions</Link>
-    </nav>
-    <section aria-label="Workspace members" className="panel members-panel">
-      <div className="panel-h members-toolbar">
-        <span className="ct">
-          <SkeletonBone shape="short" />
+const MEMBER_ROWS = SKELETON_KEYS.slice(0, 5);
+
+// One member row of MembersDirectory: the avatar, three lines of identity,
+// the role and status pills and the counts are data.
+const MemberRowSkeleton = () => (
+  <TableRow>
+    <TableCell>
+      <span className="members-person">
+        <Avatar className="members-avatar">
+          <AvatarFallback />
+        </Avatar>
+        <span className="members-person-copy">
+          <strong>
+            <SkeletonBone shape="line" width="12ch" />
+          </strong>
+          <span>
+            <SkeletonBone shape="line" width="16ch" />
+          </span>
+          <span>
+            <SkeletonBone shape="line" width="20ch" />
+          </span>
         </span>
-        <div className="members-controls" inert>
-          <Input
-            aria-label="Search members"
-            className="members-search"
-            placeholder="Search members"
-            type="search"
-          />
-          <div aria-hidden="true" className="members-role-filter">
-            {ROLE_FILTERS.map((label) => (
-              <span className="btn btn-sm btn-ghost" key={label}>
-                {label}
-              </span>
-            ))}
+      </span>
+    </TableCell>
+    <TableCell>
+      <span className="member-role">
+        <SkeletonBone shape="line" width="7ch" />
+      </span>
+    </TableCell>
+    <TableCell>
+      <SkeletonBone shape="line" width="10ch" />
+    </TableCell>
+    <TableCell className="member-num">
+      <SkeletonBone shape="line" width="2ch" />
+    </TableCell>
+    <TableCell className="member-num">
+      <SkeletonBone shape="line" width="2ch" />
+    </TableCell>
+    <TableCell>
+      <Badge className="member-status" variant="secondary">
+        <SkeletonBone shape="line" width="5ch" />
+      </Badge>
+    </TableCell>
+  </TableRow>
+);
+
+// Mirrors MembersSection + MembersDirectory for the section in the URL: the
+// tabs, filters and column titles are static; the count and rows are data.
+// Admin-only Actions column is left out, as most people never see it.
+const MembersSectionSkeleton = ({
+  section,
+}: {
+  readonly section: MembersSectionName;
+}) => (
+  <SkeletonRegion
+    label={
+      section === "roles" ? "Loading roles & permissions…" : "Loading members…"
+    }
+  >
+    <div className="members-workspace">
+      <nav aria-label="People" className="members-section-nav">
+        <Link
+          aria-current={section === "members" ? "page" : undefined}
+          href="/members"
+        >
+          Members
+        </Link>
+        <Link href="/teams">Teams</Link>
+        <Link
+          aria-current={section === "roles" ? "page" : undefined}
+          href="/members?section=roles"
+        >
+          Roles &amp; permissions
+        </Link>
+      </nav>
+      {section === "roles" ? (
+        <RolePermissions />
+      ) : (
+        <section className="panel members-panel">
+          <div className="panel-h members-toolbar">
+            <span className="members-count-label">
+              <strong>
+                <SkeletonBone shape="line" width="2ch" />
+              </strong>{" "}
+              members
+            </span>
+            <div className="members-controls">
+              <Input
+                aria-label="Search members"
+                className="members-search"
+                placeholder="Search members"
+                type="search"
+              />
+              <div className="members-role-filter">
+                {ROLE_FILTERS.map((label) => (
+                  <WorkspaceButton
+                    active={label === "All"}
+                    key={label}
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                    workspace
+                  >
+                    {label}
+                  </WorkspaceButton>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <SkeletonDataGrid
-        columns={COLUMNS}
-        label="Loading members…"
-        rows={5}
-        widths="2.2fr 1fr 1fr 1.3fr 1fr 1.3fr 1fr"
-      />
-    </section>
-  </div>
+          <Table className="members-table">
+            <TableHeader>
+              <TableRow>
+                {COLUMNS.map((column) => (
+                  <TableHead key={column}>{column}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MEMBER_ROWS.map((key) => (
+                <MemberRowSkeleton key={key} />
+              ))}
+            </TableBody>
+          </Table>
+        </section>
+      )}
+    </div>
+  </SkeletonRegion>
 );
 
 export { MembersActions, MembersCount, MembersSection, MembersSectionSkeleton };

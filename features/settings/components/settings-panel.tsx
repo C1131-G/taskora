@@ -1,7 +1,5 @@
-/* eslint-disable shadcn/no-restyle -- Skeletons reuse the workspace tab and input classes. */
 /* eslint-disable shadcn/no-unknown-classes */
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import { listAllClientCompanies } from "@/features/clients/clients-queries";
 import { getAvatarDownloadUrl } from "@/features/files/files-queries";
@@ -202,43 +200,4 @@ const SettingsPanel = async ({
   );
 };
 
-const THEMES = ["System", "Light", "Dark"] as const;
-
-// Mirrors SettingsWorkspace's Appearance tab: it needs no data, so the first
-// section is the real static markup, not placeholder bones.
-const SettingsPanelSkeleton = () => (
-  <Tabs className="settings-workspace" value="appearance">
-    <TabsList aria-label="Settings sections" className="settings-nav" inert>
-      <TabsTrigger value="appearance">Appearance</TabsTrigger>
-      <TabsTrigger value="profile">Profile</TabsTrigger>
-      <TabsTrigger value="preferences">Preferences</TabsTrigger>
-      <TabsTrigger value="sessions">Sessions</TabsTrigger>
-    </TabsList>
-    <output className="sr-only">Loading settings…</output>
-    <div className="settings-content">
-      <section className="panel">
-        <div className="panel-h">
-          <h2>Appearance</h2>
-          <p>Customize how Taskora looks on this device.</p>
-        </div>
-        <div className="panel-b stack">
-          <div>
-            <h3 className="settings-section-title">Theme</h3>
-            <p className="muted">
-              Choose a theme or follow your device setting.
-            </p>
-          </div>
-          <div className="settings-theme-options skeleton-theme-options">
-            {THEMES.map((label) => (
-              <span className="settings-theme-choice" key={label}>
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
-  </Tabs>
-);
-
-export { SettingsPanel, SettingsPanelSkeleton };
+export { SettingsPanel };

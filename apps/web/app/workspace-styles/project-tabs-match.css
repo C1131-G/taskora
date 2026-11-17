@@ -48,7 +48,7 @@
 .workspace-app .project-upcoming-item [data-slot="checkbox"] {
   background: var(--surface);
   border: 1.5px solid var(--text-4);
-  border-radius: 4px;
+  border-radius: var(--r-xs);
 }
 .workspace-app .project-upcoming-item [data-slot="checkbox"][data-state="checked"] {
   background: var(--accent);

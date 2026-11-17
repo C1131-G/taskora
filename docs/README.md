@@ -1,13 +1,20 @@
-# Documentation
+---
+title: Documentation
+type: overview
+status: current
+updated: 2026-11-13
+---
 
-> Type: overview · Status: current · Updated: 2026-10-30
+<!-- markdownlint-disable MD025 -->
+
+# Documentation
 
 This index points contributors to Taskora's setup, architecture, and API documentation.
 
 ## Contributor guides
 
 - [Agent guidance](../CLAUDE.md) — points coding agents to tracked repository conventions.
-- [Instant navigation runbook](../instant-nav.rig.md) — Playwright workflow for checking route shells and loading skeletons.
+- [Instant navigation runbook](runbooks/instant-navigation.md) — Playwright workflow for checking route shells and loading skeletons.
 - [Manual testing guide](manual-testing.md): seeded logins, companies, projects, and a test checklist.
 
 ## Getting started

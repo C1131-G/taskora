@@ -25,14 +25,6 @@
   .workspace-app .shell > .side {
     display: none;
   }
-  .workspace-app .side-scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: var(--overlay);
-    z-index: 69;
-    animation: fade 0.14s both;
-  }
   .workspace-app {
     --gutter: 16px;
   }

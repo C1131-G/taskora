@@ -66,7 +66,7 @@ const apiStub: ApiContextValue = {
 it("toasts a failed mark-all request", async () => {
   const api = { call: () => Effect.fail(new ValidationFailed({ fieldErrors: { inbox: "Could not mark read" } })) } as unknown as ApiContextValue;
   const user = userEvent.setup();
-  await renderWithTheme(<InboxScreen api={api} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />);
+  await renderWithTheme(<InboxScreen isLoading={false} api={api} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />);
   await user.press(screen.getByRole("button", { name: "Mark all read" }));
   await waitFor(() => expect(screen.getByText("Could not mark read")).toBeTruthy());
 });
@@ -74,7 +74,7 @@ it("toasts a failed mark-all request", async () => {
 it("shows the tabs, unread badge counts and switches to unread", async () => {
   const user = userEvent.setup();
   await renderWithTheme(
-    <InboxScreen api={apiStub} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />,
+    <InboxScreen isLoading={false} api={apiStub} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />,
   );
 
   expect(screen.getByText("All 3")).toBeTruthy();
@@ -106,7 +106,7 @@ it("marks an unread item and opens its task", async () => {
 
   const user = userEvent.setup();
   await renderWithTheme(
-    <InboxScreen
+    <InboxScreen isLoading={false}
       api={api}
       items={ITEMS}
       keys={keysStub}
@@ -139,7 +139,7 @@ it("marks everything read at once", async () => {
 
   const user = userEvent.setup();
   await renderWithTheme(
-    <InboxScreen api={api} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />,
+    <InboxScreen isLoading={false} api={api} items={ITEMS} keys={keysStub} onOpenTask={() => undefined} />,
   );
 
   await user.press(screen.getByRole("button", { name: "Mark all read" }));

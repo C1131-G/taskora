@@ -541,9 +541,12 @@
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   transition:
-    background var(--dur),
-    border-color var(--dur);
+    background 140ms var(--ease),
+    border-color 140ms var(--ease),
+    box-shadow 140ms var(--ease);
 }
+/* restates kanban.css's .bcol.is-over: the .bcol rule above has the same
+   specificity and loads later, so it would otherwise win */
 .workspace-app .global-task-board .bcol.is-over {
   background: var(--accent-soft);
   border-color: var(--accent);
@@ -571,7 +574,8 @@
   transition:
     border-color var(--dur),
     box-shadow var(--dur),
-    opacity var(--dur);
+    opacity var(--dur),
+    transform 180ms var(--ease);
 }
 .workspace-app .gt-card:hover {
   border-color: var(--border-strong);
@@ -579,35 +583,30 @@
 .workspace-app .gt-card:active {
   cursor: grabbing;
 }
+/* the card left behind while its drag image moves: a dashed placeholder */
 .workspace-app .gt-card.is-dragging {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-drag, 0 8px 20px rgb(0 0 0 / 35%));
-  opacity: 0.9;
+  border-color: var(--accent-line);
+  border-style: dashed;
+  box-shadow: none;
+  opacity: 0.4;
+  outline: none;
 }
-/* after a drop the card is fully opaque again and settles with a short highlight */
+/* after a drop the card settles with a short color highlight. The optimistic
+   move places the card at once (the drag image already travelled), so this
+   keyframe never moves it. Color only, so it also stays under reduced motion. */
 .workspace-app .gt-card.just-dropped {
-  animation: gt-dropped 0.9s ease-out;
+  animation: gt-dropped 300ms var(--ease);
 }
 @keyframes gt-dropped {
-  0% {
+  from {
     background: var(--accent-soft);
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-line);
-    transform: scale(1.03);
   }
-  60% {
-    transform: scale(1);
-  }
-  100% {
+  to {
     background: var(--surface);
     border-color: var(--border);
     box-shadow: var(--shadow-sm);
-    transform: scale(1);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .workspace-app .gt-card.just-dropped {
-    animation: none;
   }
 }
 .workspace-app .gt-card.done .gt-card-title a {
@@ -810,4 +809,31 @@
 }
 .workspace-app .kcard.is-locked {
   cursor: default;
+}
+
+/* Tasks board skeleton: the real board frame; the card rows keep the height of
+   their fixed-size controls (26px action buttons, 24px avatars). */
+.workspace-app .gt-board-skeleton {
+  display: block;
+}
+.workspace-app .gt-board-skeleton .bcol-h .cnt .skeleton-bone {
+  width: 14px;
+}
+.workspace-app .gt-board-skeleton .gt-card-top {
+  min-height: 26px;
+}
+.workspace-app .gt-board-skeleton .gt-card-title .skeleton-bone {
+  display: inline-block;
+  width: 80%;
+}
+.workspace-app .gt-board-skeleton .gt-card-project .skeleton-bone {
+  display: inline-block;
+  width: 120px;
+}
+.workspace-app .gt-board-skeleton .gt-card-meta .skeleton-avatar {
+  height: 24px;
+  width: 24px;
+}
+.workspace-app output.mtt-wrap {
+  display: block;
 }

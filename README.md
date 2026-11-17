@@ -1,6 +1,6 @@
 # Taskora
 
-> Type: readme · Status: current · Updated: 2026-10-29
+> Type: readme · Status: current · Updated: 2026-11-13
 
 Taskora is a project and work management platform for teams and their clients. It includes a web application, a companion mobile app, and a server that handles authentication, workspace data, files, notifications, and background jobs.
 
@@ -11,7 +11,7 @@ The repository is open source under the [MIT License](LICENSE). Taskora is built
 - Plan work in projects, task lists, boards, calendars, and timelines.
 - Assign tasks, track time and budgets, manage milestones, dependencies, and recurring work.
 - Coordinate teams, clients, approvals, bug reports, and project updates.
-- Share files, comments, notifications, saved views, and activity history.
+- Share files, comments, notifications, and activity history.
 - Connect integrations and automation through webhooks, email intake, GitHub events, and scheduled jobs.
 - Use the Expo mobile app for workspace tasks, projects, notifications, time, and client portal workflows.
 

@@ -14,7 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SkeletonDataGrid } from "@/components/workspace/skeleton-shapes";
+import { EmptyState } from "@/components/workspace/empty-state";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { listAllClientCompanies } from "@/features/clients/clients-queries";
 import { readOrThrow } from "@/lib/read-result";
 import { getPageSession } from "@/src/server/auth/page-session";
@@ -76,14 +81,13 @@ const ClientCompanyList = async () => {
       </Table>
     </section>
   ) : (
-    <section className="clients-empty-state">
-      <Buildings aria-hidden="true" size={24} />
-      <h2>No client companies yet</h2>
-      <p>
-        Create a company, link its projects and add client users so they can
-        report bugs through the portal.
-      </p>
-    </section>
+    <EmptyState
+      description="Create a company, link its projects and add client users so they can report bugs through the portal."
+      headingLevel={2}
+      icon={Buildings}
+      size="panel"
+      title="No client companies yet"
+    />
   );
 };
 
@@ -106,17 +110,53 @@ const ClientCompanyCount = async () => {
     : `${companies.length} client companies can report bugs through the portal.`;
 };
 
+const COMPANY_ROWS = SKELETON_KEYS.slice(0, 5);
+
 // Mirrors ClientCompanyList: the column headings are static; every row is
 // data.
 const ClientCompanyListSkeleton = () => (
-  <section aria-label="Client companies" className="panel clients-panel">
-    <SkeletonDataGrid
-      columns={COLUMNS}
-      label="Loading client companies…"
-      rows={5}
-      widths="2fr 1fr 1fr 1fr 1fr 1fr"
-    />
-  </section>
+  <SkeletonRegion label="Loading client companies…">
+    <section aria-label="Client companies" className="panel clients-panel">
+      <Table className="clients-table">
+        <TableHeader>
+          <TableRow>
+            {COLUMNS.map((column, index) => (
+              <TableHead
+                className={index > 1 ? "clients-num" : undefined}
+                key={column}
+              >
+                {column}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {COMPANY_ROWS.map((key) => (
+            <TableRow key={key}>
+              <TableCell>
+                <span className="clients-company-link">
+                  <Buildings aria-hidden="true" size={16} />
+                  <strong>
+                    <SkeletonBone shape="line" width="14ch" />
+                  </strong>
+                </span>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">
+                  <SkeletonBone shape="line" width="5ch" />
+                </Badge>
+              </TableCell>
+              {COLUMNS.slice(2).map((column) => (
+                <TableCell className="clients-num" key={column}>
+                  <SkeletonBone shape="line" width="2ch" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </section>
+  </SkeletonRegion>
 );
 
 export { ClientCompanyCount, ClientCompanyList, ClientCompanyListSkeleton };

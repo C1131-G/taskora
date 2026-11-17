@@ -69,27 +69,6 @@
   width: 48px;
   height: 28px;
 }
-.workspace-app .skeleton-card .desc {
-  margin-block: 16px;
-}
-.workspace-app .skeleton-card .foot {
-  gap: 16px;
-  margin-top: 16px;
-}
-.workspace-app .skeleton-table-scroll {
-  overflow-x: auto;
-}
-.workspace-app .skeleton-table {
-  width: 100%;
-  min-width: 580px;
-}
-.workspace-app .skeleton-table th,
-.workspace-app .skeleton-table td {
-  padding: 14px 12px;
-}
-.workspace-app .skeleton-table td:first-child {
-  width: 30%;
-}
 .workspace-app .skeleton-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -150,24 +129,21 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .workspace-app .skelter-surface *,
-  .workspace-app .sk {
+  .workspace-app .skelter-surface * {
     animation: none !important;
     transition: none !important;
   }
+  /* An opacity-only pulse is not movement; keep it, slower. */
+  .workspace-app .sk {
+    animation: sk-pulse 2s ease-in-out infinite !important;
+  }
 }
-.workspace-app .skeleton-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.workspace-app .skeleton-row {
-  height: 36px;
-}
-.workspace-app .home-stats-skeleton {
-  height: 84px;
-  margin-bottom: 16px;
-  border-radius: var(--r-lg);
+/* a bar inside a real text element: the element's line box keeps the height */
+.workspace-app .sk.skeleton-line {
+  display: inline-block;
+  height: 0.8em;
+  vertical-align: middle;
+  width: 12ch;
 }
 .workspace-app .skeleton-filter-select {
   display: inline-flex;

@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { X } from "phosphor-react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -42,7 +43,7 @@ export const WorkspaceChip = ({ color = "gray", label, onRemove, selected = fals
           hitSlop={8}
           onPress={onRemove}
         >
-          <Text style={{ color: selected ? palette.onAccent : palette.text3 }}>✕</Text>
+          <X color={selected ? palette.onAccent : palette.text3} size={12} weight="bold" />
         </Pressable>
       )}
     </View>
@@ -56,7 +57,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     flexDirection: "row",
     gap: spacing.s1,
-    paddingHorizontal: spacing.s2,
+    minHeight: 28,
+    paddingHorizontal: spacing.s3,
     paddingVertical: spacing.s1,
   },
 });

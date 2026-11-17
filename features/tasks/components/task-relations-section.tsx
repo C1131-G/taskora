@@ -4,6 +4,7 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 
 export interface TaskRelationOption {
@@ -122,3 +123,51 @@ export const TaskRelationsSection = ({
     </section>
   );
 };
+
+// The section as it first renders: the real heading, legends and hint, with a
+// row of chip bones per list and the save button's slot (editable users only).
+export const TaskRelationsSkeleton = ({
+  editable,
+}: {
+  readonly editable: boolean;
+}) => (
+  <output
+    aria-busy="true"
+    aria-label="Loading labels and dependencies…"
+    className="stack"
+  >
+    <span className="sr-only">Loading labels and dependencies…</span>
+    <h3>Labels and dependencies</h3>
+    <div aria-hidden="true" className="stack">
+      {editable ? (
+        <>
+          <fieldset className="field">
+            <legend>Labels</legend>
+            <div className="rel-list rel-chips">
+              <SkeletonBone shape="control" />
+            </div>
+          </fieldset>
+          <fieldset className="field">
+            <legend>Blocked by</legend>
+            <p className="setting-hint">
+              This task can&apos;t start until the ticked tasks are done.
+            </p>
+            <div className="rel-list">
+              <SkeletonBone shape="control" />
+            </div>
+          </fieldset>
+          <SkeletonBone shape="control" />
+        </>
+      ) : (
+        <>
+          <p className="muted">
+            <SkeletonBone />
+          </p>
+          <p className="muted">
+            <SkeletonBone />
+          </p>
+        </>
+      )}
+    </div>
+  </output>
+);

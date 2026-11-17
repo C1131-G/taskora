@@ -18,14 +18,21 @@
   height: 6px;
   overflow: hidden;
 }
+/* the fill keeps its full width and is clipped to the done share (0-1), so the
+   change animates without layout and the rounded end keeps its shape */
 [data-task-drawer].workspace-app .subtasks-bar::after {
   background: var(--st-done);
-  border-radius: inherit;
+  clip-path: inset(0 calc((1 - var(--done, 0)) * 100%) 0 0 round 999px);
   content: "";
   display: block;
   height: 100%;
-  transition: width var(--dur);
-  width: var(--done);
+  transition: clip-path 200ms var(--ease);
+  width: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-task-drawer].workspace-app .subtasks-bar::after {
+    transition: none;
+  }
 }
 [data-task-drawer].workspace-app .subtasks-empty {
   background: var(--surface-2);

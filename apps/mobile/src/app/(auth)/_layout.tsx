@@ -1,6 +1,6 @@
 import { Redirect, Stack } from "expo-router";
 
-import { WorkspaceSkeleton } from "@/components/workspace/workspace-skeleton";
+import { WorkspaceLoadingSurface } from "@/components/workspace/workspace-loading";
 import { routeFor } from "@/features/auth/route-for";
 import { useSessionState } from "@/features/auth/session-gate";
 
@@ -10,7 +10,7 @@ export default function AuthLayout() {
   const area = routeFor(state);
 
   if (!restored) {
-    return <WorkspaceSkeleton variant="panel" />;
+    return <WorkspaceLoadingSurface />;
   }
   if (area !== "login" && area !== "change-password") {
     return <Redirect href={area === "portal" ? "/portal" : "/"} />;

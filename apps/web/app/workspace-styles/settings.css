@@ -93,7 +93,7 @@
 }
 .workspace-app .tprev {
   height: 84px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   display: grid;
   grid-template-columns: 30% 1fr;
   overflow: hidden;
@@ -130,10 +130,19 @@
   place-items: center;
   color: #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
-  transition: transform var(--dur);
+  transition:
+    transform 140ms var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
-.workspace-app .sw:hover {
-  transform: scale(1.08);
+@media (hover: hover) and (pointer: fine) {
+  .workspace-app .sw:hover {
+    transform: scale(1.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-app .sw:hover {
+    transform: none;
+  }
 }
 .workspace-app .sw.on {
   box-shadow:

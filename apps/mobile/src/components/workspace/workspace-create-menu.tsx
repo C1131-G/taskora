@@ -1,5 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Plus } from "phosphor-react-native";
+
+import { AnimatedPressable, usePressScale } from "@/components/workspace/workspace-press-scale";
 
 import { WorkspaceSheet } from "@/components/workspace/workspace-sheet";
 import { useTheme } from "@/theme/theme-provider";
@@ -20,20 +23,27 @@ export const WorkspaceCreateMenu = ({ actions }: WorkspaceCreateMenuProps) => {
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [open, setOpen] = useState(false);
+  const press = usePressScale();
 
   return (
     <>
-      <Pressable
+      <AnimatedPressable
         accessibilityLabel="Create"
         accessibilityRole="button"
         onPress={() => setOpen(true)}
-        style={({ pressed }) => [
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={[
           styles.fab,
-          { backgroundColor: palette.accent, opacity: pressed ? 0.85 : 1 },
+          {
+            backgroundColor: palette.accent,
+            boxShadow: (isDark ? shadows.dark : shadows.light).pop,
+          },
+          press.pressStyle,
         ]}
       >
-        <Text style={[typeStyle("2xl", { weight: 500 }), { color: palette.onAccent }]}>+</Text>
-      </Pressable>
+        <Plus color={palette.onAccent} size={24} weight="bold" />
+      </AnimatedPressable>
       <WorkspaceSheet onClose={() => setOpen(false)} title="Create" visible={open}>
         {actions.map((action) => (
           <Pressable
@@ -130,8 +140,8 @@ export const WorkspaceSearchPalette = ({
       <View style={[styles.palettePanel, { backgroundColor: palette.surface }]}>
         <View style={styles.searchRow}>
           {input}
-          <Pressable accessibilityRole="button" onPress={onClose}>
-            <Text style={{ color: palette.text3 }}>Cancel</Text>
+          <Pressable accessibilityRole="button" hitSlop={8} onPress={onClose}>
+            <Text style={[typeStyle("md", { weight: 500 }), { color: palette.accent }]}>Cancel</Text>
           </Pressable>
         </View>
         <View style={styles.results}>{children}</View>
@@ -151,7 +161,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radii.full,
     bottom: 84,
-    boxShadow: shadows.light.pop,
     height: 56,
     justifyContent: "center",
     position: "absolute",

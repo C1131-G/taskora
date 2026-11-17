@@ -16,6 +16,9 @@ export const metadata: Metadata = { title: "Tasks | Taskora" };
 const TasksPage = ({ searchParams }: PageProps<"/tasks">) => (
   <PageTransition>
     <div className="page flush">
+      {/* The visible title lives in the loading and loaded frames; this one is
+          the page's heading in the static shell, so those are aria-hidden. */}
+      <h1 className="sr-only">Tasks</h1>
       <SectionErrorBoundary title="Tasks couldn't load" variant="page">
         <SuspenseReveal fallback={<AllTasksSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}

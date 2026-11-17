@@ -1,6 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
-import { CaretDown, Pulse } from "@phosphor-icons/react/dist/ssr";
+import { Pulse } from "@phosphor-icons/react/dist/ssr";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/workspace/empty-state";
@@ -9,7 +9,8 @@ import {
   SKELETON_KEYS,
   SkeletonBone,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
+import { WorkspaceCombobox } from "@/components/workspace/workspace-combobox";
 import { listActivity } from "@/features/activity/activity-queries";
 import { ActivityFeedList } from "@/features/activity/components/activity-feed-list";
 
@@ -36,52 +37,61 @@ const ActivityFeed = async () => {
 
 const ACTIVITY_SKELETON_ROWS = SKELETON_KEYS.slice(0, 5);
 
-// Mirrors ActivityFeedList: the filter row is static, only the entries are data.
+// Mirrors ActivityFeedList: the filter row and day heading are static; only
+// the entries are data.
 const ActivityFeedSkeleton = () => (
-  <section aria-label="Workspace activity" className="stack">
-    <div className="row activity-filters" inert>
-      <Tabs value="all">
-        <div className="activity-tabs">
-          <TabsList aria-label="Filter activity">
-            <TabsTrigger aria-controls={undefined} value="all">
-              All
-            </TabsTrigger>
-            <TabsTrigger aria-controls={undefined} value="status">
-              Status changes
-            </TabsTrigger>
-            <TabsTrigger aria-controls={undefined} value="comments">
-              Comments
-            </TabsTrigger>
-            <TabsTrigger aria-controls={undefined} value="projects">
-              Projects
-            </TabsTrigger>
-          </TabsList>
-        </div>
-      </Tabs>
-      <span className="skeleton-filter-select">
-        Everyone
-        <CaretDown aria-hidden="true" size={14} />
-      </span>
-    </div>
-    <section className="panel">
-      <div className="panel-h">
-        <h2>Today</h2>
+  <SkeletonRegion label="Loading activity…">
+    <section className="stack">
+      <div className="row activity-filters">
+        <Tabs value="all">
+          <div className="activity-tabs">
+            <TabsList aria-label="Filter activity">
+              <TabsTrigger aria-controls={undefined} value="all">
+                All
+              </TabsTrigger>
+              <TabsTrigger aria-controls={undefined} value="status">
+                Status changes
+              </TabsTrigger>
+              <TabsTrigger aria-controls={undefined} value="comments">
+                Comments
+              </TabsTrigger>
+              <TabsTrigger aria-controls={undefined} value="projects">
+                Projects
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </Tabs>
+        <WorkspaceCombobox
+          ariaLabel="Filter by person"
+          className="min-w-[130px]"
+          defaultValue="everyone"
+          emptyMessage="No people found."
+          id="activity-person-skeleton"
+          options={[{ label: "Everyone", value: "everyone" }]}
+          placeholder="Everyone"
+          searchPlaceholder="Search people"
+        />
       </div>
-      <SkelterSurface label="Loading activity…">
+      <section className="panel">
+        <div className="panel-h">
+          <h2>Today</h2>
+        </div>
         <div className="panel-b feed lined">
           {ACTIVITY_SKELETON_ROWS.map((key) => (
             <article className="row activity-entry" key={key}>
-              <SkeletonBone shape="avatar" />
+              <span aria-hidden="true" className="av" />
               <p className="activity-copy grow">
-                <SkeletonBone />
+                <SkeletonBone shape="line" width="48ch" />
               </p>
-              <SkeletonBone shape="short" />
+              <span className="faint">
+                <SkeletonBone shape="line" width="6ch" />
+              </span>
             </article>
           ))}
         </div>
-      </SkelterSurface>
+      </section>
     </section>
-  </section>
+  </SkeletonRegion>
 );
 
 export { ActivityFeed, ActivityFeedSkeleton };

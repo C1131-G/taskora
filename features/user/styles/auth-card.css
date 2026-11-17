@@ -19,7 +19,7 @@
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  animation: auth-rise 420ms var(--ease) both;
+  animation: auth-rise 240ms var(--ease) both;
 }
 
 .auth-head {
@@ -178,7 +178,13 @@
 @keyframes auth-rise {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.99);
+    transform: translateY(6px);
+  }
+}
+
+@keyframes auth-fade {
+  from {
+    opacity: 0;
   }
 }
 
@@ -205,7 +211,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .auth-card {
-    animation: none;
+    animation: auth-fade 120ms var(--ease) both;
   }
 }
 

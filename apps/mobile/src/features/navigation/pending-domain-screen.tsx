@@ -1,4 +1,5 @@
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
+import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
 
 /**
@@ -8,9 +9,11 @@ import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
  */
 export const PendingDomainScreen = ({ title }: { readonly title: string }) => (
   <WorkspaceTabShell>
-    <WorkspaceEmptyState
-      message="This area arrives with its live API routes."
-      title={title}
-    />
+    <WorkspaceScreen {...(title.length === 0 ? {} : { title })}>
+      <WorkspaceEmptyState
+        message="This area arrives with its live API routes."
+        title={title.length === 0 ? "Coming soon" : title}
+      />
+    </WorkspaceScreen>
   </WorkspaceTabShell>
 );

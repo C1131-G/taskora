@@ -1,11 +1,17 @@
+/* eslint-disable shadcn/no-restyle -- Skeletons reuse the real workspace button and input classes. */
 /* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
+import { Copy, EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
+import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { listActivity } from "@/features/activity/activity-queries";
 import {
   MemberProfileHeader,
@@ -137,88 +143,151 @@ const STATS = [
 
 const TASK_ROWS = SKELETON_KEYS.slice(0, 5);
 
-const SIDE_ROWS = SKELETON_KEYS.slice(0, 3);
+const PROJECT_ROWS = SKELETON_KEYS.slice(0, 4);
 
-// Mirrors MemberProfileHeader: the person is data.
+const ACTIVITY_ROWS = SKELETON_KEYS.slice(0, 5);
+
+// Mirrors MemberProfileHeader: the person is data; the Copy email and Assign
+// task buttons are static. The admin-only Manage button is left out, as
+// most people never see it.
 const MemberHeaderSkeleton = () => (
-  <SkelterSurface label="Loading member profile…">
+  <SkeletonRegion label="Loading member profile…">
     <header className="member-profile-header">
-      <SkeletonBone shape="avatar" />
+      <Avatar className="member-profile-avatar">
+        <AvatarFallback />
+      </Avatar>
       <div className="member-profile-identity">
         <div className="member-profile-name-row">
-          <SkeletonBone shape="title" />
+          <h1>
+            <SkeletonBone shape="line" width="12ch" />
+          </h1>
+          <Badge variant="secondary">
+            <SkeletonBone shape="line" width="5ch" />
+          </Badge>
         </div>
         <p className="member-profile-job">
-          <SkeletonBone />
+          <SkeletonBone shape="line" width="22ch" />
         </p>
-        <p className="member-profile-email">
-          <SkeletonBone />
-        </p>
+        <span className="member-profile-email">
+          <EnvelopeSimple aria-hidden="true" size={15} />
+          <span>
+            <SkeletonBone shape="line" width="20ch" />
+          </span>
+        </span>
+      </div>
+      <div className="member-profile-actions">
+        <WorkspaceButton className="btn btn-secondary btn-sm" type="button">
+          <Copy aria-hidden="true" size={14} />
+          Copy email
+        </WorkspaceButton>
+        <WorkspaceButton className="btn btn-primary" type="button">
+          Assign task
+        </WorkspaceButton>
       </div>
     </header>
-  </SkelterSurface>
+  </SkeletonRegion>
 );
 
-// Mirrors MemberProfileWork: stat labels and panel titles are static; the
-// counts and rows are data.
+// Mirrors MemberProfileWork: stat labels, tab names and panel titles are
+// static; the counts and rows are data.
 const MemberWorkSkeleton = () => (
-  <>
-    <div className="stats member-profile-stats">
-      {STATS.map((label) => (
-        <div className="stat" key={label}>
-          <span className="k">{label}</span>
-          <span className="v">
-            <SkeletonBone shape="short" />
-          </span>
-        </div>
-      ))}
-    </div>
-    <div className="member-profile-grid">
-      <section aria-label="Assigned tasks" className="panel">
-        <nav aria-label="Member task filters" className="member-profile-tabs">
-          <span aria-current="page">Assigned</span>
-          <span>Completed</span>
-        </nav>
-        <SkelterSurface label="Loading member tasks…">
-          {TASK_ROWS.map((key) => (
-            <div className="row skeleton-feed-row" key={key}>
-              <div className="skeleton-copy grow">
-                <SkeletonBone />
-                <SkeletonBone shape="short" />
-              </div>
-              <SkeletonBone shape="short" />
-            </div>
-          ))}
-        </SkelterSurface>
+  <SkeletonRegion label="Loading member work…">
+    <div className="member-profile-page">
+      <section className="stats member-profile-stats">
+        {STATS.map((label) => (
+          <div className="stat" key={label}>
+            <span className="k">{label}</span>
+            <span className="v">
+              <SkeletonBone shape="line" width="2ch" />
+            </span>
+          </div>
+        ))}
       </section>
-      <div className="member-profile-side">
+      <div className="member-profile-grid">
         <section className="panel">
-          <div className="panel-h">
-            <h2>Active projects</h2>
-          </div>
-          <SkelterSurface label="Loading member projects…">
-            <div className="panel-b stack">
-              {SIDE_ROWS.map((key) => (
-                <SkeletonBone key={key} />
-              ))}
-            </div>
-          </SkelterSurface>
+          <nav aria-label="Member task filters" className="member-profile-tabs">
+            <span aria-current="page">Assigned</span>
+            <span>Completed</span>
+          </nav>
+          <ul className="member-profile-task-list">
+            {TASK_ROWS.map((key) => (
+              <li className="member-profile-task" key={key}>
+                <span aria-hidden="true" className="project-status-dot" />
+                <div className="member-profile-task-copy">
+                  <WorkspaceButton
+                    className="member-profile-task-title"
+                    type="button"
+                  >
+                    <SkeletonBone shape="line" width="24ch" />
+                  </WorkspaceButton>
+                  <span>
+                    <SkeletonBone shape="line" width="30ch" />
+                  </span>
+                </div>
+                <span className="member-profile-task-meta">
+                  <SkeletonBone shape="line" width="10ch" />
+                  <Badge variant="outline">
+                    <SkeletonBone shape="line" width="6ch" />
+                  </Badge>
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
-        <section className="panel">
-          <div className="panel-h">
-            <h2>Recent activity</h2>
-          </div>
-          <SkelterSurface label="Loading member activity…">
-            <div className="panel-b stack">
-              {SIDE_ROWS.map((key) => (
-                <SkeletonBone key={key} />
-              ))}
+        <div className="member-profile-side">
+          <section className="panel">
+            <div className="panel-h">
+              <h2>Active projects</h2>
+              <span className="faint">
+                <SkeletonBone shape="line" width="2ch" />
+              </span>
             </div>
-          </SkelterSurface>
-        </section>
+            <ul className="member-profile-project-list">
+              {PROJECT_ROWS.map((key) => (
+                <li key={key}>
+                  <span className="member-profile-project-link">
+                    <span
+                      aria-hidden="true"
+                      className="member-profile-project-color"
+                    />
+                    <span>
+                      <SkeletonBone shape="line" width="16ch" />
+                    </span>
+                    <span className="faint">
+                      <SkeletonBone shape="line" width="6ch" />
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="panel">
+            <div className="panel-h">
+              <h2>Recent activity</h2>
+            </div>
+            <ul className="member-profile-activity-list">
+              {ACTIVITY_ROWS.map((key) => (
+                <li key={key}>
+                  <span
+                    aria-hidden="true"
+                    className="member-profile-activity-dot"
+                  />
+                  <div>
+                    <p>
+                      <SkeletonBone shape="line" width="30ch" />
+                    </p>
+                    <time>
+                      <SkeletonBone shape="line" width="8ch" />
+                    </time>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       </div>
     </div>
-  </>
+  </SkeletonRegion>
 );
 
 export { MemberHeader, MemberHeaderSkeleton, MemberWork, MemberWorkSkeleton };

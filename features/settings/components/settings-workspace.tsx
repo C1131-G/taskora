@@ -3,7 +3,18 @@
 
 "use client";
 
-import { Desktop, Moon, Sun } from "@phosphor-icons/react";
+import {
+  Buildings,
+  ClipboardText,
+  Clock,
+  Desktop,
+  Devices,
+  Moon,
+  PaintBrush,
+  SlidersHorizontal,
+  Sun,
+  UserCircle,
+} from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -11,6 +22,7 @@ import type { ReactNode } from "react";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { switchTheme } from "@/components/workspace/switch-theme";
 import { useHydrated } from "@/components/workspace/use-hydrated";
 import type { SettingsSection } from "@/features/settings/settings-section";
 
@@ -98,18 +110,37 @@ const SettingsWorkspace = ({
       value={section}
     >
       <TabsList aria-label="Settings sections" className="settings-nav">
-        <TabsTrigger value="appearance">Appearance</TabsTrigger>
-        <TabsTrigger value="profile">Profile</TabsTrigger>
-        <TabsTrigger value="preferences">Preferences</TabsTrigger>
-        <TabsTrigger value="sessions">Sessions</TabsTrigger>
+        <TabsTrigger value="appearance">
+          <PaintBrush aria-hidden="true" size={16} />
+          Appearance
+        </TabsTrigger>
+        <TabsTrigger value="profile">
+          <UserCircle aria-hidden="true" size={16} />
+          Profile
+        </TabsTrigger>
+        <TabsTrigger value="preferences">
+          <SlidersHorizontal aria-hidden="true" size={16} />
+          Preferences
+        </TabsTrigger>
+        <TabsTrigger value="sessions">
+          <Devices aria-hidden="true" size={16} />
+          Sessions
+        </TabsTrigger>
         {canManageWorkspace ? (
-          <TabsTrigger value="workspace">Workspace</TabsTrigger>
-        ) : null}
-        {canManageWorkspace ? (
-          <TabsTrigger value="sla">SLA &amp; business hours</TabsTrigger>
-        ) : null}
-        {canManageWorkspace ? (
-          <TabsTrigger value="intake">Intake forms</TabsTrigger>
+          <>
+            <TabsTrigger value="workspace">
+              <Buildings aria-hidden="true" size={16} />
+              Workspace
+            </TabsTrigger>
+            <TabsTrigger value="sla">
+              <Clock aria-hidden="true" size={16} />
+              SLA &amp; business hours
+            </TabsTrigger>
+            <TabsTrigger value="intake">
+              <ClipboardText aria-hidden="true" size={16} />
+              Intake forms
+            </TabsTrigger>
+          </>
         ) : null}
       </TabsList>
       <div className="settings-content">
@@ -129,7 +160,7 @@ const SettingsWorkspace = ({
               <RadioGroup
                 aria-label="Theme"
                 className="settings-theme-options"
-                onValueChange={setTheme}
+                onValueChange={(next) => switchTheme(setTheme, next)}
                 value={themeHydrated ? (theme ?? "system") : "system"}
               >
                 <ThemeChoice Icon={Desktop} id="system" label="System" />

@@ -208,11 +208,18 @@ const IntakeForm = ({
 };
 
 const IntakeFormSkeleton = () => (
-  <AuthFormSkeleton>
-    <AuthFieldSkeleton />
-    <AuthFieldSkeleton />
-    <AuthFieldSkeleton />
-  </AuthFormSkeleton>
+  <>
+    <span
+      aria-hidden="true"
+      className="auth-skeleton-text auth-skeleton-note"
+    />
+    <AuthFormSkeleton label="Loading report form">
+      <AuthFieldSkeleton />
+      <AuthFieldSkeleton tall />
+      <AuthFieldSkeleton />
+      <AuthFieldSkeleton />
+    </AuthFormSkeleton>
+  </>
 );
 
 export { IntakeForm, IntakeFormSkeleton };

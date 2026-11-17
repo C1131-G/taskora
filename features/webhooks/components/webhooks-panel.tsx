@@ -2,7 +2,11 @@
 
 import { redirect } from "next/navigation";
 
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { WebhookCreateForm } from "@/features/webhooks/components/webhook-create-form";
 import { WebhookEndpointCard } from "@/features/webhooks/components/webhook-endpoint-card";
 import {
@@ -64,8 +68,75 @@ const WebhooksPanel = async () => {
   );
 };
 
+const DELIVERY_COLUMNS = [
+  ["Event", "8em"],
+  ["Status", "5em"],
+  ["Attempts", "2ch"],
+  ["Response", "3ch"],
+  ["When", "8em"],
+] as const;
+
+// The real create form followed by one endpoint card: its labels, buttons and
+// table header are static, its values and delivery rows are bones.
 const WebhooksPanelSkeleton = () => (
-  <PanelSkeleton label="Loading webhooks…" rows={4} title="Webhooks" />
+  <SkeletonRegion label="Loading webhooks…">
+    <div className="stack">
+      <WebhookCreateForm />
+      <article className="panel">
+        <div className="panel-h">
+          <h3>
+            <SkeletonBone shape="line" width="10em" />
+          </h3>
+          <p>
+            <SkeletonBone shape="line" width="10em" />
+          </p>
+        </div>
+        <div className="panel-b stack">
+          <dl className="stack">
+            <div>
+              <dt className="muted">Destination</dt>
+              <dd>
+                <SkeletonBone shape="line" width="18em" />
+              </dd>
+            </div>
+            <div>
+              <dt className="muted">Events</dt>
+              <dd>
+                <SkeletonBone shape="line" width="14em" />
+              </dd>
+            </div>
+          </dl>
+          <div className="row">
+            <span className="btn btn-secondary btn-sm">Disable</span>
+            <span className="btn btn-danger-ghost btn-sm">Remove</span>
+          </div>
+          <h4>Recent deliveries</h4>
+          <table className="tbl">
+            <thead>
+              <tr>
+                {DELIVERY_COLUMNS.map(([column]) => (
+                  <th key={column} scope="col">
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SKELETON_KEYS.slice(0, 3).map((key) => (
+                <tr key={key}>
+                  {DELIVERY_COLUMNS.map(([column, width]) => (
+                    <td key={column}>
+                      <SkeletonBone shape="line" width={width} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </SkeletonRegion>
 );
 
 export { WebhooksPanel, WebhooksPanelSkeleton };

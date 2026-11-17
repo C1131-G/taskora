@@ -2,10 +2,12 @@ import { Effect, Exit, Stream } from "effect";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import { AppLifecycle } from "@/services/app-lifecycle";
+import { Haptics } from "@/services/haptics";
 import { MobileApi } from "@/services/mobile-api";
 import { ApiContext, KeysContext, failureOf } from "@/runtime/api-hooks";
 import { IdempotencyKeys } from "@/services/idempotency-keys";
 import { Session, type SessionService, type SessionState } from "@/services/session";
+import { HapticsContext } from "@/runtime/haptics-hooks";
 import { appRuntime } from "@/runtime/runtime";
 import { useErrorToast } from "@/components/workspace/error-toast-context";
 import { failureMessage } from "@/components/workspace/workspace-error-state";
@@ -35,6 +37,7 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<SessionService | null>(null);
   const [api, setApi] = useState<MobileApi["Service"] | null>(null);
   const [keys, setKeys] = useState<IdempotencyKeys["Service"] | null>(null);
+  const [haptics, setHaptics] = useState<Haptics["Service"] | undefined>(undefined);
   const showError = useErrorToast();
 
   useEffect(() => {
@@ -44,15 +47,17 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
       const keys = yield* Effect.service(IdempotencyKeys);
       const lifecycle = yield* Effect.service(AppLifecycle);
       const sessionService = yield* Effect.service(Session);
-      return { api, keys, lifecycle, sessionService };
+      const hapticsService = yield* Effect.service(Haptics);
+      return { api, hapticsService, keys, lifecycle, sessionService };
     });
 
     void (async () => {
       const result = await runtime.runPromiseExit(Effect.gen(function* () {
-        const { api, keys, lifecycle, sessionService } = yield* setup;
+        const { api, hapticsService, keys, lifecycle, sessionService } = yield* setup;
         yield* Effect.sync(() => setSession(sessionService));
         yield* Effect.sync(() => setApi(api));
         yield* Effect.sync(() => setKeys(keys));
+        yield* Effect.sync(() => setHaptics(hapticsService));
         runtime.runFork(
           Stream.runDrain(
             Stream.tap(sessionService.changes, (state) =>
@@ -82,7 +87,9 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
     <SessionStateContext.Provider value={value}>
       <SessionGateContext.Provider value={session}>
         <ApiContext.Provider value={api}>
-          <KeysContext.Provider value={keys}>{children}</KeysContext.Provider>
+          <KeysContext.Provider value={keys}>
+            <HapticsContext.Provider value={haptics}>{children}</HapticsContext.Provider>
+          </KeysContext.Provider>
         </ApiContext.Provider>
       </SessionGateContext.Provider>
     </SessionStateContext.Provider>

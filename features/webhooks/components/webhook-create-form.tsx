@@ -12,6 +12,10 @@ import {
   WorkspaceFieldError,
   WorkspaceFormError,
 } from "@/components/workspace/workspace-field-error";
+import {
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { parseSelectedEvents } from "@/features/webhooks/webhook-format";
 import { createWebhookEndpointAction } from "@/features/webhooks/webhooks-actions";
 
@@ -87,20 +91,21 @@ export const WebhookCreateForm = () => {
         </div>
         <div className="field">
           <label htmlFor={`${formId}-kind`}>Type</label>
-          <select
-            className="input"
+          <WorkspaceSelect
             id={`${formId}-kind`}
             name="kind"
-            onChange={(event) =>
-              setKind(
-                event.currentTarget.value === "slack" ? "slack" : "generic"
-              )
+            onValueChange={(value) =>
+              setKind(value === "slack" ? "slack" : "generic")
             }
             value={kind}
           >
-            <option value="generic">Signed webhook</option>
-            <option value="slack">Slack incoming webhook</option>
-          </select>
+            <WorkspaceSelectItem value="generic">
+              Signed webhook
+            </WorkspaceSelectItem>
+            <WorkspaceSelectItem value="slack">
+              Slack incoming webhook
+            </WorkspaceSelectItem>
+          </WorkspaceSelect>
         </div>
         <div className="field">
           <label htmlFor={`${formId}-url`}>

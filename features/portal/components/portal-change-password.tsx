@@ -11,9 +11,13 @@ import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
+import {
+  MIN_PASSWORD_LENGTH,
+  PASSWORD_HINT,
+} from "@/features/portal/components/portal-account-copy";
 import { changeOwnPasswordAction } from "@/features/user/user-actions";
 
-const MIN_LENGTH = 12;
+const MIN_LENGTH = MIN_PASSWORD_LENGTH;
 
 interface Fields {
   readonly confirm: string;
@@ -140,7 +144,7 @@ const PortalChangePassword = () => {
           type="password"
           value={next}
         />
-        <p className="hint">At least {MIN_LENGTH} characters.</p>
+        <p className="hint">{PASSWORD_HINT}</p>
       </div>
       <div className="field">
         <label className="label" htmlFor="portal-confirm-password">

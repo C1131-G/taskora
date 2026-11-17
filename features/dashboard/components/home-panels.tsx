@@ -2,36 +2,34 @@
 
 import Link from "next/link";
 
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableCaption,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ViewSwitchTransition } from "@/components/ui/view-switch-transition";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import {
   OpenTasksIcon,
   ViewAllTasksIcon,
 } from "@/features/dashboard/components/home-action-icons";
-import { ProjectIcon } from "@/features/projects/components/project-icon";
-import { ProjectMemberAvatars } from "@/features/projects/components/project-list-layouts";
+import { formatDueDate } from "@/features/dashboard/home-dates";
+import { HOME_TASK_VIEWS } from "@/features/dashboard/home-task-view";
+import type { HomeTaskView } from "@/features/dashboard/home-task-view";
 import { TaskCompletionCheckbox } from "@/features/tasks/components/task-completion-checkbox";
-import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
-import type { ProjectListItem } from "@/src/server/projects/project-contracts";
 import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
 
-export { HomeStats } from "@/features/dashboard/components/home-stats";
-export { RecentActivityPanel } from "@/features/dashboard/components/home-activity-panel";
-
-const HOME_DATE_FORMATTER = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+export {
+  HomeStats,
+  HomeStatsSkeleton,
+} from "@/features/dashboard/components/home-stats";
+export {
+  RecentActivityPanel,
+  RecentActivityPanelSkeleton,
+} from "@/features/dashboard/components/home-activity-panel";
+export {
+  ProjectProgressPanel,
+  ProjectProgressPanelSkeleton,
+} from "@/features/dashboard/components/home-progress-panel";
 
 export interface HomeTask extends Pick<
   ProjectTaskListItem,
@@ -54,37 +52,6 @@ export interface TaskViewLists {
   readonly completed: readonly HomeTask[];
 }
 
-const formatDate = (value: string | null): string => {
-  if (!value) {
-    return "No due date";
-  }
-  return HOME_DATE_FORMATTER.format(new Date(`${value}T00:00:00Z`));
-};
-
-const projectStatusLabel = (status: ProjectListItem["status"]): string => {
-  switch (status) {
-    case "planning": {
-      return "Planning";
-    }
-    case "active": {
-      return "In Progress";
-    }
-    case "risk": {
-      return "At Risk";
-    }
-    case "complete": {
-      return "Completed";
-    }
-    case "hold": {
-      return "On Hold";
-    }
-    default: {
-      const _exhaustive: never = status;
-      return _exhaustive;
-    }
-  }
-};
-
 export const MyTasksPanel = ({
   taskView,
   taskViews,
@@ -99,7 +66,7 @@ export const MyTasksPanel = ({
         <h2>My tasks</h2>
         <div className="acts">
           <nav aria-label="My task status" className="seg">
-            {(["upcoming", "overdue", "completed"] as const).map((tab) => (
+            {HOME_TASK_VIEWS.map((tab) => (
               <Link
                 aria-current={taskView === tab ? "page" : undefined}
                 className={taskView === tab ? "on" : ""}
@@ -138,7 +105,7 @@ export const MyTasksPanel = ({
                 {task.title}
               </Link>
               <span className="muted">{task.projectName}</span>
-              <span className="num">{formatDate(task.dueDate)}</span>
+              <span className="num">{formatDueDate(task.dueDate)}</span>
             </article>
           ))
         ) : (
@@ -159,77 +126,61 @@ export const MyTasksPanel = ({
   );
 };
 
-/* eslint-disable shadcn/no-restyle */
-export const ProjectProgressPanel = ({
-  projects,
-  membersById,
+const TASK_VIEW_LABELS = {
+  completed: "Completed",
+  overdue: "Overdue",
+  upcoming: "Upcoming",
+} as const satisfies Record<HomeTaskView, string>;
+
+// Mirrors MyTasksPanel: the header and tab labels are static, the counts and
+// rows are data.
+export const MyTasksPanelSkeleton = ({
+  taskView,
 }: {
-  readonly projects: readonly ProjectListItem[];
-  readonly membersById: ReadonlyMap<string, EmployeeDirectoryEntry>;
+  readonly taskView: HomeTaskView;
 }) => (
-  <section className="panel home-progress-panel">
-    <div className="panel-h">
-      <h2>Project progress</h2>
-      <Link className="btn btn-sm btn-ghost" href="/projects">
-        All projects
-      </Link>
+  <section className="panel">
+    <div className="panel-h home-tasks-header">
+      <h2>My tasks</h2>
+      <div aria-hidden="true" className="acts" inert>
+        <span className="seg">
+          {HOME_TASK_VIEWS.map((tab) => (
+            <button
+              className={taskView === tab ? "on" : ""}
+              key={tab}
+              tabIndex={-1}
+              type="button"
+            >
+              {TASK_VIEW_LABELS[tab]}{" "}
+              <span className="faint">
+                <SkeletonBone shape="line" width="1ch" />
+              </span>
+            </button>
+          ))}
+        </span>
+        <span className="ibtn ibtn-sm">
+          <OpenTasksIcon />
+        </span>
+      </div>
     </div>
-    <Table className="perm-t home-progress-table">
-      <TableCaption className="sr-only">Project progress</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Project</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Progress</TableHead>
-          <TableHead>Due</TableHead>
-          <TableHead>Team</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {projects.slice(0, 8).map((project) => (
-          <TableRow key={project.id}>
-            <TableCell>
-              <Link
-                className="row"
-                href={`/projects/${project.id}?view=overview`}
-              >
-                <ProjectIcon
-                  color={project.color}
-                  icon={project.icon}
-                  size={14}
-                />
-                <strong>{project.name}</strong>
-              </Link>
-            </TableCell>
-            <TableCell>
-              <span className={`pstatus ${project.status}`}>
-                {projectStatusLabel(project.status)}
-              </span>
-            </TableCell>
-            <TableCell>
-              <span className="row">
-                <Progress
-                  aria-label={`${project.progress}% complete`}
-                  max={100}
-                  value={project.progress}
-                  workspace
-                />
-                <span className="num faint">{project.progress}%</span>
-              </span>
-            </TableCell>
-            <TableCell className="num muted">
-              {formatDate(project.dueDate)}
-            </TableCell>
-            <TableCell>
-              <ProjectMemberAvatars
-                memberIds={project.memberIds}
-                membersById={membersById}
-              />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <SkeletonRegion label="Loading your tasks…">
+      {SKELETON_KEYS.slice(0, 3).map((key) => (
+        <div className="mini home-task-row" key={key}>
+          <span className="home-task-completion">
+            <SkeletonBone shape="line" width="16px" />
+          </span>
+          <span className="trunc grow">
+            <SkeletonBone shape="line" width="60%" />
+          </span>
+          <span className="muted">
+            <SkeletonBone shape="line" width="7em" />
+          </span>
+          <span className="num">
+            <SkeletonBone shape="line" width="3.5em" />
+          </span>
+        </div>
+      ))}
+    </SkeletonRegion>
   </section>
 );
 
@@ -283,5 +234,37 @@ export const UpcomingDeadlinesPanel = ({
         </div>
       ))}
     </div>
+  </section>
+);
+
+const DEADLINE_GROUPS = ["Today", "Tomorrow", "This week"] as const;
+
+// Mirrors UpcomingDeadlinesPanel with one line per group, the height of the
+// common "Nothing due" group.
+export const UpcomingDeadlinesPanelSkeleton = () => (
+  <section className="panel">
+    <div className="panel-h">
+      <h2>Upcoming deadlines</h2>
+      <span aria-hidden="true" className="btn btn-sm btn-ghost">
+        Calendar
+      </span>
+    </div>
+    <SkeletonRegion label="Loading deadlines…">
+      <div className="panel-b stack">
+        {DEADLINE_GROUPS.map((name) => (
+          <div className="deadline-group" key={name}>
+            <div className="row">
+              <strong>{name}</strong>
+              <span className="faint">
+                <SkeletonBone shape="line" width="1ch" />
+              </span>
+            </div>
+            <span className="faint">
+              <SkeletonBone shape="line" width="6em" />
+            </span>
+          </div>
+        ))}
+      </div>
+    </SkeletonRegion>
   </section>
 );

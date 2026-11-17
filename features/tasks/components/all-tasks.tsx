@@ -1,11 +1,14 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
 
 import { ErrorToast } from "@/components/workspace/error-toast";
-import { TaskTableSkeleton } from "@/components/workspace/task-table-skeleton";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";
 import { listAllEmployees } from "@/features/people/people-queries";
+import { SearchParamFallback } from "@/features/projects/components/search-param-fallback";
 import { listProjects } from "@/features/projects/projects-queries";
-import { GlobalTasksWorkspace } from "@/features/tasks/components/global-tasks-workspace";
+import {
+  GlobalTasksWorkspace,
+  GlobalTasksWorkspaceSkeleton,
+} from "@/features/tasks/components/global-tasks-workspace";
 import { TaskDrawerHost } from "@/features/tasks/components/task-drawer-host";
 import { GlobalTaskViewStoreProvider } from "@/features/tasks/providers/global-task-view-store-provider";
 import { canEditTaskRecord } from "@/features/tasks/task-permissions";
@@ -101,18 +104,14 @@ const AllTasks = async ({
   );
 };
 
-// The header's subtitle follows the filters, so the skeleton keeps only the
-// title and reserves the subtitle's line.
+// The view comes from the URL, so the board and the table each get their own
+// frame. The subtitle follows the filters and the task count, so it is a bone.
 const AllTasksSkeleton = () => (
-  <>
-    <div className="ph">
-      <div>
-        <h1>Tasks</h1>
-        <p aria-hidden="true">&nbsp;</p>
-      </div>
-    </div>
-    <TaskTableSkeleton global />
-  </>
+  <SearchParamFallback
+    cases={{ board: <GlobalTasksWorkspaceSkeleton view="board" /> }}
+    fallback={<GlobalTasksWorkspaceSkeleton view="list" />}
+    name="view"
+  />
 );
 
 export { AllTasks, AllTasksSkeleton };

@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { ErrorToastProvider, ErrorToastViewport } from "@/components/workspace/error-toast-provider";
 import { useErrorToast } from "@/components/workspace/error-toast-context";
 import { ErrorBoundary } from "@/components/workspace/route-error-boundary";
+import { WorkspaceSkeletonTheme } from "@/components/workspace/workspace-skeleton-theme";
 
 import { SessionGate } from "@/features/auth/session-gate";
 import { OfflineBanner } from "@/features/connectivity/offline-banner";
@@ -49,10 +50,12 @@ export default function RootLayout() {
       <ErrorToastProvider renderViewport={false}>
         <ThemeProvider>
           <FontLoader />
-          <SessionGate>
-            <OfflineBanner />
-            <RoutedStack />
-          </SessionGate>
+          <WorkspaceSkeletonTheme>
+            <SessionGate>
+              <OfflineBanner />
+              <RoutedStack />
+            </SessionGate>
+          </WorkspaceSkeletonTheme>
           <ErrorToastViewport />
         </ThemeProvider>
       </ErrorToastProvider>

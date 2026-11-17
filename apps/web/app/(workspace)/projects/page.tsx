@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import { HeaderActionPlaceholder } from "@/components/workspace/header-action-placeholder";
 import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import {
   ProjectCounts,
@@ -14,9 +13,13 @@ import {
   ProjectDirectoryActions,
   ProjectDirectorySkeleton,
 } from "@/features/projects/components/project-directory";
+import { SearchParamFallback } from "@/features/projects/components/search-param-fallback";
 import { parseProjectFilters } from "@/features/projects/project-filters";
 
 export const metadata: Metadata = { title: "Projects | Taskora" };
+
+// Old ?view=list links open the table, as parseProjectFilters does.
+const tableSkeleton = <ProjectDirectorySkeleton view="table" />;
 
 const ProjectsPage = ({ searchParams }: PageProps<"/projects">) => (
   <PageTransition>
@@ -27,7 +30,7 @@ const ProjectsPage = ({ searchParams }: PageProps<"/projects">) => (
           <p>
             <Suspense
               fallback={
-                <span aria-hidden="true">
+                <span aria-hidden="true" className="project-counts-skeleton">
                   <SkeletonBone />
                 </span>
               }
@@ -36,12 +39,22 @@ const ProjectsPage = ({ searchParams }: PageProps<"/projects">) => (
             </Suspense>
           </p>
         </div>
-        <Suspense fallback={<HeaderActionPlaceholder label="New project" />}>
+        {/* Most people are not admins and never get this button, so no space
+            is held for it while the role loads. */}
+        <Suspense fallback={null}>
           <ProjectDirectoryActions />
         </Suspense>
       </div>
       <SectionErrorBoundary title="Projects couldn't load">
-        <SuspenseReveal fallback={<ProjectDirectorySkeleton />}>
+        <SuspenseReveal
+          fallback={
+            <SearchParamFallback
+              cases={{ list: tableSkeleton, table: tableSkeleton }}
+              fallback={<ProjectDirectorySkeleton view="grid" />}
+              name="view"
+            />
+          }
+        >
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (
             <ProjectDirectory filters={parseProjectFilters(params)} />

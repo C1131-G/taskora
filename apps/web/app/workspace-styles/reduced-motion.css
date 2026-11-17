@@ -1,39 +1,22 @@
-/* Reduced motion: swap movement for a short fade and drop decorative
-   transitions. Imported after every file that defines the motion it tames. */
-@keyframes fadeOnly {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
+/* Reduced motion: drop movement and decorative transitions. Imported last so
+   it wins over every file that defines the motion it tames. */
 @media (prefers-reduced-motion: reduce) {
-  .workspace-app .modal,
-  .workspace-app .drawer,
-  .workspace-app .pop,
-  .workspace-app .toast {
-    animation-name: fadeOnly !important;
-    animation-duration: 0.12s !important;
+  .workspace-app [data-workspace-button]:active {
+    scale: none;
   }
-  .workspace-app .drawer.enter .drawer-b > * {
-    animation: fadeOnly 0.12s both !important;
-  }
-  .workspace-app .btn:active:not(:disabled),
-  .workspace-app .check:active,
   .workspace-app .pcard:hover,
   .workspace-app .kcard:hover {
     transform: none;
   }
-  .workspace-app .prog > i,
-  .workspace-app .toggle::after,
-  .workspace-app .sitem .chev,
-  .workspace-app .skip {
+  .workspace-app .prog > i {
     transition: none;
   }
-  .workspace-app .sk {
-    animation: none;
-    opacity: 0.85;
+  .workspace-app a.btn:active,
+  .workspace-app button.btn:not([data-workspace-button]):enabled:active {
+    scale: none;
+  }
+  .workspace-app .sitem .chev,
+  .workspace-app [data-workspace-progress] [data-slot="progress-indicator"] {
+    transition: none;
   }
 }

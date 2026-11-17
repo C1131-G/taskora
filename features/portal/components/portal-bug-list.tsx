@@ -6,9 +6,11 @@ import Link from "next/link";
 import {
   SKELETON_KEYS,
   SkeletonBone,
-  SkeletonToolbar,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { PortalBugFilters } from "@/features/portal/components/portal-bug-filters";
 import { PortalStatusChip } from "@/features/portal/components/portal-status-chip";
 import { PortalTime } from "@/features/portal/components/portal-time";
@@ -129,23 +131,45 @@ const PortalBugList = async ({
 const PortalListSkeleton = ({ label }: { readonly label: string }) => (
   <SkelterSurface label={label}>
     <div className="ph">
-      <SkeletonBone shape="title" />
+      <div>
+        <SkeletonKeep>
+          <h1>Company bugs</h1>
+        </SkeletonKeep>
+        <p>
+          <SkeletonBone shape="short" />
+        </p>
+      </div>
+      <div className="acts">
+        <SkeletonBone shape="control" />
+      </div>
+    </div>
+    <div className="panel portal-filters">
+      {["Status", "Project"].map((title) => (
+        <div className="field" key={title}>
+          <SkeletonKeep>
+            <span className="label">{title}</span>
+          </SkeletonKeep>
+          <SkeletonBone shape="control" />
+        </div>
+      ))}
       <SkeletonBone shape="control" />
     </div>
-    <SkeletonToolbar count={3} />
     <ul className="portal-bug-list">
       {SKELETON_KEYS.slice(0, 4).map((key) => (
         <li key={key}>
           <div className="portal-bug-card">
-            <div className="portal-bug-top">
+            <span className="portal-bug-top">
               <SkeletonBone shape="short" />
               <SkeletonBone shape="short" />
-            </div>
-            <SkeletonBone shape="title" />
-            <div className="portal-bug-meta">
+            </span>
+            <strong className="portal-bug-title">
               <SkeletonBone />
+            </strong>
+            <span className="portal-bug-meta portal-skeleton-wide">
               <SkeletonBone shape="short" />
-            </div>
+              <SkeletonBone shape="short" />
+              <SkeletonBone shape="short" />
+            </span>
           </div>
         </li>
       ))}

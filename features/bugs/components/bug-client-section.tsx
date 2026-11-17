@@ -9,12 +9,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { reassignClientBugAction } from "@/features/bugs/bugs-actions";
 import {
   AskClientDialog,
@@ -80,18 +77,18 @@ const ReassignForm = ({
     <form className="bug-inline-form bug-reassign-form" onSubmit={submit}>
       <div className="bug-form-field">
         <Label htmlFor={`${id}-employee`}>Reassign to</Label>
-        <Select onValueChange={setEmployeeId} value={employeeId}>
-          <SelectTrigger className="w-full" id={`${id}-employee`}>
-            <SelectValue placeholder="Choose an employee" />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((employee) => (
-              <SelectItem key={employee.id} value={employee.id}>
-                {employee.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <WorkspaceSelect
+          onValueChange={setEmployeeId}
+          value={employeeId}
+          id={`${id}-employee`}
+          displayValue={employeeId ? undefined : "Choose an employee"}
+        >
+          {options.map((employee) => (
+            <WorkspaceSelectItem key={employee.id} value={employee.id}>
+              {employee.name}
+            </WorkspaceSelectItem>
+          ))}
+        </WorkspaceSelect>
       </div>
       {message ? (
         <output className="bug-client-success">{message}</output>

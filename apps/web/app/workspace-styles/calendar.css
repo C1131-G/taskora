@@ -117,26 +117,13 @@
   border-radius: 50%;
   font-variant-numeric: tabular-nums;
 }
-.workspace-app .calendar-events-skeleton {
-  min-height: 251px;
-}
-.workspace-app .calendar-events-skeleton .skeleton-avatar {
-  width: 22px;
-  height: 22px;
-}
-.workspace-app .calendar-events-skeleton .skeleton-title {
-  height: 20px;
-}
-.workspace-app .calendar-events-skeleton-copy {
-  width: min(100%, 340px);
-  gap: 4px;
-  margin-bottom: 10px;
-}
-.workspace-app .calendar-events-skeleton-copy .skeleton-bone:nth-child(2) {
-  width: 76%;
-}
-.workspace-app .calendar-events-skeleton .skeleton-control {
+/* event rows while loading: the WorkspaceButton row's own height and inset */
+.workspace-app .calendar-event-skeleton-row {
   height: 30px;
+  padding-inline: 11px;
+}
+.workspace-app .calendar-event-skeleton-row > .skeleton-short {
+  width: 120px;
 }
 .workspace-app .cday.today .dn {
   background: var(--accent);
@@ -158,7 +145,7 @@
   gap: 5px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   font-size: var(--fs-xs);
   background: color-mix(in srgb, var(--c) 11%, var(--surface));
   color: var(--text);
@@ -382,21 +369,32 @@
   font-size: var(--fs-2xs);
   height: 20px !important;
   min-height: 20px !important;
-  opacity: 0;
   padding: 0 6px !important;
-  pointer-events: none;
   position: absolute;
   right: 3px;
   top: 3px;
+  transition: opacity 120ms var(--ease);
   width: auto;
 }
-.workspace-app .cal-chip:hover .cal-chip-move,
-.workspace-app .cal-chip:focus-within .cal-chip-move {
-  opacity: 1;
-  pointer-events: auto;
+/* only a precise pointer can hover to reveal it; touch keeps it visible */
+@media (hover: hover) and (pointer: fine) {
+  .workspace-app .cal-chip .cal-chip-move {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .workspace-app .cal-chip:hover .cal-chip-move,
+  .workspace-app .cal-chip:focus-within .cal-chip-move {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .workspace-app .cal-chip:hover .cev .trunc {
+    padding-right: 36px;
+  }
 }
-.workspace-app .cal-chip:hover .cev .trunc {
-  padding-right: 36px;
+@media not ((hover: hover) and (pointer: fine)) {
+  .workspace-app .cal-chip:has(.cal-chip-move) .cev .trunc {
+    padding-right: 36px;
+  }
 }
 
 /* "+N more" reads as a button */

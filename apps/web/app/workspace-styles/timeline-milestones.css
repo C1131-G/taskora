@@ -37,10 +37,6 @@
   text-overflow: ellipsis;
   min-width: 0;
 }
-.workspace-app .ms-w[data-tip]:hover::after {
-  left: 0;
-  transform: none;
-}
 .workspace-app .tl-deps {
   position: absolute;
   left: 0;

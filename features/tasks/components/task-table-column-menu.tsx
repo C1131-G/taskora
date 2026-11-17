@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -29,12 +30,21 @@ export const TaskTableColumnMenu = ({
   readonly onHiddenChange: (hidden: readonly TaskTableColumnId[]) => void;
 }) => {
   const hiddenSet = new Set(hidden);
+  const isVisible = (column: TaskTableColumnDef) =>
+    hiddenSet.has(column.id) === (column.hiddenByDefault ?? false);
+  const visibleCount = columns.filter(isVisible).length;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <WorkspaceButton className="btn btn-sm" type="button">
-          <Columns aria-hidden="true" size={14} />
+        <WorkspaceButton
+          className="btn btn-sm column-menu-trigger"
+          type="button"
+        >
+          <Columns aria-hidden="true" size={15} />
           Columns
+          <span className="column-menu-count">
+            {visibleCount}/{columns.length}
+          </span>
         </WorkspaceButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -42,11 +52,12 @@ export const TaskTableColumnMenu = ({
         className="workspace-menu"
         data-workspace-menu=""
       >
+        <DropdownMenuLabel className="column-menu-title">
+          Show columns
+        </DropdownMenuLabel>
         {columns.map((column) => (
           <DropdownMenuCheckboxItem
-            checked={
-              hiddenSet.has(column.id) === (column.hiddenByDefault ?? false)
-            }
+            checked={isVisible(column)}
             key={column.id}
             onCheckedChange={(visible) =>
               // The list holds columns that differ from their default.

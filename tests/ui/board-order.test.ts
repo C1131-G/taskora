@@ -3,6 +3,7 @@ import { expect, test } from "bun:test";
 import {
   moveTaskInColumn,
   orderTasksForBoard,
+  withTaskPositions,
 } from "../../features/tasks/board-order";
 
 const task = (
@@ -52,4 +53,11 @@ test("returns null at the edges, for unknown tasks, and for columns over the reo
     task(`t${index}`, index, index + 1)
   );
   expect(moveTaskInColumn(large, "t0", 1)).toBeNull();
+});
+
+test("a reorder shows at once in the new order before the server confirms", () => {
+  const column = [task("a", 0, 1), task("b", 0, 2), task("c", 0, 3)];
+  const move = moveTaskInColumn(column, "a", 1);
+  const shown = withTaskPositions(column, move?.changes ?? []);
+  expect(shown.map(({ id }) => id)).toEqual(["b", "a", "c"]);
 });

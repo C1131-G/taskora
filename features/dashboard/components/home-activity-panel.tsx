@@ -5,6 +5,11 @@ import Link from "next/link";
 
 import { EmptyState } from "@/components/workspace/empty-state";
 import { LocalTime } from "@/components/workspace/local-time";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import type { ActivityEntry } from "@/src/server/activity/activity-management";
 
 const RecentActivityPanel = ({
@@ -49,4 +54,36 @@ const RecentActivityPanel = ({
   </section>
 );
 
-export { RecentActivityPanel };
+// Mirrors RecentActivityPanel with a few rows of the real row height.
+const RecentActivityPanelSkeleton = () => (
+  <section className="panel">
+    <div className="panel-h">
+      <h2>Recent activity</h2>
+      <span aria-hidden="true" className="btn btn-sm btn-ghost">
+        View all
+      </span>
+    </div>
+    <SkeletonRegion label="Loading activity…">
+      <div className="panel-b feed lined home-activity-list">
+        {SKELETON_KEYS.slice(0, 4).map((key) => (
+          <div className="mini home-activity-row" key={key}>
+            <span className="av" />
+            <div className="home-activity-copy">
+              <strong>
+                <SkeletonBone shape="line" width="7em" />
+              </strong>
+              <p className="muted">
+                <SkeletonBone shape="line" width="9em" />
+              </p>
+            </div>
+            <span className="muted home-activity-time">
+              <SkeletonBone shape="line" width="6em" />
+            </span>
+          </div>
+        ))}
+      </div>
+    </SkeletonRegion>
+  </section>
+);
+
+export { RecentActivityPanel, RecentActivityPanelSkeleton };

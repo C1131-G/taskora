@@ -35,7 +35,7 @@
   gap: 16px;
   justify-content: space-between;
   padding: 14px 16px;
-  transition: background-color 0.12s;
+  transition: background-color var(--dur) var(--ease);
 }
 .workspace-app .approval-request:last-child {
   border-bottom: 0;

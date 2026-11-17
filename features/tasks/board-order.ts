@@ -59,3 +59,19 @@ export const moveTaskInColumn = <Task extends OrderableTask>(
   );
   return { changes, newIndex: to };
 };
+
+// The board shows a reordered column at once; a refused reorder falls back.
+export const withTaskPositions = <Task extends OrderableTask>(
+  tasks: readonly Task[],
+  changes: readonly PositionChange[]
+): Task[] => {
+  const positions = new Map(
+    changes.map(({ position, taskId }) => [taskId, position])
+  );
+  return orderTasksForBoard(
+    tasks.map((task) => {
+      const position = positions.get(task.id);
+      return position === undefined ? task : { ...task, position };
+    })
+  );
+};

@@ -11,8 +11,8 @@ import {
   BugReportAction,
   BugReportActionSkeleton,
   BugTracker,
-  BugTrackerSkeleton,
 } from "@/features/bugs/components/bug-tracker";
+import { BugTrackerFallback } from "@/features/bugs/components/bug-tracker-fallback";
 
 export const metadata: Metadata = { title: "Bugs | Taskora" };
 
@@ -35,7 +35,7 @@ const BugsPage = ({ searchParams }: PageProps<"/bugs">) => (
           </SectionErrorBoundary>
         </header>
         <SectionErrorBoundary title="Bugs couldn't load">
-          <SuspenseReveal fallback={<BugTrackerSkeleton />}>
+          <SuspenseReveal fallback={<BugTrackerFallback />}>
             {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
             {searchParams.then((params) => (
               <BugTracker filters={parseBugFilters(params)} />

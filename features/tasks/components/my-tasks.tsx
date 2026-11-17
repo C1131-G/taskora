@@ -1,7 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
 import { ErrorToast } from "@/components/workspace/error-toast";
-import { TaskTableSkeleton } from "@/components/workspace/task-table-skeleton";
 import { calendarPeriod } from "@/features/calendar/calendar-params";
 import type { CalendarMode } from "@/features/calendar/calendar-params";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";
@@ -130,17 +129,5 @@ const MyTasks = async ({
   );
 };
 
-// The loading state is the real page frame: header, filter bar and the table with grouped rows.
-const MyTasksSkeleton = () => (
-  <>
-    <div className="ph my-tasks-header">
-      <div>
-        <h1>My Tasks</h1>
-        <p aria-hidden="true">&nbsp;</p>
-      </div>
-    </div>
-    <TaskTableSkeleton />
-  </>
-);
-
-export { MyTasks, MyTasksSkeleton };
+export { MyTasksSkeleton } from "@/features/tasks/components/my-tasks-skeleton";
+export { MyTasks };

@@ -6,7 +6,8 @@ import type { ReactElement, ReactNode } from "react";
 
 import { ErrorToastProvider } from "@/components/workspace/error-toast-provider";
 import { ValidationFailed } from "@/errors";
-import { PortalHomeScreen, PortalNewBugScreen } from "@/features/portal/portal-screens";
+import { PortalHomeScreen } from "@/features/portal/portal-home-screen";
+import { PortalNewBugScreen } from "@/features/portal/portal-screens";
 import type { ApiContextValue } from "@/runtime/api-hooks";
 import { ThemeContext } from "@/theme/theme-provider";
 
@@ -186,4 +187,40 @@ it("makes the client choose when there are several projects", async () => {
 
   await waitFor(() => expect(screen.getByText("Choose a project")).toBeTruthy());
   expect(submitted).toEqual([]);
+});
+
+const apiPending = { call: () => Effect.never } as unknown as ApiContextValue;
+
+const apiFailing = {
+  call: () => Effect.fail(new ValidationFailed({ fieldErrors: {} })),
+} as unknown as ApiContextValue;
+
+it("shows a busy portal home, not the empty state, while it loads", async () => {
+  await renderPortal(<PortalHomeScreen />, apiPending);
+
+  expect(screen.getByRole("progressbar", { name: "Loading projects" })).toBeTruthy();
+  expect(screen.getByRole("progressbar", { name: "Loading your bugs" })).toBeTruthy();
+  expect(screen.getByRole("header", { name: "Your bugs" })).toBeTruthy();
+  expect(screen.queryByText("No reports")).toBeNull();
+});
+
+it("shows the empty state once the portal home has loaded no reports", async () => {
+  await renderPortal(<PortalHomeScreen />, apiServing({ projects: [WEBSITE] }));
+
+  await waitFor(() => expect(screen.getByText("No reports")).toBeTruthy());
+  expect(screen.queryByRole("progressbar")).toBeNull();
+});
+
+it("offers a retry when the portal home fails to load", async () => {
+  await renderPortal(<PortalHomeScreen />, apiFailing);
+
+  await waitFor(() => expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy());
+  expect(screen.queryByText("No reports")).toBeNull();
+});
+
+it("reserves the project chip row while projects load", async () => {
+  await renderPortal(<PortalNewBugScreen onDone={noop} />, apiPending);
+
+  expect(screen.getByRole("progressbar", { name: "Loading projects" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Project Website relaunch" })).toBeNull();
 });

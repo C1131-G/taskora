@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
-import { radii, spacing, theme } from "@/theme/tokens.generated";
+import { radii, shadows, spacing, theme } from "@/theme/tokens.generated";
 
 export interface WorkspaceEmptyStateProps {
   readonly action?: { readonly label: string; readonly onPress: () => void };
@@ -19,7 +19,12 @@ export const WorkspaceEmptyState = ({ action, message, title }: WorkspaceEmptySt
   const palette = isDark ? theme.dark : theme.light;
 
   return (
-    <View style={[styles.host, { backgroundColor: palette.surface }]}>
+    <View
+      style={[
+        styles.host,
+        { backgroundColor: palette.surface, boxShadow: (isDark ? shadows.dark : shadows.light).card },
+      ]}
+    >
       <Text style={[typeStyle("lg", { weight: 600 }), { color: palette.text }]}>{title}</Text>
       {message === undefined ? null : (
         <Text style={[typeStyle("sm"), styles.message, { color: palette.text3 }]}>{message}</Text>
@@ -36,7 +41,7 @@ export const WorkspaceEmptyState = ({ action, message, title }: WorkspaceEmptySt
 const styles = StyleSheet.create({
   host: {
     alignItems: "center",
-    borderRadius: radii.lg,
+    borderRadius: radii.xl,
     gap: spacing.s2,
     justifyContent: "center",
     minHeight: 160,

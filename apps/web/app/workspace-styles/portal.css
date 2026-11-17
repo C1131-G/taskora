@@ -84,9 +84,6 @@
   align-content: stretch;
   padding: 10px 12px;
 }
-.portal-app .portal-preview-slot {
-  min-height: 3.5rem;
-}
 .portal-app .portal-main:focus {
   outline: none;
 }
@@ -240,6 +237,7 @@
     background: var(--bg);
   }
   .portal-app .portal-nav ul {
+    display: flex;
     gap: 0;
   }
   .portal-app .portal-nav li {
@@ -278,4 +276,36 @@
   .portal-app .portal-wizard {
     height: auto;
   }
+}
+
+/* A bone stands in for text, so it keeps the text's line box. */
+.portal-app .skelter-surface .skeleton-bone:where(.skeleton-text, .skeleton-short) {
+  height: 1lh;
+}
+
+/* Controls keep the height of the real ones: buttons and inputs are --h-md,
+   small buttons --h-sm, and the filter selects are 38px. */
+.portal-app .skelter-surface .skeleton-control {
+  height: var(--h-md);
+}
+.portal-app .skelter-surface .portal-filters .field .skeleton-control {
+  width: 100%;
+  height: 38px;
+}
+.portal-app .skelter-surface .portal-notif-bar .skeleton-control,
+.portal-app .skelter-surface .mini .skeleton-control {
+  height: var(--h-sm);
+}
+/* Skelter adds siblings, so ":last-child" rules cannot reach the skeleton. */
+.portal-app .portal-form > .portal-skeleton-span {
+  grid-column: 1 / -1;
+}
+.portal-app .portal-skeleton-wide .skeleton-short {
+  width: 10rem;
+}
+.portal-app .skelter-surface .portal-bug-title .skeleton-bone {
+  width: 70%;
+}
+.portal-app .skelter-surface .portal-bug-head h1 .skeleton-bone {
+  width: 55%;
 }

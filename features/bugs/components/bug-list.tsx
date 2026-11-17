@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowUpRight, Bug } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, Bug } from "@phosphor-icons/react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/workspace/empty-state";
 import { BugPickDialog } from "@/features/bugs/components/bug-pick-dialog";
 import { BugSlaChip } from "@/features/bugs/components/bug-sla-chip";
 import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
@@ -169,12 +170,7 @@ export const BugList = ({
   readonly emptyMessage?: string;
 }) => {
   if (bugs.length === 0) {
-    return (
-      <output className="panel panel-b muted bug-empty">
-        <Bug aria-hidden="true" size={22} />
-        <p>{emptyMessage}</p>
-      </output>
-    );
+    return <EmptyState icon={Bug} size="panel" title={emptyMessage} />;
   }
 
   return (

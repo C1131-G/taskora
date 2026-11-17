@@ -69,7 +69,6 @@
   color: var(--text-inv);
   font-size: var(--fs-sm);
   font-weight: 500;
-  transition: top 0.15s var(--ease);
 }
 .workspace-app .skip:focus {
   top: calc(8px + env(safe-area-inset-top, 0px));

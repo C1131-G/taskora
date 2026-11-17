@@ -249,7 +249,7 @@ export const MyTasksWorkspace = ({
     <>
       <div className="ph my-tasks-header">
         <div>
-          <h1>My Tasks</h1>
+          <h1 aria-hidden="true">My Tasks</h1>
           <p>{dueSummary || `${visibleTasks.length} assigned tasks`}</p>
         </div>
         {calendarProjects.length > 0 ? (

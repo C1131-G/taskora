@@ -1,6 +1,7 @@
 .workspace-app .project-bugs-view {
   display: grid;
   gap: 16px;
+  padding: 16px var(--gutter) 24px;
 }
 .workspace-app .bug-detail-page {
   display: grid;
@@ -285,4 +286,63 @@
 
 .bug-client-context {
   overflow-wrap: anywhere;
+}
+
+/* project bugs: summary strip above the list */
+.workspace-app .bug-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+.workspace-app .bug-summary-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 12px 14px;
+}
+.workspace-app .bug-summary-item dd {
+  color: var(--text);
+  font-size: var(--fs-xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.workspace-app .bug-summary-item dt {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+.workspace-app .project-bugs-view .bug-page-header {
+  align-items: flex-start;
+}
+@media (max-width: 640px) {
+  .workspace-app .bug-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Bug detail skeleton: bones sit in the real line boxes; the workflow line shows
+   its static steps with none marked current. */
+.workspace-app .bug-detail-page .sk {
+  display: inline-block;
+  vertical-align: middle;
+}
+.workspace-app .bug-detail-heading h1 .sk {
+  width: min(420px, 80%);
+}
+.workspace-app .bug-detail-heading .muted .sk {
+  width: min(260px, 60%);
+}
+.workspace-app .bug-flow-skeleton .bug-flow-step.is-current .bug-flow-dot {
+  background: var(--surface-3);
+  box-shadow: none;
+  color: var(--text-2);
+}
+.workspace-app .bug-flow-skeleton .bug-flow-step.is-current .bug-flow-label {
+  color: var(--text-3);
 }

@@ -24,13 +24,7 @@ const ClientsPage = () => (
         <div>
           <h1>Clients</h1>
           <p>
-            <Suspense
-              fallback={
-                <span aria-hidden="true">
-                  <SkeletonBone />
-                </span>
-              }
-            >
+            <Suspense fallback={<SkeletonBone shape="line" width="42ch" />}>
               <ClientCompanyCount />
             </Suspense>
           </p>

@@ -1,5 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text } from "react-native";
+import { X } from "phosphor-react-native";
 
+import { usePrefersReducedMotion } from "@/components/workspace/workspace-reveal-gate";
+import { appMotion } from "@/theme/motion";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, shadows, spacing, theme } from "@/theme/tokens.generated";
@@ -12,6 +16,63 @@ export interface WorkspaceUndoToastProps {
   readonly visible: boolean;
 }
 
+const ENTER_DURATION = 200;
+/** Exits run shorter than enters. */
+const EXIT_DURATION = 150;
+/** A queued message replacing the current one fades its text in. */
+const SWAP_DURATION = 150;
+const ENTER_OFFSET = 16;
+const TOAST_EASING = Easing.bezier(...appMotion.bezier.standard);
+
+/** Mounts the toast, runs its enter/exit and keeps the last text through the exit. */
+const useToastMotion = (message: string, visible: boolean) => {
+  const [rendered, setRendered] = useState(visible);
+  const [shownMessage, setShownMessage] = useState(message);
+  const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
+  const [textOpacity] = useState(() => new Animated.Value(1));
+
+  // The exit keeps showing the departing text instead of an empty toast.
+  if (visible && message !== shownMessage) {
+    setShownMessage(message);
+  }
+
+  useEffect(() => {
+    if (visible && !rendered) {
+      setRendered(true);
+      return;
+    }
+    if (!rendered) {
+      return;
+    }
+    const animation = Animated.timing(progress, {
+      duration: visible ? ENTER_DURATION : EXIT_DURATION,
+      easing: TOAST_EASING,
+      toValue: visible ? 1 : 0,
+      useNativeDriver: true,
+    });
+    animation.start(({ finished }) => {
+      if (finished && !visible) {
+        setRendered(false);
+      }
+    });
+    return () => animation.stop();
+  }, [visible, rendered, progress]);
+
+  useEffect(() => {
+    textOpacity.setValue(0);
+    const animation = Animated.timing(textOpacity, {
+      duration: SWAP_DURATION,
+      easing: TOAST_EASING,
+      toValue: 1,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [shownMessage, textOpacity]);
+
+  return { progress, rendered, shownMessage, textOpacity };
+};
+
 /** A bottom toast with an optional undo action; screens own the timer. */
 export const WorkspaceUndoToast = ({
   actionLabel = "Undo",
@@ -21,28 +82,56 @@ export const WorkspaceUndoToast = ({
   visible,
 }: WorkspaceUndoToastProps) => {
   const { isDark } = useTheme();
+  const reducedMotion = usePrefersReducedMotion();
+  const { progress, rendered, shownMessage, textOpacity } = useToastMotion(message, visible);
 
-  if (!visible) {
+  // Reduced motion keeps the fade and drops the rise.
+  const toastMotion = useMemo(
+    () =>
+      reducedMotion
+        ? { opacity: progress }
+        : {
+            opacity: progress,
+            transform: [
+              {
+                translateY: progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [ENTER_OFFSET, 0],
+                }),
+              },
+            ],
+          },
+    [progress, reducedMotion],
+  );
+
+  if (!rendered) {
     return null;
   }
 
   return (
-    <View
+    <Animated.View
+      accessibilityElementsHidden={!visible}
       accessibilityLiveRegion="polite"
+      importantForAccessibility={visible ? "auto" : "no-hide-descendants"}
+      pointerEvents={visible ? "auto" : "none"}
       style={[
         styles.toast,
         {
           backgroundColor: isDark ? theme.dark.surface3 : theme.light.text,
           boxShadow: (isDark ? shadows.dark : shadows.light).pop,
         },
+        toastMotion,
       ]}
     >
-      <Text
+      <Animated.Text
         accessibilityRole="alert"
-        style={[typeStyle("sm"), { color: isDark ? theme.dark.text : theme.light.textInv, flex: 1 }]}
+        style={[
+          typeStyle("sm"),
+          { color: isDark ? theme.dark.text : theme.light.textInv, flex: 1, opacity: textOpacity },
+        ]}
       >
-        {message}
-      </Text>
+        {shownMessage}
+      </Animated.Text>
       {onAction === undefined ? null : (
         <Pressable
           accessibilityRole="button"
@@ -61,9 +150,9 @@ export const WorkspaceUndoToast = ({
         </Pressable>
       )}
       <Pressable accessibilityLabel="Dismiss" accessibilityRole="button" hitSlop={8} onPress={onClose}>
-        <Text style={{ color: isDark ? theme.dark.text3 : theme.light.textInv }}>✕</Text>
+        <X color={isDark ? theme.dark.text3 : theme.light.textInv} size={16} weight="bold" />
       </Pressable>
-    </View>
+    </Animated.View>
   );
 };
 

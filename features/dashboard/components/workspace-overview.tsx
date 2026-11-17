@@ -1,31 +1,29 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-restyle */
 
-import {
-  CalendarCheck,
-  FolderOpen,
-  UsersThree,
-} from "@phosphor-icons/react/dist/ssr";
+import { CalendarCheck, UsersThree } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { EmptyState } from "@/components/workspace/empty-state";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
+import {
+  OverviewPortfolioPanel,
+  OverviewPortfolioPanelSkeleton,
+} from "@/features/dashboard/components/overview-portfolio-panel";
+import {
+  OverviewStats,
+  OverviewStatsSkeleton,
+} from "@/features/dashboard/components/overview-stats";
 import { getDashboardOverview } from "@/features/dashboard/dashboard-queries";
 import {
   milestoneDateFormatter,
-  projectStatusLabels,
   taskStatuses,
 } from "@/features/dashboard/overview-labels";
 import { ProjectCreateForm } from "@/features/projects/components/project-create-form";
-import { ProjectIcon } from "@/features/projects/components/project-icon";
 import { listProjects } from "@/features/projects/projects-queries";
 import { getPageSession } from "@/src/server/auth/page-session";
 
@@ -68,123 +66,20 @@ const WorkspaceOverview = async () => {
 
   return (
     <>
-      <div className="stats ov-stats">
-        <div className="stat">
-          <span className="k">Projects</span>
-          <span className="v">{activeProjectCount}</span>
-          <span className="d">{completedProjectCount} completed</span>
-        </div>
-        <div className="stat">
-          <span className="k">Tasks</span>
-          <span className="v">{taskCount}</span>
-          <span className="d">{openTaskCount} open</span>
-        </div>
-        <div className="stat">
-          <span className="k">Completion rate</span>
-          <span className="v">
-            {Math.round((doneCount / Math.max(taskCount, 1)) * 100)}%
-          </span>
-          <span className="d">Across all projects</span>
-        </div>
-        <div className="stat">
-          <span className="k">Members</span>
-          <span className="v">{dashboard.data.workload.length}</span>
-          <span className="d">Active team members</span>
-        </div>
-      </div>
+      <OverviewStats
+        completedProjects={completedProjectCount}
+        completionRate={Math.round((doneCount / Math.max(taskCount, 1)) * 100)}
+        members={dashboard.data.workload.length}
+        openTasks={openTaskCount}
+        projects={activeProjectCount}
+        tasks={taskCount}
+      />
       <div className="overview-grid ov-layout">
-        <section aria-labelledby="overview-portfolio-heading" className="panel">
-          <div className="panel-h">
-            <h2 id="overview-portfolio-heading">Portfolio</h2>
-            <Link className="btn btn-sm btn-ghost" href="/projects">
-              All projects
-            </Link>
-          </div>
-          {projects.data.length ? (
-            <Table className="perm-t overview-project-table">
-              <TableCaption className="sr-only">Project portfolio</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Open</TableHead>
-                  <TableHead>Overdue</TableHead>
-                  <TableHead>Due</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {projects.data.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell>
-                      <Link
-                        aria-label={`Open ${project.name}`}
-                        className="row"
-                        href={`/projects/${project.id}`}
-                      >
-                        <ProjectIcon
-                          color={project.color}
-                          icon={project.icon}
-                        />
-                        <span className="ov-project">
-                          <span className="ov-project-name">
-                            {project.name}
-                          </span>
-                          <span className="ov-project-lead">
-                            {project.leadId
-                              ? (employeesById.get(project.leadId) ??
-                                "Inactive lead")
-                              : "Unassigned"}
-                          </span>
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`pstatus ${project.status}`}>
-                        {projectStatusLabels[project.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="row">
-                        <Progress
-                          aria-label={`${project.progress}% complete`}
-                          max={100}
-                          value={project.progress}
-                          workspace
-                        />
-                        <span className="num">{project.progress}%</span>
-                      </span>
-                    </TableCell>
-                    <TableCell>{project.openTaskCount}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`ov-overdue${project.overdueTaskCount > 0 ? " has" : ""}`}
-                      >
-                        {project.overdueTaskCount}
-                      </span>
-                    </TableCell>
-                    <TableCell>{project.dueDate ?? "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <EmptyState
-              action={
-                isAdmin ? (
-                  <ProjectCreateForm triggerLabel="Create project" />
-                ) : null
-              }
-              description={
-                isAdmin
-                  ? "Create a project to start tracking its tasks and progress here."
-                  : "Projects you can see appear here once an admin creates them."
-              }
-              icon={FolderOpen}
-              title="No projects yet"
-            />
-          )}
-        </section>
+        <OverviewPortfolioPanel
+          employeesById={employeesById}
+          isAdmin={isAdmin}
+          projects={projects.data}
+        />
         <section aria-labelledby="overview-status-heading" className="panel">
           <div className="panel-h">
             <h2 id="overview-status-heading">Tasks by status</h2>
@@ -304,14 +199,87 @@ const WorkspaceOverviewActions = async () => {
   );
 };
 
+// Admin-only "New project" is left out: most people do not see it, and it
+// only widens the action row.
 const WorkspaceOverviewActionsSkeleton = () => (
   <div aria-hidden="true" className="acts overview-actions">
-    <span className="btn btn-secondary btn-sm opacity-0">Timeline</span>
+    <span className="btn btn-secondary btn-sm">Timeline</span>
   </div>
+);
+
+const OverviewRowsSkeleton = ({
+  rowClass,
+  withAvatar,
+}: {
+  readonly rowClass: string;
+  readonly withAvatar: boolean;
+}) =>
+  SKELETON_KEYS.slice(0, 3).map((key) => (
+    <div className={`row ${rowClass}`} key={key}>
+      {withAvatar ? <span className="av" /> : null}
+      <span className="trunc grow">
+        <SkeletonBone shape="line" width="9em" />
+      </span>
+      <span className="num">
+        <SkeletonBone shape="line" width="3em" />
+      </span>
+    </div>
+  ));
+
+// The real overview markup: static labels stay, numbers and names are bones.
+const WorkspaceOverviewSkeleton = () => (
+  <SkeletonRegion label="Loading workspace overview…">
+    <OverviewStatsSkeleton />
+    <div className="overview-grid ov-layout">
+      <OverviewPortfolioPanelSkeleton />
+      <section className="panel">
+        <div className="panel-h">
+          <h2>Tasks by status</h2>
+        </div>
+        <div className="panel-b overview-status-list">
+          {taskStatuses.map(([status, label]) => (
+            <span className="overview-status-row" key={status}>
+              <span>{label}</span>
+              <Progress max={100} value={0} workspace />
+              <span className="num">
+                <SkeletonBone shape="line" width="2ch" />
+              </span>
+              <span className="muted">
+                <SkeletonBone shape="line" width="3ch" />
+              </span>
+            </span>
+          ))}
+        </div>
+      </section>
+      <section className="panel">
+        <div className="panel-h">
+          <h2>Workload</h2>
+        </div>
+        <div className="panel-b">
+          <p className="muted overview-panel-caption">Open tasks per person</p>
+          <div className="feed lined">
+            <OverviewRowsSkeleton rowClass="overview-workload-row" withAvatar />
+          </div>
+        </div>
+      </section>
+      <section className="panel">
+        <div className="panel-h">
+          <h2>Upcoming milestones</h2>
+        </div>
+        <div className="panel-b feed lined">
+          <OverviewRowsSkeleton
+            rowClass="overview-milestone-row"
+            withAvatar={false}
+          />
+        </div>
+      </section>
+    </div>
+  </SkeletonRegion>
 );
 
 export {
   WorkspaceOverview,
   WorkspaceOverviewActions,
   WorkspaceOverviewActionsSkeleton,
+  WorkspaceOverviewSkeleton,
 };

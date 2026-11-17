@@ -1,6 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-restyle -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
-import { ListMagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import { ListMagnifyingGlass, LockOpen } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/workspace/empty-state";
 import {
+  SKELETON_KEYS,
   SkeletonBone,
-  SkeletonDataGrid,
 } from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { auditEventLabel } from "@/features/clients/audit-event-types";
 import {
   listAuditEvents,
@@ -138,35 +139,85 @@ const COLUMNS = [
   "Details",
 ] as const;
 
-// Mirrors AuditLogView: heading, locked-accounts copy, the filter form and the
-// column titles are static; only the event rows are data.
+const EVENT_ROWS = SKELETON_KEYS.slice(0, 5);
+
+// Mirrors AuditLogView: the locked-accounts copy, the filter form and the
+// column titles are static; the locked list and event rows are data. Locked
+// accounts are rare, so that panel holds the empty state's height.
 const AuditLogSkeleton = () => (
-  <>
-    <section aria-label="Locked accounts" className="panel clients-panel">
-      <div className="panel-h clients-panel-h">
-        <div>
-          <h2>Locked accounts</h2>
-          <p className="muted">
-            Accounts lock for 15 minutes after 5 failed sign-ins.
+  <SkeletonRegion label="Loading audit events…">
+    <div className="clients-workspace">
+      <section aria-label="Locked accounts" className="panel clients-panel">
+        <div className="panel-h clients-panel-h">
+          <div>
+            <h2>Locked accounts</h2>
+            <p className="muted">
+              Accounts lock for 15 minutes after 5 failed sign-ins.
+            </p>
+          </div>
+        </div>
+        <div className="empty-state sm">
+          <span aria-hidden="true" className="glyph">
+            <LockOpen size={22} />
+          </span>
+          <h3 className="es-h">
+            <SkeletonBone shape="line" width="16ch" />
+          </h3>
+          <p>
+            <SkeletonBone shape="line" width="48ch" />
           </p>
         </div>
-      </div>
-      <p className="panel-b muted">
-        <SkeletonBone shape="short" />
-      </p>
-    </section>
-    <div inert>
+      </section>
       <AuditFilters filters={parseFilters({})} />
+      <section aria-label="Audit events" className="panel clients-panel">
+        <section aria-label="Audit events table" className="audit-scroll">
+          <table className="clients-table audit-table">
+            <TableHeader>
+              <TableRow>
+                {COLUMNS.map((column) => (
+                  <TableHead key={column}>{column}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {EVENT_ROWS.map((key) => (
+                <TableRow key={key}>
+                  <TableCell className="clients-nowrap">
+                    <SkeletonBone shape="line" width="18ch" />
+                  </TableCell>
+                  <TableCell>
+                    <SkeletonBone shape="line" width="9ch" />
+                  </TableCell>
+                  <TableCell>
+                    <span className="clients-person">
+                      <strong>
+                        <SkeletonBone shape="line" width="12ch" />
+                      </strong>
+                      <span>
+                        <SkeletonBone shape="line" width="18ch" />
+                      </span>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <SkeletonBone shape="line" width="2ch" />
+                  </TableCell>
+                  <TableCell className="clients-nowrap">
+                    <SkeletonBone shape="line" width="12ch" />
+                  </TableCell>
+                  <TableCell>
+                    <SkeletonBone shape="line" width="30ch" />
+                  </TableCell>
+                  <TableCell>
+                    <SkeletonBone shape="line" width="2ch" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </table>
+        </section>
+      </section>
     </div>
-    <section aria-label="Audit events" className="panel clients-panel">
-      <SkeletonDataGrid
-        columns={COLUMNS}
-        label="Loading audit events…"
-        rows={5}
-        widths="1.4fr 1.2fr 1.5fr 1fr 1fr 2fr 0.8fr"
-      />
-    </section>
-  </>
+  </SkeletonRegion>
 );
 
 export { AuditLogView, AuditLogSkeleton };

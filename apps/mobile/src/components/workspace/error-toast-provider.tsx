@@ -27,7 +27,7 @@ export const ErrorToastProvider = ({ children, renderViewport = true }: { readon
     if (message === undefined) return;
     const timer = setTimeout(dismiss, 6000);
     return () => clearTimeout(timer);
-  }, [message, messages, dismiss]);
+  }, [message, dismiss]);
 
   return (
     <ErrorToastContext.Provider value={showError}>

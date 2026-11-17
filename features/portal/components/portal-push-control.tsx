@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import { PUSH_COPY } from "@/features/portal/components/portal-account-copy";
 import {
   registerPortalPushAction,
   removePortalPushAction,
@@ -45,10 +46,12 @@ const readCapability = (publicKey: string): Capability => {
 };
 
 const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
+  // Without a key the server already knows push is unavailable, so the panel
+  // renders empty from the first paint instead of collapsing after hydration.
   const capability = useSyncExternalStore<Capability | "checking">(
     subscribeNothing,
     () => readCapability(publicKey),
-    () => "checking"
+    () => (publicKey ? "checking" : "unsupported")
   );
   const [subscribed, setSubscribed] = useState<boolean>();
   const [denied, setDenied] = useState(false);
@@ -155,10 +158,7 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
 
   return (
     <div className="portal-stack">
-      <p className="muted">
-        Get a notification on this device when the team replies or the status of
-        one of your bugs changes.
-      </p>
+      <p className="muted">{PUSH_COPY}</p>
       <div>
         <WorkspaceButton
           aria-pressed={subscribed === true}

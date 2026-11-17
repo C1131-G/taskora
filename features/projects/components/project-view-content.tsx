@@ -6,7 +6,10 @@ import { SuspenseReveal } from "@/components/ui/suspense-reveal";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import type { listActivity } from "@/features/activity/activity-queries";
 import { ProjectActivityFeed } from "@/features/activity/components/project-activity-feed";
-import { ProjectApprovals } from "@/features/approvals/components/project-approvals";
+import {
+  ProjectApprovals,
+  ProjectApprovalsSkeleton,
+} from "@/features/approvals/components/project-approvals";
 import type { listBugs } from "@/features/bugs/bugs-queries";
 import { ProjectBugs } from "@/features/bugs/components/project-bugs";
 import type { listCalendarEvents } from "@/features/calendar/calendar-queries";
@@ -132,7 +135,9 @@ const renderProjectOverview = ({
       activity={activityResult?.ok ? activityResult.data : []}
       activityUnavailable={!activityResult?.ok}
       budget={
-        <SuspenseReveal fallback={<ProjectBudgetPanelSkeleton />}>
+        <SuspenseReveal
+          fallback={<ProjectBudgetPanelSkeleton reserveSpace={isAdmin} />}
+        >
           <ProjectBudgetPanel editable={isAdmin} projectId={project.id} />
         </SuspenseReveal>
       }
@@ -214,7 +219,9 @@ const renderProjectActivity = ({
 );
 
 const renderProjectApprovals = ({ project }: ProjectViewContentProps) => (
-  <ProjectApprovals projectId={project.id} />
+  <SuspenseReveal fallback={<ProjectApprovalsSkeleton />}>
+    <ProjectApprovals projectId={project.id} />
+  </SuspenseReveal>
 );
 
 const renderProjectBugs = ({

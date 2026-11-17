@@ -1,15 +1,19 @@
 import { Effect, Exit } from "effect";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { withSkeleton } from "react-zero-skeleton";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
-import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { failureMessage } from "@/components/workspace/workspace-error-state";
 import { useErrorToast } from "@/components/workspace/error-toast-provider";
-import { WorkspaceListRow } from "@/components/workspace/workspace-list-row";
+import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import { WorkspaceField } from "@/components/workspace/workspace-field";
+import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
+import { WorkspaceTextInput } from "@/components/workspace/workspace-text-input";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
-import { listPortalBugs, listPortalProjects, submitPortalBug } from "@/features/portal/queries";
+import { PLACEHOLDER_PORTAL_PROJECTS } from "@/features/portal/portal-placeholders";
+import { listPortalProjects, submitPortalBug } from "@/features/portal/queries";
 import {
   draftToReport,
   EMPTY_REPORT_DRAFT,
@@ -19,49 +23,7 @@ import {
 import { failureOf, useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
-import { radii, spacing, theme } from "@/theme/tokens.generated";
-
-/** The client portal home: their projects and reported bugs. */
-export const PortalHomeScreen = () => {
-  const api = useApi();
-  const { isDark } = useTheme();
-  const palette = isDark ? theme.dark : theme.light;
-  const projects = useApiQuery({
-    enabled: api !== null,
-    program:
-      api === null
-        ? Effect.succeed({ projects: [] })
-        : Effect.map(listPortalProjects(api), (page) => ({ projects: [...page.projects] })),
-    queryKey: ["portal", "projects"],
-  });
-  const bugs = useApiQuery({
-    enabled: api !== null,
-    program:
-      api === null ? Effect.succeed([]) : Effect.map(listPortalBugs(api), (rows) => [...rows]),
-    queryKey: ["portal", "bugs"],
-  });
-  const reports = bugs.data ?? [];
-
-  return (
-    <WorkspaceScreen title="Portal">
-      <Text style={[typeStyle("md", { weight: 600 }), { color: palette.text2 }]}>Projects</Text>
-      {(projects.data?.projects ?? []).map((project) => (
-        <WorkspaceListRow
-          key={project.id}
-          subtitle={project.key}
-          title={`${project.key} ${project.name}`}
-        />
-      ))}
-      <Text style={[typeStyle("md", { weight: 600 }), { color: palette.text2 }]}>Your bugs</Text>
-      {reports.map((bug) => (
-        <WorkspaceListRow key={bug.id} subtitle={bug.status} title={bug.title} />
-      ))}
-      {reports.length === 0 ? (
-        <WorkspaceEmptyState message="Report a problem and it lands here." title="No reports" />
-      ) : null}
-    </WorkspaceScreen>
-  );
-};
+import { spacing, theme } from "@/theme/tokens.generated";
 
 /** The report-a-bug form: what the client saw, where, and how bad it is. */
 export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) => {
@@ -81,6 +43,7 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
         : Effect.map(listPortalProjects(api), (page) => ({ projects: [...page.projects] })),
     queryKey: ["portal", "projects"],
   });
+  const projectsLoading = api === null || projects.isPending;
   const choices = projects.data?.projects ?? [];
   // A client with a single project never has to pick it.
   const onlyProject = choices.length === 1 ? (choices[0]?.id ?? "") : "";
@@ -157,57 +120,65 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
           ))}
         </View>
         <Text style={[typeStyle("sm", { weight: 500 }), { color: palette.text }]}>Project</Text>
-        <View style={styles.choices}>
-          {choices.map((project) => (
-            <Pressable
-              accessibilityLabel={`Project ${project.name}`}
-              accessibilityRole="button"
-              accessibilityState={{ selected: projectId === project.id }}
-              key={project.id}
-              onPress={() => change({ projectId: project.id })}
-            >
-              <WorkspaceChip color="gray" label={project.name} selected={projectId === project.id} />
-            </Pressable>
-          ))}
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          onPress={submit}
-          style={[styles.submit, { backgroundColor: palette.accent }]}
-        >
-          <Text style={{ color: palette.onAccent }}>Send report</Text>
-        </Pressable>
+        {/* Bones reserve the chip row while projects load, so Send report does not jump. */}
+        <WorkspaceLoadingRegion isLoading={projectsLoading} label="Loading projects">
+          <SkelterProjectChips
+            hasSkeleton={projectsLoading}
+            isLoading={projectsLoading}
+            onPick={(id) => change({ projectId: id })}
+            projects={projectsLoading ? PLACEHOLDER_PORTAL_PROJECTS : choices}
+            selectedId={projectId}
+          />
+        </WorkspaceLoadingRegion>
+        <WorkspaceButton onPress={submit} size="lg">
+          Send report
+        </WorkspaceButton>
       </View>
     </WorkspaceScreen>
   );
 };
+
+const ProjectChips = ({
+  onPick,
+  projects,
+  selectedId,
+}: {
+  readonly onPick: (id: string) => void;
+  readonly projects: readonly { readonly id: string; readonly name: string }[];
+  readonly selectedId: string;
+}) => (
+  <View style={styles.choices}>
+    {projects.map((project) => (
+      <Pressable
+        accessibilityLabel={`Project ${project.name}`}
+        accessibilityRole="button"
+        accessibilityState={{ selected: selectedId === project.id }}
+        key={project.id}
+        onPress={() => onPick(project.id)}
+      >
+        <WorkspaceChip color="gray" label={project.name} selected={selectedId === project.id} />
+      </Pressable>
+    ))}
+  </View>
+);
+
+const SkelterProjectChips = withSkeleton(ProjectChips);
 
 const Field = (props: {
   readonly label: string;
   readonly multiline?: boolean;
   readonly onChange: (value: string) => void;
   readonly value: string;
-}) => {
-  const { isDark } = useTheme();
-  const palette = isDark ? theme.dark : theme.light;
-
-  return (
-    <View style={styles.field}>
-      <Text style={[typeStyle("sm", { weight: 500 }), { color: palette.text }]}>{props.label}</Text>
-      <TextInput
-        accessibilityLabel={props.label}
-        multiline={props.multiline === true}
-        onChangeText={props.onChange}
-        style={[
-          styles.input,
-          props.multiline === true && styles.multiline,
-          { borderColor: palette.border, color: palette.text },
-        ]}
-        value={props.value}
-      />
-    </View>
-  );
-};
+}) => (
+  <WorkspaceField label={props.label}>
+    <WorkspaceTextInput
+      accessibilityLabel={props.label}
+      multiline={props.multiline === true}
+      onChangeText={props.onChange}
+      value={props.value}
+    />
+  </WorkspaceField>
+);
 
 const styles = StyleSheet.create({
   choices: {
@@ -215,27 +186,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.s2,
   },
-  field: {
-    gap: spacing.s1,
-  },
   form: {
-    gap: spacing.s3,
-  },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    minHeight: 44,
-    paddingHorizontal: spacing.s3,
-  },
-  multiline: {
-    minHeight: 88,
-    paddingTop: spacing.s2,
-    textAlignVertical: "top",
-  },
-  submit: {
-    alignItems: "center",
-    borderRadius: radii.md,
-    justifyContent: "center",
-    minHeight: 44,
+    gap: spacing.s4,
   },
 });

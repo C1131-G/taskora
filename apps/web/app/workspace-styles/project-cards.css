@@ -79,7 +79,7 @@
   font-weight: 500;
   height: 20px;
   padding: 0 7px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--border);
   white-space: nowrap;
 }

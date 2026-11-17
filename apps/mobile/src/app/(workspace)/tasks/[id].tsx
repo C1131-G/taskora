@@ -3,23 +3,27 @@ import { useLocalSearchParams } from "expo-router";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
-import { SkelterTaskDetailScreen, type TaskDetailModel } from "@/features/tasks/task-screens";
+import { TaskDetailScreen, type TaskDetailModel } from "@/features/tasks/task-screens";
 import { getTaskContext, type MobileTaskContext } from "@/features/tasks/queries";
 import { useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
 import type { AppFailure } from "@/errors";
 
+/** Typical-length detail so Skelter sizes its bones like a real task. */
+const PLACEHOLDER_TASK_DETAIL: TaskDetailModel = {
+  projectName: "Website relaunch",
+  status: "progress",
+  subtasks: [
+    { completed: true, id: "placeholder-subtask-1", title: "Draft new pricing tiers copy" },
+    { completed: false, id: "placeholder-subtask-2", title: "Get sign-off from marketing" },
+    { completed: false, id: "placeholder-subtask-3", title: "Publish and check on mobile" },
+  ],
+  title: "Update pricing page copy for Q1",
+  version: 0,
+};
+
 const toTaskDetailModel = (detail: MobileTaskContext | null): TaskDetailModel =>
   detail === null
-    ? {
-        projectName: "Project name",
-        status: "todo",
-        subtasks: [
-          { completed: false, id: "skeleton-subtask-1", title: "Subtask title" },
-          { completed: false, id: "skeleton-subtask-2", title: "Subtask title" },
-        ],
-        title: "Task title",
-        version: 0,
-      }
+    ? PLACEHOLDER_TASK_DETAIL
     : {
         projectName: detail.projectName,
         status: detail.status,
@@ -47,23 +51,24 @@ export default function TaskDetailRoute() {
     queryKey: ["tasks", id, "detail"],
   });
 
-  if (api === null || keys === null || id.length === 0) {
+  // Only a missing id is an incomplete link; a null api/keys is a session still restoring.
+  if (id.length === 0) {
     return <WorkspaceEmptyState message="This task link is incomplete." title="No task" />;
   }
   if (task.error !== null) {
     return <WorkspaceErrorState failure={task.error} onRetry={() => void task.refetch()} />;
   }
 
+  const isLoading = api === null || keys === null || task.isPending;
   const detail = task.data ?? null;
-  if (!task.isPending && detail === null) {
+  if (!isLoading && detail === null) {
     return <WorkspaceEmptyState message="This task no longer exists." title="No task" />;
   }
 
   return (
-    <SkelterTaskDetailScreen
+    <TaskDetailScreen
       api={api}
-      hasSkeleton
-      isLoading={task.isPending}
+      isLoading={isLoading}
       keys={keys}
       task={toTaskDetailModel(detail)}
       taskId={id}

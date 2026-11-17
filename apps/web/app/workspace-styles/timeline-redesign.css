@@ -284,10 +284,10 @@
 
 /* the opened assignee picker (and every workspace combobox): a boxy search field and square corners, not pills */
 [data-workspace-combobox] {
-  border-radius: 6px;
+  border-radius: var(--r-sm);
 }
 [data-workspace-combobox] [data-slot="command"] {
-  border-radius: 4px;
+  border-radius: var(--r-xs);
 }
 [data-workspace-combobox] [data-slot="command-input-wrapper"] {
   padding: 4px 4px 4px;
@@ -295,14 +295,14 @@
 [data-workspace-combobox] [data-slot="input-group"] {
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   height: 36px;
 }
 [data-workspace-combobox] [data-slot="command-input"] {
   border-radius: 0;
 }
 [data-workspace-combobox] [data-slot="command-item"] {
-  border-radius: 4px;
+  border-radius: var(--r-xs);
 }
 
 /* the assignee picker is a button, not a native select: give it the same flat look as the other cells */
@@ -351,7 +351,7 @@
 .workspace-app .timeline-toolbar > .skeleton-filter-select,
 .workspace-app .timeline-toolbar > .timeline-scale,
 .workspace-app .timeline-toolbar > button {
-  border-radius: 4px;
+  border-radius: var(--r-xs);
 }
 
 /* the assignee label is not clipped at the bottom (descenders like g and y) */
@@ -428,7 +428,7 @@
 .workspace-app .timeline-toolbar > .btn {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
+  border-radius: var(--r-xs) !important;
   font-size: var(--fs-sm) !important;
   font-weight: 700 !important;
   padding: 0 12px !important;

@@ -1,9 +1,8 @@
 import { Effect } from "effect";
 
 import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
-import { WorkspaceSkeleton } from "@/components/workspace/workspace-skeleton";
 import type { AppFailure } from "@/errors";
-import { SkelterPreferencesScreen } from "@/features/preferences/preferences-screen";
+import { PreferencesScreen } from "@/features/preferences/preferences-screen";
 import {
   getPreferences,
   type Preference,
@@ -34,19 +33,16 @@ export const PreferencesRoute = ({ audience }: { readonly audience: PreferenceAu
     queryKey: ["notification-preferences", audience],
   });
 
-  if (api === null || keys === null) {
-    return <WorkspaceSkeleton variant="panel" />;
-  }
+  const isLoading = api === null || keys === null || loaded.isPending;
   if (loaded.error !== null) {
     return <WorkspaceErrorState failure={loaded.error} onRetry={() => void loaded.refetch()} />;
   }
 
   return (
-    <SkelterPreferencesScreen
+    <PreferencesScreen
       api={api}
       audience={audience}
-      hasSkeleton
-      isLoading={loaded.isPending}
+      isLoading={isLoading}
       keys={keys}
       preferences={loaded.data ?? SKELETON_PREFERENCES}
     />

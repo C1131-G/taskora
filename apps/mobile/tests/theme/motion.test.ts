@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { describe, expect } from "vitest";
 
 import { Haptics, makeHapticsStub } from "@/services/haptics";
-import { appMotion, durationFor, parseCubicBezier } from "@/theme/motion";
+import { appMotion, parseCubicBezier } from "@/theme/motion";
 import { motion } from "@/theme/tokens.generated";
 
 describe("the motion vocabulary", () => {
@@ -23,10 +23,8 @@ describe("the motion vocabulary", () => {
     expect(points.x2).toBeLessThanOrEqual(1);
   });
 
-  it("carries the web duration and disables it under reduced motion", () => {
+  it("carries the web duration", () => {
     expect(appMotion.durations.standard).toBe(140);
-    expect(durationFor(true)).toBe(0);
-    expect(durationFor(false)).toBe(140);
   });
 
   it("exposes a bezier tuple per motion token for Reanimated", () => {

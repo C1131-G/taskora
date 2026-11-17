@@ -1,20 +1,31 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
 
+import { Plus } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ErrorToast } from "@/components/workspace/error-toast";
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import { listActivity } from "@/features/activity/activity-queries";
 import {
   HomeStats,
+  HomeStatsSkeleton,
   MyTasksPanel,
+  MyTasksPanelSkeleton,
   ProjectProgressPanel,
+  ProjectProgressPanelSkeleton,
   RecentActivityPanel,
+  RecentActivityPanelSkeleton,
   UpcomingDeadlinesPanel,
+  UpcomingDeadlinesPanelSkeleton,
 } from "@/features/dashboard/components/home-panels";
 import type { TaskViewLists } from "@/features/dashboard/components/home-panels";
 import { getDashboardOverview } from "@/features/dashboard/dashboard-queries";
+import {
+  formatFullDate,
+  greetingAt,
+  localDateString,
+} from "@/features/dashboard/home-dates";
 import type { HomeTaskView } from "@/features/dashboard/home-task-view";
 import { listAllEmployees } from "@/features/people/people-queries";
 import { ProjectCreateForm } from "@/features/projects/components/project-create-form";
@@ -23,39 +34,6 @@ import { QuickTaskForm } from "@/features/tasks/components/quick-task-form";
 import { listAllProjectTasks } from "@/features/tasks/tasks-queries";
 import { getPageSession } from "@/src/server/auth/page-session";
 import { isWorkspaceUser } from "@/src/server/auth/session";
-
-const greetingAt = (hour: number): string => {
-  if (hour < 12) {
-    return "Good morning";
-  }
-  if (hour < 18) {
-    return "Good afternoon";
-  }
-  return "Good evening";
-};
-
-const DATE_PART_FORMATTER = new Intl.DateTimeFormat("en-CA", {
-  day: "2-digit",
-  month: "2-digit",
-  timeZone: "Asia/Kolkata",
-  year: "numeric",
-});
-const FULL_DATE_FORMATTER = new Intl.DateTimeFormat("en", {
-  dateStyle: "full",
-  timeZone: "Asia/Kolkata",
-});
-const HOUR_FORMATTER = new Intl.DateTimeFormat("en", {
-  hour: "numeric",
-  hourCycle: "h23",
-  timeZone: "Asia/Kolkata",
-});
-
-const localDateString = (date: Date): string => {
-  const parts = DATE_PART_FORMATTER.formatToParts(date);
-  const part = (type: "year" | "month" | "day") =>
-    parts.find((datePart) => datePart.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
-};
 
 const HomeTaskViewPanel = ({
   taskView,
@@ -201,7 +179,7 @@ const WorkspaceHome = async ({
       : []
   );
   // eslint-disable-next-line react/purity -- This server-rendered date follows the user's workspace time zone.
-  const todayLabel = FULL_DATE_FORMATTER.format(now);
+  const todayLabel = formatFullDate(now);
 
   return (
     <div className="page">
@@ -211,8 +189,7 @@ const WorkspaceHome = async ({
       <div className="ph">
         <div>
           <h1>
-            {greetingAt(Number(HOUR_FORMATTER.format(now)))},{" "}
-            {employee?.name.split(" ")[0] ?? "there"}
+            {greetingAt(now)}, {employee?.name.split(" ")[0] ?? "there"}
           </h1>
           <p>{todayLabel} · Here is what is happening across your workspace.</p>
         </div>
@@ -260,35 +237,43 @@ const WorkspaceHome = async ({
   );
 };
 
-const WorkspaceHomeSkeleton = () => (
+// The greeting and date are request data; their line boxes stay so the header
+// keeps its loaded height. Admin-only "New project" is left out: most people
+// do not see it, and it only widens the action row.
+const WorkspaceHomeSkeleton = ({
+  taskView,
+}: {
+  readonly taskView: HomeTaskView;
+}) => (
   <div className="page">
     <div className="ph">
       <div>
-        <h1>Home</h1>
-        <p className="muted">Loading your dashboard…</p>
+        <h1>
+          <span className="sr-only">Home</span>
+          <SkeletonBone shape="line" width="8em" />
+        </h1>
+        <p>
+          <SkeletonBone shape="line" width="13em" /> · Here is what is happening
+          across your workspace.
+        </p>
+      </div>
+      <div aria-hidden="true" className="acts" inert>
+        <span className="btn btn-secondary hide-m">Invite member</span>
+        <span className="btn btn-primary btn-sm">
+          <Plus aria-hidden="true" size={14} />
+          New task
+        </span>
       </div>
     </div>
-    <span aria-hidden="true" className="sk home-stats-skeleton" />
+    <HomeStatsSkeleton />
     <div className="grid2 home-columns">
       <div className="stack">
-        <PanelSkeleton label="Loading your tasks…" rows={1} title="My tasks" />
-        <PanelSkeleton
-          label="Loading project progress…"
-          rows={1}
-          title="Projects"
-        />
+        <MyTasksPanelSkeleton taskView={taskView} />
+        <ProjectProgressPanelSkeleton />
       </div>
       <div className="stack">
-        <PanelSkeleton
-          label="Loading deadlines…"
-          rows={3}
-          title="Upcoming deadlines"
-        />
-        <PanelSkeleton
-          label="Loading activity…"
-          rows={3}
-          title="Recent activity"
-        />
+        <UpcomingDeadlinesPanelSkeleton />
+        <RecentActivityPanelSkeleton />
       </div>
     </div>
   </div>

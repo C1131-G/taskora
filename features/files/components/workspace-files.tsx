@@ -1,6 +1,10 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
-import { CaretDown } from "@phosphor-icons/react/dist/ssr";
+import {
+  CaretDown,
+  ListBullets,
+  SquaresFour,
+} from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 import { ErrorToast } from "@/components/workspace/error-toast";
@@ -8,7 +12,10 @@ import {
   SKELETON_KEYS,
   SkeletonBone,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { ProjectFiles } from "@/features/files/components/project-files";
 import { listProjectFiles } from "@/features/files/files-queries";
 import { listProjects } from "@/features/projects/projects-queries";
@@ -78,64 +85,96 @@ const WorkspaceFiles = async () => {
 
 const PROJECT_BLOCKS = SKELETON_KEYS.slice(0, 3);
 
-const FILE_CARDS = SKELETON_KEYS.slice(0, 4);
+const FILE_CARDS = SKELETON_KEYS.slice(0, 2);
 
+const FILE_LAYOUT_BUTTONS = [
+  { Icon: SquaresFour, layout: "grid" },
+  { Icon: ListBullets, layout: "list" },
+] as const;
+
+// ProjectFilesToolbar at its defaults, as static shapes. Upload is admin-only,
+// so like the drop area it is not reserved: most people never get it.
 const FileToolbarSkeleton = () => (
-  <div className="panel-h file-toolbar" inert>
+  <div className="panel-h file-toolbar">
     <div className="file-search">
-      <span className="skeleton-filter-select skeleton-search">
-        Search files
-      </span>
+      <input placeholder="Search files" readOnly tabIndex={-1} type="search" />
     </div>
     <div className="file-filter">
-      <span className="skeleton-filter-select">
+      <span
+        className="flex items-center justify-between"
+        data-slot="select-trigger"
+      >
         All types
-        <CaretDown aria-hidden="true" size={14} />
+        <CaretDown aria-hidden="true" size={16} />
       </span>
     </div>
     <div className="file-sort">
-      <span className="skeleton-filter-select">
+      <span
+        className="flex items-center justify-between"
+        data-slot="select-trigger"
+      >
         Sort: Newest
-        <CaretDown aria-hidden="true" size={14} />
+        <CaretDown aria-hidden="true" size={16} />
       </span>
+    </div>
+    <div className="file-layout-switch">
+      {FILE_LAYOUT_BUTTONS.map(({ Icon, layout }) => (
+        <span
+          className="inline-flex size-[30px] items-center justify-center"
+          data-file-layout-button={layout}
+          key={layout}
+        >
+          <Icon aria-hidden="true" size={16} />
+        </span>
+      ))}
     </div>
   </div>
 );
 
-// Mirrors WorkspaceFiles: each project block keeps its static heading link and
-// toolbar; the project name and file cards are data.
+// Mirrors WorkspaceFiles: each project card keeps its static link label and
+// toolbar; the project name, count and file cards are data.
 const WorkspaceFilesSkeleton = () => (
   <>
     {PROJECT_BLOCKS.map((block) => (
-      <section className="stack file-project" key={block}>
-        <div className="row">
-          <h2>
-            <SkeletonBone shape="title" />
-          </h2>
-          <span className="sp" />
-          <Link className="btn btn-sm btn-ghost" href="/projects">
-            Open project files
-          </Link>
-        </div>
-        <section className="panel project-files">
-          <FileToolbarSkeleton />
-          <SkelterSurface label="Loading project files…">
+      <SkelterSurface key={block} label="Loading project files…">
+        <section className="stack file-project">
+          <div className="row">
+            <h2>
+              <SkeletonBone shape="title" />
+            </h2>
+            <span className="sp" />
+            <SkeletonKeep>
+              <span className="btn btn-sm btn-ghost">Open project files</span>
+            </SkeletonKeep>
+          </div>
+          <section className="panel project-files">
+            <SkeletonKeep>
+              <FileToolbarSkeleton />
+            </SkeletonKeep>
             <div className="file-results" data-layout="grid">
               {FILE_CARDS.map((key) => (
-                <article className="file-card" key={key}>
-                  <div aria-hidden="true" className="file-card-preview">
+                <article className="file-card file-card-skeleton" key={key}>
+                  <div className="file-card-preview">
                     <SkeletonBone shape="short" />
                   </div>
                   <div className="file-card-main">
-                    <SkeletonBone />
-                    <SkeletonBone shape="short" />
+                    <strong className="file-card-name">
+                      <SkeletonBone />
+                    </strong>
+                    <span className="file-card-details">
+                      <SkeletonBone shape="short" />
+                    </span>
+                    <span className="file-copy-state">
+                      <SkeletonBone shape="short" />
+                    </span>
                   </div>
+                  <span className="size-[30px]" />
                 </article>
               ))}
             </div>
-          </SkelterSurface>
+          </section>
         </section>
-      </section>
+      </SkelterSurface>
     ))}
   </>
 );

@@ -8,9 +8,11 @@ import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
-  SkeletonRows,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { clientStatusText } from "@/features/portal/client-status";
 import { PortalAttachments } from "@/features/portal/components/portal-attachments";
 import { PortalBugManage } from "@/features/portal/components/portal-bug-manage";
@@ -308,29 +310,51 @@ const PortalBugView = async ({
 const PortalBugViewSkeleton = () => (
   <SkelterSurface label="Loading bug">
     <div className="portal-detail">
-      <div className="portal-back">
+      <span className="portal-back">
+        <SkeletonKeep>Company bugs</SkeletonKeep>
+      </span>
+      <header className="portal-bug-head">
         <SkeletonBone shape="short" />
-      </div>
-      <div className="portal-bug-head skeleton-copy">
-        <SkeletonBone shape="short" />
-        <SkeletonBone shape="title" />
-        <SkeletonBone />
-      </div>
+        <h1>
+          <SkeletonBone />
+        </h1>
+        <div className="portal-bug-meta">
+          <SkeletonBone shape="short" />
+          <SkeletonBone shape="short" />
+          <SkeletonBone shape="short" />
+        </div>
+      </header>
       <div className="portal-detail-grid">
         <div className="portal-detail-main">
-          {SKELETON_KEYS.slice(0, 3).map((key) => (
-            <div className="panel portal-panel" key={key}>
-              <SkeletonBone shape="title" />
-              <SkeletonRows rows={3} />
-            </div>
+          {[
+            "Description",
+            "Steps to reproduce",
+            "Expected and actual behavior",
+          ].map((title) => (
+            <section className="panel portal-panel" key={title}>
+              <SkeletonKeep>
+                <h2 className="sec">{title}</h2>
+              </SkeletonKeep>
+              <SkeletonBone />
+              <SkeletonBone />
+            </section>
           ))}
         </div>
-        <div className="portal-detail-side">
-          <div className="panel portal-panel">
-            <SkeletonBone shape="title" />
-            <SkeletonRows rows={4} />
-          </div>
-        </div>
+        <aside className="portal-detail-side">
+          <section className="panel portal-panel">
+            <SkeletonKeep>
+              <h2 className="sec">Status timeline</h2>
+            </SkeletonKeep>
+            <ol className="portal-timeline">
+              {SKELETON_KEYS.slice(0, 3).map((key) => (
+                <li key={key}>
+                  <SkeletonBone />
+                  <SkeletonBone shape="short" />
+                </li>
+              ))}
+            </ol>
+          </section>
+        </aside>
       </div>
     </div>
   </SkelterSurface>

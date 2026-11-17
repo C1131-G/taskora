@@ -143,7 +143,7 @@ const LoginForm = ({ notice = "" }: { readonly notice?: string }) => {
 
 const LoginFormSkeleton = () => (
   <>
-    <AuthFormSkeleton>
+    <AuthFormSkeleton label="Loading sign-in form">
       <AuthFieldSkeleton />
       <AuthFieldSkeleton />
     </AuthFormSkeleton>

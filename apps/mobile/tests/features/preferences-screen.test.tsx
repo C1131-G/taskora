@@ -21,7 +21,7 @@ const keysStub: KeysContextValue = {
 it("toasts a failed preference update and restores the switch", async () => {
   const api = { call: () => Effect.fail(new ValidationFailed({ fieldErrors: { preference: "Could not save setting" } })) } as unknown as ApiContextValue;
   const user = userEvent.setup();
-  await renderWithTheme(<PreferencesScreen api={api} audience="workspace" keys={keysStub} preferences={PREFERENCES} />);
+  await renderWithTheme(<PreferencesScreen isLoading={false} api={api} audience="workspace" keys={keysStub} preferences={PREFERENCES} />);
   const toggle = screen.getByRole("switch", { name: "Mentions: In the app" });
   await user.press(toggle);
   await waitFor(() => expect(screen.getByText("Could not save setting")).toBeTruthy());
@@ -50,7 +50,7 @@ it("groups the settings by kind in the order the server gave", () => {
 
 it("shows every kind and channel with its state", async () => {
   await renderWithTheme(
-    <PreferencesScreen
+    <PreferencesScreen isLoading={false}
       api={apiThat(() => Promise.resolve({ done: true }))}
       audience="workspace"
       keys={keysStub}
@@ -69,7 +69,7 @@ it("switches a kind on under an idempotency key and shows it at once", async () 
   const sent: unknown[] = [];
   const user = userEvent.setup();
   await renderWithTheme(
-    <PreferencesScreen
+    <PreferencesScreen isLoading={false}
       api={apiThat((input) => {
         sent.push(input);
         return Promise.resolve({ done: true });
@@ -92,7 +92,7 @@ it("switches a kind on under an idempotency key and shows it at once", async () 
 it("puts the switch back when the server refuses the change", async () => {
   const user = userEvent.setup();
   await renderWithTheme(
-    <PreferencesScreen
+    <PreferencesScreen isLoading={false}
       api={apiThat(() => Promise.reject(new Error("refused")))}
       audience="workspace"
       keys={keysStub}
@@ -111,7 +111,7 @@ it("sends a client's change through the portal route with only the two kinds a c
   const sent: unknown[] = [];
   const user = userEvent.setup();
   await renderWithTheme(
-    <PreferencesScreen
+    <PreferencesScreen isLoading={false}
       api={apiThat((input) => {
         sent.push(input);
         return Promise.resolve({ done: true });
@@ -133,7 +133,7 @@ it("sends a client's change through the portal route with only the two kinds a c
 
 it("says so when there is nothing to switch", async () => {
   await renderWithTheme(
-    <PreferencesScreen
+    <PreferencesScreen isLoading={false}
       api={apiThat(() => Promise.resolve({ done: true }))}
       audience="portal"
       keys={keysStub}

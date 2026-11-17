@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { AnimatedPressable, usePressScale } from "@/components/workspace/workspace-press-scale";
 import { useTheme } from "@/theme/theme-provider";
 import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
@@ -9,6 +10,8 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const MIN_TOUCH_TARGET = 44;
+/** Optical nudge: the icon side of a button takes 2pt less padding. */
+const ICON_SIDE_TRIM = 2;
 
 export interface WorkspaceButtonProps {
   readonly children: string;
@@ -35,6 +38,9 @@ const colorsFor = (variant: ButtonVariant, isDark: boolean) => {
   }
 };
 
+const horizontalPaddingFor = (size: ButtonSize): number =>
+  size === "lg" ? spacing.s6 : size === "sm" ? spacing.s3 : spacing.s4;
+
 export const WorkspaceButton = ({
   children,
   disabled = false,
@@ -47,25 +53,34 @@ export const WorkspaceButton = ({
   const { isDark } = useTheme();
   const colors = colorsFor(variant, isDark);
   const label = typeStyle(size === "lg" ? "md" : "sm", { weight: 500 });
+  const press = usePressScale(disabled);
+  const padding = horizontalPaddingFor(size);
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || undefined }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
+      style={[
         styles.base,
-        size === "lg" ? styles.large : size === "sm" ? styles.small : styles.medium,
-        { backgroundColor: colors.background, opacity: pressed && !disabled ? 0.8 : 1 },
+        size === "lg" ? styles.large : styles.medium,
+        {
+          backgroundColor: colors.background,
+          paddingLeft: leadingIcon === undefined ? padding : padding - ICON_SIDE_TRIM,
+          paddingRight: trailingIcon === undefined ? padding : padding - ICON_SIDE_TRIM,
+        },
+        press.pressStyle,
       ]}
     >
-      {leadingIcon === undefined ? null : <View style={styles.icon}>{leadingIcon}</View>}
+      {leadingIcon === undefined ? null : <View>{leadingIcon}</View>}
       <Text maxFontSizeMultiplier={FONT_SCALE_CAP} style={[label, { color: colors.text }]}>
         {children}
       </Text>
-      {trailingIcon === undefined ? null : <View style={styles.icon}>{trailingIcon}</View>}
-    </Pressable>
+      {trailingIcon === undefined ? null : <View>{trailingIcon}</View>}
+    </AnimatedPressable>
   );
 };
 
@@ -83,22 +98,26 @@ export const WorkspaceIconButton = ({
   onPress,
 }: WorkspaceIconButtonProps) => {
   const { isDark } = useTheme();
+  const palette = isDark ? theme.dark : theme.light;
+  const press = usePressScale(disabled);
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || undefined }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
+      style={[
         styles.iconButton,
-        { backgroundColor: "transparent", opacity: pressed && !disabled ? 0.7 : 1 },
-        { borderColor: isDark ? theme.dark.border : theme.light.border },
+        { backgroundColor: palette.surface2 },
+        press.pressStyle,
       ]}
     >
       {children}
-    </Pressable>
+    </AnimatedPressable>
   );
 };
 
@@ -107,30 +126,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radii.md,
     flexDirection: "row",
+    gap: spacing.s2,
     justifyContent: "center",
-    minHeight: MIN_TOUCH_TARGET,
-    paddingHorizontal: spacing.s4,
-  },
-  icon: {
-    marginHorizontal: spacing.s1,
   },
   iconButton: {
     alignItems: "center",
-    borderRadius: radii.md,
-    borderWidth: 1,
+    borderRadius: radii.full,
     height: MIN_TOUCH_TARGET,
     justifyContent: "center",
     width: MIN_TOUCH_TARGET,
   },
   large: {
     minHeight: 48,
-    paddingHorizontal: spacing.s6,
   },
   medium: {
     minHeight: MIN_TOUCH_TARGET,
-  },
-  small: {
-    minHeight: MIN_TOUCH_TARGET,
-    paddingHorizontal: spacing.s3,
   },
 });

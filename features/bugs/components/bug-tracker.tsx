@@ -1,18 +1,13 @@
 /* eslint-disable shadcn/no-restyle, shadcn/no-unknown-classes -- Bug screens use reference workspace styles from apps/web/app/workspace-styles. */
 
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ViewSwitchTransition } from "@/components/ui/view-switch-transition";
 import { ErrorToast } from "@/components/workspace/error-toast";
-import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
-import { BUG_STATUS_FILTERS } from "@/features/bugs/bug-filters";
 import type { BugFilters } from "@/features/bugs/bug-filters";
 import { listBugs } from "@/features/bugs/bugs-queries";
 import { BugBoard } from "@/features/bugs/components/bug-board";
 import { BugList } from "@/features/bugs/components/bug-list";
 import { BugReportDialog } from "@/features/bugs/components/bug-report-dialog";
+import { BugTrackerControls } from "@/features/bugs/components/bug-tracker-skeleton";
 import { listAllEmployees } from "@/features/people/people-queries";
 import { listAllProjects } from "@/features/projects/projects-queries";
 import { TaskDrawerHost } from "@/features/tasks/components/task-drawer-host";
@@ -103,78 +98,7 @@ const BugTracker = async ({ filters }: { readonly filters: BugFilters }) => {
       <ErrorToast
         message={employeeResult.ok ? null : employeeResult.error.message}
       />
-      <search>
-        <form action="/bugs" className="bug-filter-form">
-          <label className="sr-only" htmlFor="bug-search">
-            Search bugs and fix history
-          </label>
-          <Input
-            autoComplete="off"
-            className="bug-search"
-            defaultValue={filters.query}
-            id="bug-search"
-            name="q"
-            placeholder="Search reports, components, and past fixes"
-            type="search"
-          />
-          <Button type="submit">Search</Button>
-          <Link
-            className="btn btn-ghost"
-            href={filters.archived ? "/bugs" : "/bugs?archived=true"}
-          >
-            {filters.archived ? "Active bugs" : "Include archived"}
-          </Link>
-        </form>
-      </search>
-      {isQueue ? null : (
-        <nav aria-label="Filter bugs by status" className="bug-status-filters">
-          {BUG_STATUS_FILTERS.map(([value, label]) => {
-            const query = new URLSearchParams();
-            if (value) {
-              query.set("status", value);
-            }
-            if (filters.query) {
-              query.set("q", filters.query);
-            }
-            if (filters.archived) {
-              query.set("archived", "true");
-            }
-            return (
-              <Link
-                aria-current={filters.status === value ? "page" : undefined}
-                className={`bug-status-filter${filters.status === value ? " selected" : ""}`}
-                href={query.size ? `/bugs?${query.toString()}` : "/bugs"}
-                key={value || "all"}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-      )}
-      <nav aria-label="Bug display" className="bug-view-switch">
-        <Link
-          aria-current={filters.view === "list" ? "page" : undefined}
-          href="/bugs"
-          className={filters.view === "list" ? "selected" : ""}
-        >
-          List
-        </Link>
-        <Link
-          aria-current={filters.view === "board" ? "page" : undefined}
-          href="/bugs?view=board"
-          className={filters.view === "board" ? "selected" : ""}
-        >
-          Board
-        </Link>
-        <Link
-          aria-current={isQueue ? "page" : undefined}
-          href="/bugs?view=client_queue"
-          className={isQueue ? "selected" : ""}
-        >
-          Client queue
-        </Link>
-      </nav>
+      <BugTrackerControls filters={filters} />
       <TaskDrawerHost
         currentUserId={currentUserId}
         editableTaskIds={drawer.editableTaskIds}
@@ -206,79 +130,4 @@ const BugReportAction = async () => {
 // the real one.
 const BugReportActionSkeleton = () => <BugReportDialog projects={[]} />;
 
-const SKELETON_PILLS = [
-  "All",
-  "Reported",
-  "Triaged",
-  "In progress",
-  "Needs info",
-  "Awaiting client",
-  "Verification",
-] as const;
-const SKELETON_VIEWS = ["List", "Board", "Client queue"] as const;
-const SKELETON_ROWS = ["a", "b", "c", "d"] as const;
-
-// Mirrors BugTracker: the search row, status pills and view switch are the real
-// labels at the real sizes; only the report cards are placeholders.
-const BugTrackerSkeleton = () => (
-  <>
-    <div className="bug-filter-form" inert>
-      <span className="skeleton-filter-select skeleton-search bug-search">
-        Search reports, components, and past fixes
-      </span>
-      <span className="btn">Search</span>
-      <span className="btn btn-ghost">Include archived</span>
-    </div>
-    <div aria-hidden="true" className="bug-status-filters">
-      {SKELETON_PILLS.map((label) => (
-        <span
-          className={`bug-status-filter${label === "All" ? " selected" : ""}`}
-          key={label}
-        >
-          {label}
-        </span>
-      ))}
-    </div>
-    <div aria-hidden="true" className="bug-view-switch">
-      {SKELETON_VIEWS.map((label) => (
-        <span className={label === "List" ? "selected" : ""} key={label}>
-          {label}
-        </span>
-      ))}
-    </div>
-    <output aria-busy="true" className="bug-list">
-      <span className="sr-only">Loading bug reports…</span>
-      {SKELETON_ROWS.map((key) => (
-        <article
-          aria-hidden="true"
-          className="panel panel-b bug-list-item"
-          key={key}
-        >
-          <div className="bug-list-link">
-            <span className="bug-severity" />
-            <div className="bug-list-main">
-              <div className="bug-list-title-row">
-                <SkeletonBone shape="short" />
-                <SkeletonBone />
-              </div>
-              <SkeletonBone shape="short" />
-              <div className="bug-list-meta">
-                <SkeletonBone shape="short" />
-                <SkeletonBone shape="short" />
-                <SkeletonBone shape="short" />
-              </div>
-            </div>
-          </div>
-          <SkeletonBone shape="control" />
-        </article>
-      ))}
-    </output>
-  </>
-);
-
-export {
-  BugReportAction,
-  BugReportActionSkeleton,
-  BugTracker,
-  BugTrackerSkeleton,
-};
+export { BugReportAction, BugReportActionSkeleton, BugTracker };

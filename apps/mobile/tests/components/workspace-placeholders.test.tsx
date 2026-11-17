@@ -8,20 +8,8 @@ import {
   WorkspaceRevealGate,
   usePrefersReducedMotion,
 } from "@/components/workspace/workspace-reveal-gate";
-import { WorkspaceSkeleton } from "@/components/workspace/workspace-skeleton";
 import { Conflict, Offline, Unavailable, ValidationFailed } from "@/errors";
 import { renderWithTheme } from "./support/theme";
-
-it("renders skeleton shapes and the panel skeleton", async () => {
-  await renderWithTheme(
-    <>
-      <WorkspaceSkeleton height={20} width={120} />
-      <WorkspaceSkeleton variant="panel" />
-    </>,
-  );
-
-  expect(screen.getAllByTestId("skeleton-shape").length).toBeGreaterThanOrEqual(4);
-});
 
 it("shows the empty state with title, message and action", async () => {
   let pressed = false;

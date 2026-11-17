@@ -3,9 +3,10 @@
 import type { CSSProperties } from "react";
 
 import {
+  SKELETON_KEYS,
   SkeletonBone,
-  SkeletonStats,
 } from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import {
   hoursLabel,
   taskCountLabel,
@@ -13,6 +14,10 @@ import {
 } from "@/features/workload/workload-format";
 import { getWorkload } from "@/features/workload/workload-queries";
 import { readOrThrow } from "@/lib/read-result";
+import {
+  WEEKLY_CAPACITY_HOURS,
+  WORKLOAD_WEEKS,
+} from "@/src/server/workload/workload-math";
 
 const workloadLevel = (
   overloaded: boolean,
@@ -200,50 +205,94 @@ const WorkloadGrid = async () => {
   );
 };
 
-const SKELETON_ROWS = ["a", "b", "c", "d", "e", "f"] as const;
-const SKELETON_WEEKS = ["w1", "w2", "w3", "w4", "w5", "w6"] as const;
+const SKELETON_PEOPLE = SKELETON_KEYS.slice(0, 5);
+const SKELETON_WEEKS = SKELETON_KEYS.slice(0, WORKLOAD_WEEKS);
 
-// The summary strip, the legend and the grid frame at their real sizes; only the
-// people and their weekly numbers are placeholders.
+const STAT_LABELS = [
+  { hint: "Shown below", label: "Teammates" },
+  { hint: "Per person", label: "Weekly capacity" },
+  { hint: "Person-weeks to rebalance", label: "Over capacity" },
+  { hint: "Counted in the first week", label: "Overdue tasks" },
+] as const;
+
+// Mirrors WorkloadGrid: stat labels, the legend and column titles are static;
+// the numbers, week dates and people are data. Rows use the filled-cell height
+// (hours, task count and bar), as most weeks near the present carry work.
 const WorkloadGridSkeleton = () => (
-  <output aria-busy="true" className="workload">
-    <span className="sr-only">Loading workload…</span>
-    <SkeletonStats />
-    <div aria-hidden="true" className="workload-legend">
-      <SkeletonBone shape="short" />
-    </div>
-    <div aria-hidden="true" className="tbl-wrap">
-      <table className="tbl workload-table">
-        <thead>
-          <tr>
-            <th scope="col">Person</th>
-            {SKELETON_WEEKS.map((key) => (
-              <th key={key} scope="col">
-                <SkeletonBone shape="short" />
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {SKELETON_ROWS.map((row) => (
-            <tr key={row}>
-              <th scope="row">
-                <span className="workload-person">
-                  <SkeletonBone shape="avatar" />
-                  <SkeletonBone />
-                </span>
-              </th>
+  <SkeletonRegion label="Loading workload…">
+    <section aria-label="Team workload" className="workload">
+      <div className="stats workload-stats">
+        {STAT_LABELS.map(({ hint, label }) => (
+          <div className="stat" key={label}>
+            <span className="k">{label}</span>
+            <span className="v">
+              <SkeletonBone shape="line" width="3ch" />
+            </span>
+            <span className="d">{hint}</span>
+          </div>
+        ))}
+      </div>
+      <ul className="workload-legend">
+        <li>
+          <span aria-hidden="true" className="workload-swatch is-ok" />
+          Within capacity
+        </li>
+        <li>
+          <span aria-hidden="true" className="workload-swatch is-high" />
+          Over 70% of capacity
+        </li>
+        <li>
+          <span aria-hidden="true" className="workload-swatch is-over" />
+          Over {WEEKLY_CAPACITY_HOURS}h
+        </li>
+        <li className="workload-legend-note">
+          Tasks without an estimate are weighted by priority.
+        </li>
+      </ul>
+      <div className="tbl-wrap">
+        <table className="tbl workload-table">
+          <thead>
+            <tr>
+              <th scope="col">Person</th>
               {SKELETON_WEEKS.map((key) => (
-                <td className="workload-cell" key={key}>
-                  <SkeletonBone shape="short" />
-                </td>
+                <th key={key} scope="col">
+                  <SkeletonBone shape="line" width="6ch" />
+                </th>
               ))}
+              <th scope="col">No due date</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </output>
+          </thead>
+          <tbody>
+            {SKELETON_PEOPLE.map((row) => (
+              <tr key={row}>
+                <th aria-label="Loading person" scope="row">
+                  <span className="workload-person">
+                    <span aria-hidden="true" className="workload-avatar" />
+                    <span className="workload-person-copy">
+                      <span className="workload-name">
+                        <SkeletonBone shape="line" width="12ch" />
+                      </span>
+                    </span>
+                  </span>
+                </th>
+                {[...SKELETON_WEEKS, "unscheduled"].map((key) => (
+                  <td className="workload-cell" key={key}>
+                    <strong>
+                      <SkeletonBone shape="line" width="4ch" />
+                    </strong>
+                    <span className="workload-count">
+                      <SkeletonBone shape="line" width="6ch" />
+                    </span>
+                    <span aria-hidden="true" className="workload-bar" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </SkeletonRegion>
 );
 
 export { WorkloadGrid, WorkloadGridSkeleton };

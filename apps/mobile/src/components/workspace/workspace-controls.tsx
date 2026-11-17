@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Check } from "phosphor-react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -47,7 +48,7 @@ export const WorkspaceCheckbox = ({ checked, label, onToggle }: WorkspaceCheckbo
       onPress={() => onToggle(!checked)}
       style={({ pressed }) => [
         styles.row,
-        { backgroundColor: palette.surface, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: pressed ? palette.surface2 : palette.surface },
       ]}
     >
       <View
@@ -57,7 +58,7 @@ export const WorkspaceCheckbox = ({ checked, label, onToggle }: WorkspaceCheckbo
           checked ? { backgroundColor: palette.accent } : null,
         ]}
       >
-        {checked ? <Text style={{ color: palette.onAccent }}>✓</Text> : null}
+        {checked ? <Check color={palette.onAccent} size={14} weight="bold" /> : null}
       </View>
       <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>{label}</Text>
     </Pressable>

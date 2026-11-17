@@ -15,9 +15,9 @@ import {
   shiftWeek,
   weekLabel,
 } from "@/features/time/time-format";
+import { WEEKDAYS } from "@/features/time/weekdays";
 import type { RunningTimer, WeeklyTime } from "@/src/server/time/time-tracking";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 // A full bar is an eight hour day.
 const FULL_DAY_MINUTES = 480;
 
@@ -90,8 +90,9 @@ export const MyTimeView = ({
                 <span aria-hidden="true" className="mt-day-track">
                   <span
                     className="mt-day-fill"
+                    // A 0-1 share: the fill is clipped to it in my-time.css.
                     style={{
-                      height: `${Math.min(100, Math.round((day.minutes / FULL_DAY_MINUTES) * 100))}%`,
+                      "--fill": Math.min(1, day.minutes / FULL_DAY_MINUTES),
                     }}
                   />
                 </span>

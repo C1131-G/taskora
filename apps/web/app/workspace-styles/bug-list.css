@@ -71,8 +71,8 @@
   padding: 14px 16px;
   text-decoration: none;
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 .workspace-app .bug-list-item:hover {
   border-color: var(--border-strong);

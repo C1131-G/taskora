@@ -8,14 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import {
   decideBugApprovalAction,
   recordBugPostReleaseCheckAction,
@@ -139,18 +136,23 @@ export const BugApprovalReleaseSection = ({
             </div>
             <div className="bug-form-field">
               <Label htmlFor="bug-release-environment">Environment</Label>
-              <Select onValueChange={setEnvironment} value={environment}>
-                <SelectTrigger id="bug-release-environment">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="staging">Staging</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="test">Test</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <WorkspaceSelect
+                onValueChange={setEnvironment}
+                value={environment}
+                id="bug-release-environment"
+              >
+                <WorkspaceSelectItem value="production">
+                  Production
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="staging">
+                  Staging
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="development">
+                  Development
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="test">Test</WorkspaceSelectItem>
+                <WorkspaceSelectItem value="other">Other</WorkspaceSelectItem>
+              </WorkspaceSelect>
             </div>
             <div className="bug-form-field bug-form-wide">
               <Label htmlFor="bug-release-notes">Release notes</Label>

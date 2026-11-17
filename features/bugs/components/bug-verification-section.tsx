@@ -7,14 +7,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { verifyBugFixAction } from "@/features/bugs/bugs-actions";
 
 import type { BugHistory, BugSubmit } from "../bug-workflow-ui-shared";
@@ -70,33 +67,32 @@ export const BugVerificationSection = ({
         </div>
         <div className="bug-form-field">
           <Label htmlFor="bug-test-env">Tested environment</Label>
-          <Select onValueChange={setEnvironment} value={environment}>
-            <SelectTrigger id="bug-test-env">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="production">Production</SelectItem>
-              <SelectItem value="staging">Staging</SelectItem>
-              <SelectItem value="development">Development</SelectItem>
-              <SelectItem value="test">Test</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <WorkspaceSelect
+            onValueChange={setEnvironment}
+            value={environment}
+            id="bug-test-env"
+          >
+            <WorkspaceSelectItem value="production">
+              Production
+            </WorkspaceSelectItem>
+            <WorkspaceSelectItem value="staging">Staging</WorkspaceSelectItem>
+            <WorkspaceSelectItem value="development">
+              Development
+            </WorkspaceSelectItem>
+            <WorkspaceSelectItem value="test">Test</WorkspaceSelectItem>
+            <WorkspaceSelectItem value="other">Other</WorkspaceSelectItem>
+          </WorkspaceSelect>
         </div>
         <div className="bug-form-field">
           <Label htmlFor="bug-outcome">Verification result</Label>
-          <Select
+          <WorkspaceSelect
             onValueChange={setVerificationOutcome}
             value={verificationOutcome}
+            id="bug-outcome"
           >
-            <SelectTrigger id="bug-outcome">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="passed">Passed</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-            </SelectContent>
-          </Select>
+            <WorkspaceSelectItem value="passed">Passed</WorkspaceSelectItem>
+            <WorkspaceSelectItem value="failed">Failed</WorkspaceSelectItem>
+          </WorkspaceSelect>
         </div>
         <div className="bug-form-field bug-form-wide">
           <Label htmlFor="bug-verification-notes">Verification notes</Label>

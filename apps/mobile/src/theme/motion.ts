@@ -39,11 +39,5 @@ export const appMotion = {
   durations: {
     /** The one shared duration, --dur. */
     standard: motion.dur,
-    /** What a reduced-motion user experiences instead of animating. */
-    reduced: 0,
   },
 } as const;
-
-/** Picks the duration honoring the reduced-motion preference. */
-export const durationFor = (reducedMotion: boolean): number =>
-  reducedMotion ? appMotion.durations.reduced : appMotion.durations.standard;

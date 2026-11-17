@@ -5,8 +5,10 @@ import type { Metadata } from "next";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
-import { BugApprovalList } from "@/features/bugs/components/bug-approval-list";
+import {
+  BugApprovalList,
+  BugApprovalListSkeleton,
+} from "@/features/bugs/components/bug-approval-list";
 
 export const metadata: Metadata = { title: "Bug approvals | Taskora" };
 
@@ -27,15 +29,7 @@ const BugApprovalPage = () => (
           </div>
         </header>
         <SectionErrorBoundary title="Bug approvals couldn't load">
-          <SuspenseReveal
-            fallback={
-              <PanelSkeleton
-                label="Loading approvals…"
-                rows={4}
-                variant="bugs"
-              />
-            }
-          >
+          <SuspenseReveal fallback={<BugApprovalListSkeleton />}>
             <BugApprovalList />
           </SuspenseReveal>
         </SectionErrorBoundary>

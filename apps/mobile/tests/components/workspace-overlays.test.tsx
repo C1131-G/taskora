@@ -20,7 +20,7 @@ it("shows the modal content when visible and hides it otherwise", async () => {
     </>,
   );
 
-  expect(screen.getByRole("dialog", { name: "Edit task" })).toBeTruthy();
+  expect(screen.getByRole("header", { name: "Edit task" })).toBeTruthy();
   expect(screen.getByText("Visible body")).toBeTruthy();
   expect(screen.queryByText("Hidden body")).toBeNull();
 });
@@ -59,7 +59,13 @@ it("fires confirm and cancel from the confirm dialog", async () => {
     />,
   );
 
-  expect(screen.getByRole("dialog", { name: "Archive project" })).toBeTruthy();
+  expect(screen.getByRole("header", { name: "Archive project" })).toBeTruthy();
+  // VoiceOver can only reach the actions if no ancestor collapses them.
+  let ancestor = screen.getByRole("button", { name: "Cancel" }).parent;
+  while (ancestor !== null) {
+    expect(ancestor.props.accessible).not.toBe(true);
+    ancestor = ancestor.parent;
+  }
 
   await user.press(screen.getByRole("button", { name: "Cancel" }));
   await user.press(screen.getByRole("button", { name: "Archive project" }));

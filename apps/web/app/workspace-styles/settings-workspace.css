@@ -150,3 +150,100 @@
     padding-inline: 4px;
   }
 }
+
+/* settings: sidebar navigation beside stacked section cards */
+@media (min-width: 861px) {
+  .workspace-app .settings-workspace {
+    align-items: start;
+    display: grid;
+    gap: 28px;
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .workspace-app .settings-workspace > [data-slot="tabs-list"].settings-nav {
+    align-self: start;
+    border: 0;
+    flex-direction: column;
+    gap: 2px;
+    height: auto;
+    overflow: visible;
+    position: sticky;
+    top: 16px;
+    width: 100%;
+  }
+  .workspace-app .settings-nav [data-slot="tabs-trigger"] {
+    border-radius: var(--r-sm);
+    justify-content: flex-start;
+    min-height: 36px;
+    text-align: left;
+    width: 100%;
+  }
+  .workspace-app .settings-nav [data-slot="tabs-trigger"][aria-selected="true"] {
+    background: var(--surface-3);
+    border-bottom: 0;
+  }
+}
+.workspace-app .settings-nav [data-slot="tabs-trigger"] {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  gap: 10px;
+}
+.workspace-app .settings-nav [data-slot="tabs-trigger"] svg {
+  flex: none;
+  opacity: 0.75;
+}
+.workspace-app .settings-nav [data-slot="tabs-trigger"][aria-selected="true"] svg {
+  color: var(--accent);
+  opacity: 1;
+}
+.workspace-app .settings-content [data-slot="tabs-content"] {
+  display: grid;
+  gap: 16px;
+}
+.workspace-app .settings-content .panel {
+  border-radius: var(--r-lg, var(--r));
+  max-width: 720px;
+  overflow: hidden;
+}
+.workspace-app .settings-content .panel > .panel-h {
+  border-bottom: 1px solid var(--border);
+  padding: 18px 20px 14px;
+}
+.workspace-app .settings-content .panel > .panel-h h2 {
+  font-size: var(--fs-lg, var(--fs));
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.workspace-app .settings-content .panel > .panel-h p {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+.workspace-app .settings-content .panel-b {
+  padding: 18px 20px;
+}
+.workspace-app .settings-content .panel label {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.workspace-app .settings-content .panel .input,
+.workspace-app .settings-content .panel [data-slot="select-trigger"] {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  height: 38px;
+}
+.workspace-app .settings-content .panel .input:focus-visible,
+.workspace-app .settings-content .panel [data-slot="select-trigger"]:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft, transparent);
+  outline: none;
+}
+.workspace-app .settings-content .settings-theme-options {
+  background: var(--surface-2);
+}
+.workspace-app .settings-content .settings-password-link {
+  border-top: 1px solid var(--border);
+}

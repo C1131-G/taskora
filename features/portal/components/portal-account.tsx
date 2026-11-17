@@ -1,7 +1,15 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal pages reuse the workspace stylesheet classes. */
 
-import { SkeletonRows } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
+import {
+  EMAIL_COPY,
+  PASSWORD_HINT,
+  PUSH_COPY,
+} from "@/features/portal/components/portal-account-copy";
 import { PortalChangePassword } from "@/features/portal/components/portal-change-password";
 import { PortalEmailControl } from "@/features/portal/components/portal-email-control";
 import { PortalPushControl } from "@/features/portal/components/portal-push-control";
@@ -105,19 +113,102 @@ const PortalAccount = async () => {
 const PortalAccountSkeleton = () => (
   <SkelterSurface label="Loading account">
     <div className="portal-account">
-      {[
-        ["Profile", "portal-account-profile"],
-        ["Change password", "portal-account-password"],
-        ["Push notifications", "portal-account-push"],
-        ["Email updates", "portal-account-email"],
-        ["Signed-in devices", "portal-account-sessions"],
-        ["Sign out", "portal-account-signout"],
-      ].map((title) => (
-        <div className={`panel portal-panel ${title[1]}`} key={title[1]}>
-          <h2 className="sec">{title[0]}</h2>
-          <SkeletonRows rows={title[0] === "Change password" ? 3 : 1} />
+      <section className="panel portal-panel portal-account-profile">
+        <SkeletonKeep>
+          <h2 className="sec">Profile</h2>
+        </SkeletonKeep>
+        <dl className="portal-facts">
+          {["Name", "Company"].map((label) => (
+            <div key={label}>
+              <SkeletonKeep>
+                <dt>{label}</dt>
+              </SkeletonKeep>
+              <dd>
+                <SkeletonBone shape="short" />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      <section className="panel portal-panel portal-account-password">
+        <SkeletonKeep>
+          <h2 className="sec">Change password</h2>
+        </SkeletonKeep>
+        <div className="portal-form">
+          {["Current password", "New password", "Confirm new password"].map(
+            (label) => (
+              <div className="field" key={label}>
+                <SkeletonKeep>
+                  <span className="label">{label}</span>
+                </SkeletonKeep>
+                <SkeletonBone shape="control" />
+                {label === "New password" ? (
+                  <SkeletonKeep>
+                    <p className="hint">{PASSWORD_HINT}</p>
+                  </SkeletonKeep>
+                ) : null}
+              </div>
+            )
+          )}
+          <div className="portal-skeleton-span">
+            <SkeletonBone shape="control" />
+          </div>
         </div>
-      ))}
+      </section>
+      <section className="panel portal-panel portal-account-push">
+        <SkeletonKeep>
+          <h2 className="sec">Push notifications</h2>
+        </SkeletonKeep>
+        {/* Without a VAPID key the live panel renders no controls. */}
+        {process.env["VAPID_PUBLIC_KEY"] ? (
+          <div className="portal-stack">
+            <SkeletonKeep>
+              <p className="muted">{PUSH_COPY}</p>
+            </SkeletonKeep>
+            <div>
+              <SkeletonBone shape="control" />
+            </div>
+            <span className="hint" />
+          </div>
+        ) : null}
+      </section>
+      <section className="panel portal-panel portal-account-email">
+        <SkeletonKeep>
+          <h2 className="sec">Email updates</h2>
+        </SkeletonKeep>
+        <div className="portal-stack">
+          <SkeletonKeep>
+            <p className="muted">{EMAIL_COPY}</p>
+          </SkeletonKeep>
+          <div>
+            <SkeletonBone shape="control" />
+          </div>
+          <span className="hint" />
+        </div>
+      </section>
+      <section className="panel portal-panel portal-account-sessions">
+        <SkeletonKeep>
+          <h2 className="sec">Signed-in devices</h2>
+        </SkeletonKeep>
+        <article className="mini">
+          <div className="grow">
+            <SkeletonBone />
+            <SkeletonBone />
+            <SkeletonBone />
+          </div>
+          <SkeletonBone shape="control" />
+        </article>
+      </section>
+      <section className="panel portal-panel portal-account-signout">
+        <SkeletonKeep>
+          <h2 className="sec">Sign out</h2>
+        </SkeletonKeep>
+        <div className="portal-stack">
+          <div>
+            <SkeletonBone shape="control" />
+          </div>
+        </div>
+      </section>
     </div>
   </SkelterSurface>
 );

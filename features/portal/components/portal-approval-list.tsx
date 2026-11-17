@@ -75,15 +75,18 @@ const PortalApprovalListSkeleton = () => (
       {SKELETON_KEYS.slice(0, 3).map((key) => (
         <li key={key}>
           <div className="portal-bug-card">
-            <div className="portal-bug-top">
+            <span className="portal-bug-top">
               <SkeletonBone shape="short" />
               <SkeletonBone shape="short" />
-            </div>
-            <SkeletonBone shape="title" />
-            <div className="portal-bug-meta">
+            </span>
+            <strong className="portal-bug-title">
               <SkeletonBone />
+            </strong>
+            <span className="portal-bug-meta">
               <SkeletonBone shape="short" />
-            </div>
+              <SkeletonBone shape="short" />
+              <SkeletonBone shape="short" />
+            </span>
           </div>
         </li>
       ))}

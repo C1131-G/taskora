@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -57,7 +57,21 @@ export const WorkspaceAvatar = ({ name, size = 32, uri }: WorkspaceAvatarProps) 
         >
           {initialsOf(name)}
         </Text>
-      ) : null}
+      ) : (
+        <>
+          <Image source={{ uri }} style={[StyleSheet.absoluteFill, styles.circle]} />
+          {/* Pure black or white at 10%: a tinted edge would fringe the photo. */}
+          <View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFill,
+              styles.circle,
+              styles.outline,
+              { borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" },
+            ]}
+          />
+        </>
+      )}
     </View>
   );
 };
@@ -67,5 +81,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radii.full,
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  outline: {
+    borderWidth: 1,
   },
 });

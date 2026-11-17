@@ -177,3 +177,98 @@
 .workspace-app [aria-labelledby^="budget-"] > .muted:not(.budget-note) {
   margin-block: 14px;
 }
+
+/* project time: filter bar, summary tiles and report tables as one coherent set of cards */
+.workspace-app .project-time {
+  gap: 20px;
+}
+.workspace-app .project-time .time-range {
+  align-items: flex-end;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.workspace-app .project-time .time-range .field {
+  gap: 6px;
+}
+.workspace-app .project-time .time-range label {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app .project-time .time-range .input,
+.workspace-app .project-time .time-range .btn {
+  border-radius: var(--r-sm);
+  height: 36px;
+}
+.workspace-app .project-time .time-range > :last-child {
+  margin-left: auto;
+}
+.workspace-app .project-time .time-summary {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+.workspace-app .project-time .time-summary > div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+}
+.workspace-app .project-time .time-summary dt {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.workspace-app .project-time .time-summary dd {
+  color: var(--text);
+  font-size: var(--fs-2xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.workspace-app .project-time .time-summary > div:nth-child(2) dd {
+  color: var(--st-done);
+}
+.workspace-app .project-time section.stack > h2 {
+  color: var(--text);
+  font-size: var(--fs-md, var(--fs));
+  font-weight: 650;
+  margin: 0;
+}
+.workspace-app .project-time .tbl-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.workspace-app .project-time .time-table th:not(:first-child),
+.workspace-app .project-time .time-table td:not(:first-child) {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  width: 120px;
+}
+.workspace-app .project-time .time-table tbody tr:hover td {
+  background: var(--surface-2);
+}
+@media (max-width: 640px) {
+  .workspace-app .project-time .time-summary {
+    grid-template-columns: 1fr;
+  }
+  .workspace-app .project-time .time-range > :last-child {
+    margin-left: 0;
+  }
+}

@@ -9,6 +9,7 @@ import {
   type TaskRowModel,
 } from "@/features/tasks/task-screens";
 import type { ApiContextValue, KeysContextValue } from "@/runtime/api-hooks";
+import { HapticsContext } from "@/runtime/haptics-hooks";
 import { renderWithTheme } from "../components/support/theme";
 
 const TASKS: readonly TaskRowModel[] = [
@@ -48,7 +49,7 @@ it("renders the rows and opens a task", async () => {
   let opened: string | null = null;
   const user = userEvent.setup();
   await renderWithTheme(
-    <MyTasksScreen
+    <MyTasksScreen isLoading={false}
       onOpenTask={(id) => {
         opened = id;
       }}
@@ -65,7 +66,7 @@ it("renders the rows and opens a task", async () => {
 
 it("filters the visible rows through the chips", async () => {
   const user = userEvent.setup();
-  await renderWithTheme(<MyTasksScreen onOpenTask={() => undefined} tasks={TASKS} />);
+  await renderWithTheme(<MyTasksScreen isLoading={false} onOpenTask={() => undefined} tasks={TASKS} />);
 
   await user.press(screen.getByRole("button", { name: "done" }));
 
@@ -112,7 +113,7 @@ it("shows the task's subtasks and toggles one", async () => {
   });
 
   await renderWithTheme(
-    <TaskDetailScreen api={api} keys={keysStub} task={detail()} taskId="task-1" />,
+    <TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />,
   );
 
   expect(screen.getByText("Hero art")).toBeTruthy();
@@ -132,7 +133,7 @@ it("moves the status with the version the screen last saw", async () => {
   });
 
   await renderWithTheme(
-    <TaskDetailScreen api={api} keys={keysStub} task={detail()} taskId="task-1" />,
+    <TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />,
   );
   const user = userEvent.setup();
   await user.press(screen.getByRole("button", { name: "Change status" }));
@@ -152,7 +153,7 @@ it("tells the user when a status move fails", async () => {
   } as unknown as ApiContextValue;
 
   await renderWithTheme(
-    <TaskDetailScreen api={api} keys={keysStub} task={detail()} taskId="task-1" />,
+    <TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />,
   );
   const user = userEvent.setup();
   await user.press(screen.getByRole("button", { name: "Change status" }));
@@ -167,11 +168,106 @@ it("shows a toast again when a task update fails after dismissal", async () => {
     call: () => Effect.fail(new ValidationFailed({ fieldErrors: { task: "Cannot update this task" } })),
   } as unknown as ApiContextValue;
   const user = userEvent.setup();
-  await renderWithTheme(<TaskDetailScreen api={api} keys={keysStub} task={detail()} taskId="task-1" />);
+  await renderWithTheme(<TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />);
 
   await user.press(screen.getByRole("button", { name: "Toggle subtask Launch checklist" }));
   await waitFor(() => expect(screen.getByText("Cannot update this task")).toBeTruthy());
   await user.press(screen.getByRole("button", { name: "Dismiss" }));
   await user.press(screen.getByRole("button", { name: "Toggle subtask Launch checklist" }));
   await waitFor(() => expect(screen.getByText("Cannot update this task")).toBeTruthy());
+});
+
+it("shows a toggled subtask at once and restores it when the write fails", async () => {
+  let reject: (reason: unknown) => void = () => undefined;
+  const api = apiWith({
+    setSubtaskStatus: () =>
+      new Promise((_resolve, rejectWrite) => {
+        reject = rejectWrite;
+      }),
+  });
+  const user = userEvent.setup();
+  await renderWithTheme(<TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />);
+
+  expect(screen.queryAllByText("Done")).toHaveLength(1);
+  await user.press(screen.getByRole("button", { name: "Toggle subtask Launch checklist" }));
+  expect(screen.queryAllByText("Done")).toHaveLength(2);
+
+  reject(new Error("refused"));
+  await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
+  expect(screen.queryAllByText("Done")).toHaveLength(1);
+});
+
+it("ignores a second subtask tap while the first write is pending", async () => {
+  const sent: boolean[] = [];
+  let resolve: (value: unknown) => void = () => undefined;
+  const api = apiWith({
+    setSubtaskStatus: (input: { readonly body: { readonly done: boolean } }) => {
+      sent.push(input.body.done);
+      return new Promise((resolveWrite) => {
+        resolve = resolveWrite;
+      });
+    },
+  });
+  const user = userEvent.setup();
+  await renderWithTheme(<TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />);
+
+  const row = screen.getByRole("button", { name: "Toggle subtask Launch checklist" });
+  await user.press(row);
+  await user.press(row);
+
+  expect(sent).toEqual([true]);
+  expect(screen.queryAllByText("Done")).toHaveLength(2);
+
+  resolve({ done: true, version: 4 });
+  await waitFor(() => expect(screen.queryAllByText("Done")).toHaveLength(1));
+  expect(sent).toEqual([true]);
+});
+
+it("buzzes once per accepted move and ignores repeats and the current status", async () => {
+  const sent: unknown[] = [];
+  const events: string[] = [];
+  const record = (event: string) => Effect.sync(() => void events.push(event));
+  const haptics = {
+    light: record("light"),
+    medium: record("medium"),
+    success: record("success"),
+    warning: record("warning"),
+  };
+  const api = apiWith({
+    changeTask: (input: unknown) => {
+      sent.push(input);
+      return new Promise(() => undefined);
+    },
+  });
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <HapticsContext.Provider value={haptics}>
+      <TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />
+    </HapticsContext.Provider>,
+  );
+
+  await user.press(screen.getByRole("button", { name: "Change status" }));
+  await user.press(screen.getByRole("radio", { name: "progress" }));
+  expect(sent).toHaveLength(0);
+  expect(events).toEqual([]);
+
+  await user.press(screen.getByRole("button", { name: "Change status" }));
+  await user.press(screen.getByRole("radio", { name: "done" }));
+  await user.press(screen.getByRole("button", { name: "Change status" }));
+  await user.press(screen.getByRole("radio", { name: "review" }));
+
+  await waitFor(() => expect(sent).toHaveLength(1));
+  expect(events).toEqual(["light"]);
+  expect(screen.getByText("Status: done")).toBeTruthy();
+});
+
+it("shows a moved status at once while the write is pending", async () => {
+  const api = apiWith({ changeTask: () => new Promise(() => undefined) });
+  const user = userEvent.setup();
+  await renderWithTheme(<TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />);
+
+  await user.press(screen.getByRole("button", { name: "Change status" }));
+  await user.press(screen.getByRole("radio", { name: "done" }));
+
+  expect(screen.getByText("Status: done")).toBeTruthy();
 });

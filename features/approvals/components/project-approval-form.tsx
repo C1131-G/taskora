@@ -12,6 +12,10 @@ import {
   WorkspaceFieldError,
   WorkspaceFormError,
 } from "@/components/workspace/workspace-field-error";
+import {
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { requestApprovalAction } from "@/features/approvals/approval-actions";
 import type { ProjectApprovals } from "@/src/server/approvals/approval-contracts";
 import { MAX_APPROVAL_TEXT } from "@/src/server/approvals/approval-contracts";
@@ -84,18 +88,18 @@ export const ProjectApprovalForm = ({
     >
       <div className="field">
         <label htmlFor={`${formId}-milestoneId`}>Milestone</label>
-        <select
-          className="input"
+        <WorkspaceSelect
+          defaultValue={choices.milestones[0]?.id ?? ""}
           id={`${formId}-milestoneId`}
           name="milestoneId"
           required
         >
           {choices.milestones.map((milestone) => (
-            <option key={milestone.id} value={milestone.id}>
+            <WorkspaceSelectItem key={milestone.id} value={milestone.id}>
               {milestone.name}
-            </option>
+            </WorkspaceSelectItem>
           ))}
-        </select>
+        </WorkspaceSelect>
         <WorkspaceFieldError
           errors={errors}
           field="milestoneId"
@@ -104,18 +108,18 @@ export const ProjectApprovalForm = ({
       </div>
       <div className="field">
         <label htmlFor={`${formId}-companyId`}>Client company</label>
-        <select
-          className="input"
+        <WorkspaceSelect
+          defaultValue={choices.companies[0]?.id ?? ""}
           id={`${formId}-companyId`}
           name="companyId"
           required
         >
           {choices.companies.map((company) => (
-            <option key={company.id} value={company.id}>
+            <WorkspaceSelectItem key={company.id} value={company.id}>
               {company.name}
-            </option>
+            </WorkspaceSelectItem>
           ))}
-        </select>
+        </WorkspaceSelect>
         <WorkspaceFieldError
           errors={errors}
           field="companyId"

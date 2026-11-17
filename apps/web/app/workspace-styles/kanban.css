@@ -23,6 +23,9 @@
   border-radius: var(--r-lg);
   background: var(--sunken);
   border: 1px solid var(--divider);
+  transition:
+    background 140ms var(--ease),
+    border-color 140ms var(--ease);
 }
 .workspace-app .bcol.collapsed {
   width: 44px;
@@ -71,9 +74,10 @@
   min-height: 60px;
   flex: 1;
 }
-.workspace-app .bcol.over {
-  background: color-mix(in srgb, var(--accent) 6%, var(--sunken));
-  border-color: var(--accent-line);
+/* the column a dragged card is over reads as the drop target before the drop */
+.workspace-app .bcol.is-over {
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .workspace-app .kcard {
   background: var(--surface);
@@ -94,12 +98,12 @@
     0 2px 6px -2px rgba(0, 0, 0, 0.08),
     0 0 0 1px var(--border-strong);
 }
-.workspace-app .kcard.dragging {
-  opacity: 0.35;
-}
-.workspace-app .kcard.ghost {
-  box-shadow: var(--shadow-drag);
-  transform: rotate(1.5deg);
+/* the card left behind while its drag image moves: a dashed placeholder */
+.workspace-app .kcard.is-dragging {
+  box-shadow: none;
+  opacity: 0.4;
+  outline: 1px dashed var(--accent-line);
+  outline-offset: -1px;
 }
 .workspace-app .kcard .top {
   display: flex;

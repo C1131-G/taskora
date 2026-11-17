@@ -1,9 +1,13 @@
 import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CaretRight } from "phosphor-react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
-import { radii, spacing, theme } from "@/theme/tokens.generated";
+import { radii, shadows, spacing, theme } from "@/theme/tokens.generated";
+
+/** The inset between a list group's edge and its rows. */
+const GROUP_INSET = spacing.s1;
 
 export interface WorkspaceListRowProps {
   readonly accessibilityLabel?: string;
@@ -25,6 +29,8 @@ export const WorkspaceListRow = ({
 }: WorkspaceListRowProps) => {
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
+  const trailingSlot =
+    trailing ?? (onPress === undefined ? undefined : <CaretRight color={palette.text3} size={16} weight="bold" />);
 
   const body = (
     <>
@@ -37,16 +43,15 @@ export const WorkspaceListRow = ({
           </Text>
         )}
       </View>
-      {trailing === undefined ? null : <View style={styles.trailing}>{trailing}</View>}
+      {trailingSlot === undefined ? null : <View style={styles.trailing}>{trailingSlot}</View>}
     </>
   );
 
   if (onPress === undefined) {
-    return (
-      <View style={[styles.row, { backgroundColor: palette.surface }]}>{body}</View>
-    );
+    return <View style={styles.row}>{body}</View>;
   }
 
+  // Rows are high-frequency: the pressed fill is instant, with no motion.
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
@@ -54,7 +59,7 @@ export const WorkspaceListRow = ({
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
-        { backgroundColor: pressed ? palette.surface2 : palette.surface },
+        { backgroundColor: pressed ? palette.surface2 : "transparent" },
       ]}
     >
       {body}
@@ -62,9 +67,57 @@ export const WorkspaceListRow = ({
   );
 };
 
+export interface WorkspaceListGroupProps {
+  readonly children: ReactNode;
+  readonly label?: string;
+}
+
+/**
+ * One elevated card holding a run of rows. Its radius is the row radius plus
+ * the inset, so a pressed row's fill sits concentric with the card edge.
+ */
+export const WorkspaceListGroup = ({ children, label }: WorkspaceListGroupProps) => {
+  const { isDark } = useTheme();
+  const palette = isDark ? theme.dark : theme.light;
+
+  return (
+    <View style={styles.groupStack}>
+      {label === undefined ? null : (
+        <Text
+          accessibilityRole="header"
+          style={[typeStyle("sm", { weight: 500 }), styles.groupLabel, { color: palette.text2 }]}
+        >
+          {label}
+        </Text>
+      )}
+      <View
+        style={[
+          styles.group,
+          {
+            backgroundColor: palette.surface,
+            boxShadow: (isDark ? shadows.dark : shadows.light).card,
+          },
+        ]}
+      >
+        {children}
+      </View>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
+  group: {
+    borderRadius: radii.md + GROUP_INSET,
+    padding: GROUP_INSET,
+  },
+  groupLabel: {
+    paddingHorizontal: spacing.s1,
+  },
+  groupStack: {
+    gap: spacing.s2,
+  },
   leading: {
-    marginRight: spacing.s2,
+    marginRight: spacing.s3,
   },
   row: {
     alignItems: "center",

@@ -1,14 +1,19 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
+import { Star } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/workspace/empty-state";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import {
   SKELETON_KEYS,
   SkeletonBone,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { FavoriteToggle } from "@/features/discovery/components/favorite-toggle";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";
 import { listAllEmployees } from "@/features/people/people-queries";
@@ -80,13 +85,17 @@ const FavoriteWork = async () => {
             projects={projects}
           />
         ) : (
-          <div className="panel panel-b favorite-empty">
-            <h3>No favorite projects yet</h3>
-            <p className="muted">Star a project to keep it close at hand.</p>
-            <Link href="/projects" className="favorite-empty-link">
-              Browse projects
-            </Link>
-          </div>
+          <EmptyState
+            action={
+              <Link className="favorite-empty-link" href="/projects">
+                Browse projects
+              </Link>
+            }
+            description="Star a project to keep it close at hand."
+            icon={Star}
+            size="panel"
+            title="No favorite projects yet"
+          />
         )}
       </section>
 
@@ -189,13 +198,17 @@ const FavoriteWork = async () => {
             })}
           </div>
         ) : (
-          <div className="panel panel-b favorite-empty">
-            <h3>No favorite tasks yet</h3>
-            <p className="muted">Star tasks to find them quickly here.</p>
-            <Link href="/tasks" className="favorite-empty-link">
-              Browse tasks
-            </Link>
-          </div>
+          <EmptyState
+            action={
+              <Link className="favorite-empty-link" href="/tasks">
+                Browse tasks
+              </Link>
+            }
+            description="Star tasks to find them quickly here."
+            icon={Star}
+            size="panel"
+            title="No favorite tasks yet"
+          />
         )}
       </section>
     </>
@@ -206,8 +219,10 @@ const FAVORITE_PROJECTS = SKELETON_KEYS.slice(0, 3);
 
 const FAVORITE_TASKS = SKELETON_KEYS.slice(0, 5);
 
-// Mirrors FavoriteWork: section headings are static; counts, project cards and
-// task rows are data.
+const FAVORITE_TASK_CELLS = ["Status", "Priority", "Due"] as const;
+
+// Mirrors FavoriteWork with the same grid and table classes: section headings
+// and column titles are static; counts, project cards and task rows are data.
 const FavoriteWorkSkeleton = () => (
   <>
     <section className="stack">
@@ -223,17 +238,40 @@ const FavoriteWorkSkeleton = () => (
     <section className="stack">
       <h2 className="section-heading">Tasks</h2>
       <SkelterSurface label="Loading favorite tasks…">
-        <div className="panel favorite-task-list">
+        <div className="panel favorite-task-list fav-table">
+          <SkeletonKeep>
+            <div className="fav-head">
+              <span />
+              <span>Task</span>
+              <span>Status</span>
+              <span>Priority</span>
+              <span>Due</span>
+              <span>Assignees</span>
+              <span />
+            </div>
+          </SkeletonKeep>
           {FAVORITE_TASKS.map((key) => (
-            <article className="favorite-task-row" key={key}>
+            <article className="favorite-task-row fav-row" key={key}>
+              <span className="favorite-task-status-dot" />
               <div className="favorite-task-main">
-                <SkeletonBone />
-                <SkeletonBone shape="short" />
-                <div className="favorite-task-metadata">
+                <span className="favorite-task-title">
+                  <SkeletonBone />
+                </span>
+                <span className="favorite-task-project">
                   <SkeletonBone shape="short" />
-                  <SkeletonBone shape="short" />
-                </div>
+                </span>
               </div>
+              {FAVORITE_TASK_CELLS.map((label) => (
+                <span className="fav-cell" data-label={label} key={label}>
+                  <SkeletonBone shape="short" />
+                </span>
+              ))}
+              <ul className="favorite-task-assignees fav-cell">
+                <li>
+                  <SkeletonBone shape="avatar" />
+                </li>
+              </ul>
+              <span />
             </article>
           ))}
         </div>

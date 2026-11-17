@@ -1,16 +1,18 @@
 import { Effect } from "effect";
-import { useState } from "react";
-import { withSkeleton } from "react-zero-skeleton";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
-import { WorkspaceListRow } from "@/components/workspace/workspace-list-row";
-import type { ListRow } from "@/features/workspace/domain-list-screen";
+import { WorkspaceAvatar } from "@/components/workspace/workspace-avatar";
+import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import { WorkspaceListGroup, WorkspaceListRow } from "@/components/workspace/workspace-list-row";
+import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
+import { SkelterListRows, type ListRow } from "@/features/workspace/domain-list-screen";
 import { useApi, useApiQuery } from "@/runtime/api-hooks";
 import type { AppFailure } from "@/errors";
 import { useTheme } from "@/theme/theme-provider";
-import { theme } from "@/theme/tokens.generated";
+import { typeStyle } from "@/theme/type-scale";
+import { radii, shadows, spacing, theme } from "@/theme/tokens.generated";
 
 /** A query-backed list body for the portal screens. */
 export const PortalListBody = ({
@@ -37,28 +39,19 @@ export const PortalListBody = ({
   if (!list.isPending && displayRows.length === 0) {
     return <WorkspaceEmptyState message="Nothing here yet." title={emptyTitle} />;
   }
-  return <SkelterPortalRows hasSkeleton isLoading={list.isPending} rows={displayRows} />;
+  return (
+    <WorkspaceLoadingRegion isLoading={list.isPending} label={`Loading ${emptyTitle}`}>
+      <SkelterListRows hasSkeleton={list.isPending} isLoading={list.isPending} rows={displayRows} />
+    </WorkspaceLoadingRegion>
+  );
 };
 
+/** Typical-length rows so Skelter sizes its bones like real portal rows. */
 const SKELETON_ROWS: readonly ListRow[] = [
-  { id: "skeleton-portal-1", subtitle: "Project details", title: "Project name" },
-  { id: "skeleton-portal-2", subtitle: "Project details", title: "Project name" },
-  { id: "skeleton-portal-3", subtitle: "Project details", title: "Project name" },
+  { id: "skeleton-portal-1", subtitle: "Website relaunch · Awaiting review", title: "Checkout button overlaps footer" },
+  { id: "skeleton-portal-2", subtitle: "Website relaunch · In progress", title: "Pricing table misaligned on iPad" },
+  { id: "skeleton-portal-3", subtitle: "Customer portal · Open", title: "Invoice PDF shows wrong due date" },
 ];
-
-const PortalRows = ({ rows }: { readonly rows: readonly ListRow[] }) => (
-  <View style={styles.list}>
-    {rows.map((row) => (
-      <WorkspaceListRow
-        key={row.id}
-        {...(row.subtitle === null ? {} : { subtitle: row.subtitle })}
-        title={row.title}
-      />
-    ))}
-  </View>
-);
-
-export const SkelterPortalRows = withSkeleton(PortalRows);
 
 /** The portal account screen: identity card and sign-out. */
 export const PortalAccountBody = ({
@@ -74,51 +67,46 @@ export const PortalAccountBody = ({
 }) => {
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
-  const [pressed, setPressed] = useState(false);
 
   return (
-    <View style={styles.card}>
-      <Text style={[{ color: palette.text, fontSize: 16, fontWeight: "600" }, styles.name]}>
-        {name}
-      </Text>
-      <Text style={{ color: palette.text3 }}>{email}</Text>
-      {onOpenNotifications === undefined ? null : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onOpenNotifications}
-          style={styles.signOut}
-        >
-          <Text style={{ color: palette.text }}>Notifications</Text>
-        </Pressable>
-      )}
-      <Pressable
-        accessibilityRole="button"
-        onPress={onSignOut}
-        onPressIn={() => setPressed(true)}
-        onPressOut={() => setPressed(false)}
-        style={[styles.signOut, { opacity: pressed ? 0.7 : 1 }]}
+    <View style={styles.stack}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: palette.surface, boxShadow: (isDark ? shadows.dark : shadows.light).card },
+        ]}
       >
-        <Text style={{ color: palette.red }}>Sign out</Text>
-      </Pressable>
+        <WorkspaceAvatar name={name} size={48} />
+        <View style={styles.identity}>
+          <Text style={[typeStyle("lg", { weight: 600 }), { color: palette.text }]}>{name}</Text>
+          <Text style={[typeStyle("sm"), { color: palette.text3 }]}>{email}</Text>
+        </View>
+      </View>
+      {onOpenNotifications === undefined ? null : (
+        <WorkspaceListGroup>
+          <WorkspaceListRow onPress={onOpenNotifications} title="Notifications" />
+        </WorkspaceListGroup>
+      )}
+      <WorkspaceButton onPress={onSignOut} variant="secondary">
+        Sign out
+      </WorkspaceButton>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    gap: 4,
-    paddingVertical: 12,
-  },
-  list: {
-    gap: 4,
-  },
-  name: {
-    paddingBottom: 2,
-  },
-  signOut: {
     alignItems: "center",
-    minHeight: 44,
-    justifyContent: "center",
-    marginTop: 12,
+    borderRadius: radii.xl,
+    flexDirection: "row",
+    gap: spacing.s3,
+    padding: spacing.s4,
+  },
+  identity: {
+    flex: 1,
+    gap: 2,
+  },
+  stack: {
+    gap: spacing.s4,
   },
 });

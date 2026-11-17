@@ -57,7 +57,7 @@
 [data-slot="dialog-content"][data-workspace] input {
   height: 30px;
   border: 1px solid var(--workspace-portal-input);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--workspace-portal-surface);
   color: var(--workspace-portal-text);
   font-size: 12.5px;
@@ -71,7 +71,7 @@
 [data-slot="dialog-content"][data-workspace] textarea {
   min-height: 62px;
   border: 1px solid var(--workspace-portal-input);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--workspace-portal-surface);
   color: var(--workspace-portal-text);
   padding: 7px 10px;
@@ -81,7 +81,7 @@
   width: 100%;
   height: 30px;
   border: 1px solid var(--workspace-portal-input);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--workspace-portal-surface);
   color: var(--workspace-portal-text);
   padding: 0 10px;
@@ -89,7 +89,7 @@
 }
 [data-slot="dialog-content"][data-workspace] [data-workspace-button] {
   min-height: 30px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 12.5px;
   padding-inline: 11px;
 }

@@ -1,19 +1,21 @@
 import { Effect, Exit } from "effect";
 import type { AppFailure } from "@/errors";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { withSkeleton } from "react-zero-skeleton";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { MagnifyingGlass } from "phosphor-react-native";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { useErrorToast } from "@/components/workspace/error-toast-provider";
 import { failureMessage, WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
-import { WorkspaceListRow } from "@/components/workspace/workspace-list-row";
-import { SkelterWorkspaceScreen } from "@/components/workspace/skelter-workspace-screen";
+import { WorkspaceListGroup, WorkspaceListRow } from "@/components/workspace/workspace-list-row";
+import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
 import { failureOf, useApi, useApiQuery } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
-import { spacing, theme } from "@/theme/tokens.generated";
+import { radii, spacing, theme } from "@/theme/tokens.generated";
 
 export interface ListRow {
   readonly id: string;
@@ -22,10 +24,11 @@ export interface ListRow {
   readonly title: string;
 }
 
+/** Typical-length rows so Skelter sizes its bones like real list rows. */
 const SKELETON_ROWS: readonly ListRow[] = [
-  { id: "skeleton-row-1", subtitle: "Project details", title: "Project name" },
-  { id: "skeleton-row-2", subtitle: "Project details", title: "Project name" },
-  { id: "skeleton-row-3", subtitle: "Project details", title: "Project name" },
+  { id: "skeleton-row-1", subtitle: "Northwind Traders · 12 open", title: "Website relaunch" },
+  { id: "skeleton-row-2", subtitle: "Contoso Health · 8 open", title: "Mobile onboarding flow" },
+  { id: "skeleton-row-3", subtitle: "Fabrikam Studio · 5 open", title: "Customer portal refresh" },
 ];
 
 /** One generic, query-backed list screen; domains pass their fetch program. */
@@ -55,37 +58,57 @@ export const DomainListScreen = ({
 
   return (
     <WorkspaceTabShell>
-      <SkelterWorkspaceScreen
-        hasSkeleton
-        isLoading={list.isPending}
-        title={screenTitle}
-      >
+      <WorkspaceScreen title={screenTitle}>
         {list.error !== null && list.error !== undefined ? (
           <WorkspaceErrorState failure={list.error} onRetry={() => void list.refetch()} />
         ) : displayRows.length === 0 ? (
           <WorkspaceEmptyState message={emptyMessage} title={emptyTitle} />
         ) : (
-          <View style={styles.list}>
-            {displayRows.map((row) => (
-              <WorkspaceListRow
-                key={row.id}
-                {...(row.subtitle === null ? {} : { subtitle: row.subtitle })}
-                title={row.title}
-                {...(trailing === undefined || trailing(row) === null
-                  ? {}
-                  : {
-                      trailing: (
-                        <Text style={{ color: theme.light.text3 }}>{trailing(row) ?? ""}</Text>
-                      ),
-                    })}
-              />
-            ))}
-          </View>
+          <WorkspaceLoadingRegion isLoading={list.isPending} label={`Loading ${screenTitle}`}>
+            <SkelterListRows
+              hasSkeleton={list.isPending}
+              isLoading={list.isPending}
+              rows={displayRows}
+              {...(trailing === undefined ? {} : { trailing })}
+            />
+          </WorkspaceLoadingRegion>
         )}
-      </SkelterWorkspaceScreen>
+      </WorkspaceScreen>
     </WorkspaceTabShell>
   );
 };
+
+/** Plain list rows with an optional trailing note; shared by workspace and portal lists. */
+const ListRows = ({
+  rows,
+  trailing,
+}: {
+  readonly rows: readonly ListRow[];
+  readonly trailing?: (row: ListRow) => string | null;
+}) => {
+  const { isDark } = useTheme();
+  const palette = isDark ? theme.dark : theme.light;
+
+  return (
+    <WorkspaceListGroup>
+      {rows.map((row) => {
+        const note = trailing?.(row) ?? null;
+        return (
+          <WorkspaceListRow
+            key={row.id}
+            {...(row.subtitle === null ? {} : { subtitle: row.subtitle })}
+            title={row.title}
+            {...(note === null
+              ? {}
+              : { trailing: <Text style={[typeStyle("sm"), { color: palette.text3 }]}>{note}</Text> })}
+          />
+        );
+      })}
+    </WorkspaceListGroup>
+  );
+};
+
+export const SkelterListRows = withSkeleton(ListRows);
 
 /** The search screen: text in, workspace hits out. */
 export const SearchScreen = ({
@@ -100,8 +123,6 @@ export const SearchScreen = ({
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<readonly ListRow[]>([]);
   const showError = useErrorToast();
-  const { isDark } = useTheme();
-  const palette = isDark ? theme.dark : theme.light;
 
   const submit = (): void => {
     const trimmed = query.trim();
@@ -127,70 +148,71 @@ export const SearchScreen = ({
         {hits.length === 0 ? (
           <WorkspaceEmptyState message="Search projects and tasks by name." title="Find work" />
         ) : (
-          <View style={styles.list}>
+          <WorkspaceListGroup label={`${hits.length} ${hits.length === 1 ? "result" : "results"}`}>
             {hits.map((hit) => (
-              <Pressable
+              <WorkspaceListRow
                 accessibilityLabel={`Open ${hit.title}`}
-                accessibilityRole="button"
                 key={hit.id}
                 onPress={() => onHit(hit)}
-                style={({ pressed }) => [
-                  styles.hit,
-                  { backgroundColor: pressed ? palette.surface2 : palette.surface },
-                ]}
-              >
-                <Text style={[typeStyle("md"), { color: palette.text }]}>{hit.title}</Text>
-                <Text style={[typeStyle("xs"), { color: palette.text3 }]}>{hit.subtitle}</Text>
-              </Pressable>
+                {...(hit.subtitle === null ? {} : { subtitle: hit.subtitle })}
+                title={hit.title}
+              />
             ))}
-          </View>
+          </WorkspaceListGroup>
         )}
       </WorkspaceScreen>
     </WorkspaceTabShell>
   );
 };
 
-import { TextInput } from "react-native";
-
 const SearchBox = (props: {
   readonly onChange: (value: string) => void;
   readonly onSubmit: () => void;
   readonly value: string;
-}) => (
-  <View style={styles.searchRow}>
-    <TextInput
-      accessibilityLabel="Search query"
-      maxFontSizeMultiplier={2}
-      onChangeText={props.onChange}
-      onSubmitEditing={props.onSubmit}
-      placeholder="Search projects and tasks"
-      returnKeyType="search"
-      style={styles.input}
-      value={props.value}
-    />
-    <Pressable accessibilityRole="button" onPress={props.onSubmit} style={styles.searchButton}>
-      <Text style={{ color: theme.light.accent }}>Search</Text>
-    </Pressable>
-  </View>
-);
+}) => {
+  const { isDark } = useTheme();
+  const palette = isDark ? theme.dark : theme.light;
+
+  return (
+    <View style={styles.searchRow}>
+      <View style={[styles.inputFrame, { backgroundColor: palette.sunken, borderColor: palette.border }]}>
+        <MagnifyingGlass color={palette.text3} size={18} />
+        <TextInput
+          accessibilityLabel="Search query"
+          maxFontSizeMultiplier={2}
+          onChangeText={props.onChange}
+          onSubmitEditing={props.onSubmit}
+          placeholder="Search projects and tasks"
+          placeholderTextColor={palette.text3}
+          returnKeyType="search"
+          style={[typeStyle("md"), styles.input, { color: palette.text }]}
+          value={props.value}
+        />
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        onPress={props.onSubmit}
+        style={({ pressed }) => [styles.searchButton, { opacity: pressed ? 0.7 : 1 }]}
+      >
+        <Text style={[typeStyle("md", { weight: 500 }), { color: palette.accent }]}>Search</Text>
+      </Pressable>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  hit: {
-    borderRadius: 8,
-    gap: 2,
-    paddingHorizontal: spacing.s3,
-    paddingVertical: spacing.s2,
-  },
   input: {
-    borderColor: theme.light.border,
-    borderRadius: 8,
-    borderWidth: 1,
     flex: 1,
     minHeight: 44,
-    paddingHorizontal: spacing.s3,
   },
-  list: {
-    gap: spacing.s1,
+  inputFrame: {
+    alignItems: "center",
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: "row",
+    gap: spacing.s2,
+    paddingHorizontal: spacing.s3,
   },
   searchButton: {
     alignItems: "center",
@@ -199,8 +221,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.s3,
   },
   searchRow: {
+    alignItems: "center",
     flexDirection: "row",
-    gap: spacing.s2,
-    paddingBottom: spacing.s2,
+    gap: spacing.s1,
   },
 });

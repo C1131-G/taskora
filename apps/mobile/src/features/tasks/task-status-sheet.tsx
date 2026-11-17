@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CaretDown, Check } from "phosphor-react-native";
 
 import { WorkspaceSheet } from "@/components/workspace/workspace-sheet";
 import { useTheme } from "@/theme/theme-provider";
@@ -38,7 +39,7 @@ export const TaskStatusSheet = ({ current, onClose, onMove, open }: TaskStatusSh
           ]}
         >
           <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>{status}</Text>
-          {status === current ? <Text style={{ color: palette.accent }}>✓</Text> : null}
+          {status === current ? <Check color={palette.accent} size={18} weight="bold" /> : null}
         </Pressable>
       ))}
     </WorkspaceSheet>
@@ -51,19 +52,21 @@ export const TaskStatusTrigger = (props: Omit<TaskStatusSheetProps, "open" | "on
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
 
-  useEffect(() => () => setOpen(false), []);
-
   return (
     <View>
       <Pressable
         accessibilityLabel="Change status"
         accessibilityRole="button"
         onPress={() => setOpen(true)}
-        style={[styles.trigger, { backgroundColor: palette.surface2 }]}
+        style={({ pressed }) => [
+          styles.trigger,
+          { backgroundColor: pressed ? palette.surface3 : palette.surface2 },
+        ]}
       >
         <Text style={[typeStyle("sm", { weight: 500 }), { color: palette.text }]}>
           Status: {props.current}
         </Text>
+        <CaretDown color={palette.text2} size={14} weight="bold" />
       </Pressable>
       <TaskStatusSheet {...props} onClose={() => setOpen(false)} open={open} />
     </View>
@@ -79,7 +82,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.s3,
   },
   trigger: {
+    alignItems: "center",
     alignSelf: "flex-start",
+    flexDirection: "row",
+    gap: spacing.s1,
+    minHeight: 32,
     borderRadius: radii.full,
     paddingHorizontal: spacing.s3,
     paddingVertical: spacing.s1,

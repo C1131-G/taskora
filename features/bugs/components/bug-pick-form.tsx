@@ -10,12 +10,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { pickClientBugAction } from "@/features/bugs/bugs-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 
@@ -84,39 +81,31 @@ export const BugPickForm = ({
       <div className="bug-detail-facts">
         <div className="bug-form-field">
           <Label htmlFor={`${id}-severity`}>Severity</Label>
-          <Select
+          <WorkspaceSelect
             onValueChange={(value) => setSeverity(value as PickSeverity)}
             value={severity}
+            id={`${id}-severity`}
           >
-            <SelectTrigger className="w-full" id={`${id}-severity`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SEVERITIES.map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {SEVERITIES.map(([value, label]) => (
+              <WorkspaceSelectItem key={value} value={value}>
+                {label}
+              </WorkspaceSelectItem>
+            ))}
+          </WorkspaceSelect>
         </div>
         <div className="bug-form-field">
           <Label htmlFor={`${id}-priority`}>Priority</Label>
-          <Select
+          <WorkspaceSelect
             onValueChange={(value) => setPriority(value as PickPriority)}
             value={priority}
+            id={`${id}-priority`}
           >
-            <SelectTrigger className="w-full" id={`${id}-priority`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PRIORITIES.map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {PRIORITIES.map(([value, label]) => (
+              <WorkspaceSelectItem key={value} value={value}>
+                {label}
+              </WorkspaceSelectItem>
+            ))}
+          </WorkspaceSelect>
         </div>
       </div>
       <Button disabled={pending} type="submit">

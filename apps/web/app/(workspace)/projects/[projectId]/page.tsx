@@ -9,10 +9,9 @@ import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
 import {
   ProjectBody,
-  ProjectBodySkeleton,
   ProjectHeader,
-  ProjectHeaderSkeleton,
 } from "@/features/projects/components/project-detail";
+import { ProjectSkeletonFallback } from "@/features/projects/components/project-detail-skeleton";
 import { parseProjectDetailQuery } from "@/features/projects/project-detail-params";
 import { projectMetadata } from "@/features/projects/project-metadata";
 import { parseTaskIdParam } from "@/features/tasks/task-param";
@@ -54,7 +53,7 @@ const ProjectPage = ({
           </Suspense>
         </SectionErrorBoundary>
         <SectionErrorBoundary title="Project details couldn't load" variant="page">
-          <SuspenseReveal fallback={<ProjectHeaderSkeleton />}>
+          <SuspenseReveal fallback={<ProjectSkeletonFallback part="header" />}>
             {/* oxlint-disable-next-line promise/prefer-await-to-then -- Route values resolve inside the boundary. */}
             {route.then(({ projectId, query }) => (
               <ProjectHeader projectId={projectId} requestedView={query.view} />
@@ -62,12 +61,13 @@ const ProjectPage = ({
           </SuspenseReveal>
         </SectionErrorBoundary>
         <SectionErrorBoundary title="This project view couldn't load">
-          <SuspenseReveal fallback={<ProjectBodySkeleton />}>
+          {/* Only the inner boundary reveals, so the body rises in once. The outer
+              one waits on route values alone; null matches the delayed fallback
+              the reveal shows first anyway. */}
+          <Suspense fallback={null}>
             {/* oxlint-disable-next-line promise/prefer-await-to-then -- Route values resolve inside the boundary. */}
             {route.then(({ initialTaskId, projectId, query }) => (
-              <SuspenseReveal
-                fallback={<ProjectBodySkeleton view={query.view} />}
-              >
+              <SuspenseReveal fallback={<ProjectSkeletonFallback part="body" />}>
                 <ProjectBody
                   initialTaskId={initialTaskId}
                   projectId={projectId}
@@ -75,7 +75,7 @@ const ProjectPage = ({
                 />
               </SuspenseReveal>
             ))}
-          </SuspenseReveal>
+          </Suspense>
         </SectionErrorBoundary>
       </div>
     </PageTransition>

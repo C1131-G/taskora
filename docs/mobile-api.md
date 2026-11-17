@@ -5,7 +5,7 @@ status: current
 updated: 2026-10-29
 ---
 
-This reference lists the mobile API operations and their access requirements. The route inventory mirrors [`mobileRoutes`](../src/mobile-api/routes.ts); the canonical schema is the generated [OpenAPI document](mobile-openapi.json), served at `GET /api/v1/openapi.json`.
+This reference lists the mobile API operations and their access requirements. The authenticated rows mirror [`mobileRoutes`](../src/mobile-api/routes.ts) (the OpenAPI row is a separate public route); the canonical schema is the generated [OpenAPI document](mobile-openapi.json), served at `GET /api/v1/openapi.json`.
 
 ## API routes
 

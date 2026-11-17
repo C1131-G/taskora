@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
-import { theme } from "@/theme/tokens.generated";
+import { radii, theme } from "@/theme/tokens.generated";
 
 export interface BottomTab {
   readonly badge?: number;
@@ -31,13 +31,7 @@ export const WorkspaceBottomNavigation = ({
   return (
     <View
       accessibilityRole="tablist"
-      style={[
-        styles.host,
-        {
-          backgroundColor: palette.surface,
-          borderTopColor: palette.border,
-        },
-      ]}
+      style={styles.host}
     >
       {items.map((item) => {
         const active = item.label === activeLabel;
@@ -59,7 +53,7 @@ export const WorkspaceBottomNavigation = ({
               {item.badge === undefined || item.badge === 0 ? null : (
                 <View
                   accessibilityLabel={`${item.badge} unread`}
-                  style={[styles.badge, { backgroundColor: palette.red }]}
+                  style={[styles.badge, { backgroundColor: palette.red, borderColor: palette.surface }]}
                 >
                   <Text style={[typeStyle("2xs"), { color: palette.onAccent }]}>
                     {item.badge > 99 ? "99+" : item.badge}
@@ -69,7 +63,7 @@ export const WorkspaceBottomNavigation = ({
             </View>
             <Text
               style={[
-                typeStyle("2xs" as never, { weight: active ? 600 : 400 }),
+                typeStyle("2xs", { weight: active ? 600 : 400 }),
                 { color: active ? palette.accent : palette.text3 },
               ]}
             >
@@ -85,17 +79,18 @@ export const WorkspaceBottomNavigation = ({
 const styles = StyleSheet.create({
   badge: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: radii.full,
+    borderWidth: 2,
     justifyContent: "center",
-    minHeight: 16,
-    minWidth: 16,
-    paddingHorizontal: 3,
+    minHeight: 20,
+    minWidth: 20,
+    paddingHorizontal: 4,
     position: "absolute",
-    right: -6,
-    top: -4,
+    right: -10,
+    top: -6,
   },
   host: {
-    borderTopWidth: 1,
+    flex: 1,
     flexDirection: "row",
   },
   iconStack: {

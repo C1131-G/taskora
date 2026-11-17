@@ -3,11 +3,11 @@
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import {
-  SKELETON_KEYS,
-  SkeletonBone,
-} from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { PortalApprovalDecision } from "@/features/portal/components/portal-approval-decision";
 import { PortalApprovalFiles } from "@/features/portal/components/portal-approval-files";
 import { PortalTime } from "@/features/portal/components/portal-time";
@@ -125,11 +125,30 @@ const PortalApprovalView = async ({
 const PortalApprovalViewSkeleton = () => (
   <SkelterSurface label="Loading approval">
     <div className="portal-detail">
-      <SkeletonBone shape="short" />
-      <SkeletonBone shape="title" />
-      {SKELETON_KEYS.slice(0, 2).map((key) => (
-        <SkeletonBone key={key} />
-      ))}
+      <span className="portal-back">
+        <SkeletonKeep>All approvals</SkeletonKeep>
+      </span>
+      <header className="portal-bug-head">
+        <span className="portal-bug-top">
+          <SkeletonBone shape="short" />
+          <SkeletonBone shape="short" />
+        </span>
+        <h1>
+          <SkeletonBone />
+        </h1>
+        <SkeletonBone shape="short" />
+        <SkeletonBone />
+      </header>
+      <section className="panel portal-panel">
+        <SkeletonKeep>
+          <h2 className="sec">Files to review</h2>
+        </SkeletonKeep>
+        <SkeletonBone shape="block" />
+      </section>
+      <section className="panel portal-panel">
+        <SkeletonBone shape="short" />
+        <SkeletonBone />
+      </section>
     </div>
   </SkelterSurface>
 );

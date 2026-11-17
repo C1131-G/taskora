@@ -12,6 +12,10 @@ import {
   WorkspaceFieldError,
   WorkspaceFormError,
 } from "@/components/workspace/workspace-field-error";
+import {
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { requestApprovalAction } from "@/features/approvals/approval-actions";
 import type { TaskApprovals } from "@/src/server/approvals/approval-contracts";
 import { MAX_APPROVAL_TEXT } from "@/src/server/approvals/approval-contracts";
@@ -84,18 +88,18 @@ export const TaskApprovalForm = ({
     >
       <div className="field">
         <label htmlFor={`${formId}-companyId`}>Client company</label>
-        <select
-          className="input"
+        <WorkspaceSelect
+          defaultValue={companies[0]?.id ?? ""}
           id={`${formId}-companyId`}
           name="companyId"
           required
         >
           {companies.map((company) => (
-            <option key={company.id} value={company.id}>
+            <WorkspaceSelectItem key={company.id} value={company.id}>
               {company.name}
-            </option>
+            </WorkspaceSelectItem>
           ))}
-        </select>
+        </WorkspaceSelect>
         <WorkspaceFieldError
           errors={errors}
           field="companyId"

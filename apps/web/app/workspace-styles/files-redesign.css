@@ -96,3 +96,9 @@
     padding-inline: 12px;
   }
 }
+
+/* file cards while loading: each bar sits inside its text's own line box */
+.workspace-app .file-card-skeleton .file-card-main .skeleton-bone {
+  display: inline-block;
+  vertical-align: middle;
+}

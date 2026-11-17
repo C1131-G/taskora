@@ -18,6 +18,7 @@ import {
   AvatarGroup,
   AvatarGroupCount,
 } from "@/components/ui/avatar";
+import { markDragSource } from "@/features/tasks/board-drag-state";
 import { TaskManageControls } from "@/features/tasks/components/task-manage-controls";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import type { LabelSummary } from "@/src/server/tasks/label-management";
@@ -78,7 +79,8 @@ export const ProjectBoardCard = ({
     onDragEnd={() => {
       onDragCancel();
     }}
-    onDragStart={() => {
+    onDragStart={(event) => {
+      markDragSource(event, task.id);
       onDragStart(task.id);
     }}
   >

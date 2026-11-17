@@ -28,12 +28,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { reportBugAction } from "@/features/bugs/bugs-actions";
 import {
   BugEnvironmentFields,
@@ -152,12 +149,17 @@ export const BugReportDialog = ({
         </Button>
       </DialogTrigger>
       <DialogContent className="workspace-app bug-report-dialog">
-        <DialogHeader>
-          <DialogTitle>Report a bug</DialogTitle>
-          <DialogDescription>
-            Capture where you found the issue and how another person can
-            reproduce it.
-          </DialogDescription>
+        <DialogHeader className="bug-dialog-head">
+          <span aria-hidden="true" className="bug-dialog-icon">
+            <Bug size={20} weight="duotone" />
+          </span>
+          <div className="bug-dialog-head-text">
+            <DialogTitle>Report a bug</DialogTitle>
+            <DialogDescription>
+              Capture where you found the issue and how another person can
+              reproduce it.
+            </DialogDescription>
+          </div>
         </DialogHeader>
         <ol aria-label="Report steps" className="bug-steps">
           {STEPS.map((item, index) => (
@@ -206,68 +208,68 @@ export const BugReportDialog = ({
             </div>
             <div className="bug-form-field">
               <Label htmlFor="bug-project">Project</Label>
-              <Select onValueChange={setProjectId} value={projectId}>
-                <SelectTrigger
-                  aria-label="Project"
-                  className="w-full"
-                  id="bug-project"
-                >
-                  <SelectValue placeholder="Choose a project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.key} · {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <WorkspaceSelect
+                onValueChange={setProjectId}
+                value={projectId}
+                ariaLabel="Project"
+                id="bug-project"
+                displayValue={projectId ? undefined : "Choose a project"}
+              >
+                {projects.map((project) => (
+                  <WorkspaceSelectItem key={project.id} value={project.id}>
+                    {project.key} · {project.name}
+                  </WorkspaceSelectItem>
+                ))}
+              </WorkspaceSelect>
             </div>
             <div className="bug-form-field">
               <Label htmlFor="bug-severity">Severity</Label>
-              <Select onValueChange={setSeverity} value={severity}>
-                <SelectTrigger
-                  aria-label="Severity"
-                  className="w-full"
-                  id="bug-severity"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="blocker">Blocker</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                  <SelectItem value="major">Major</SelectItem>
-                  <SelectItem value="minor">Minor</SelectItem>
-                  <SelectItem value="trivial">Trivial</SelectItem>
-                </SelectContent>
-              </Select>
+              <WorkspaceSelect
+                onValueChange={setSeverity}
+                value={severity}
+                ariaLabel="Severity"
+                id="bug-severity"
+              >
+                <WorkspaceSelectItem value="blocker">
+                  Blocker
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="critical">
+                  Critical
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="major">Major</WorkspaceSelectItem>
+                <WorkspaceSelectItem value="minor">Minor</WorkspaceSelectItem>
+                <WorkspaceSelectItem value="trivial">
+                  Trivial
+                </WorkspaceSelectItem>
+              </WorkspaceSelect>
             </div>
             <div className="bug-form-field bug-form-wide">
               <Label htmlFor="bug-source">Found by</Label>
-              <Select
+              <WorkspaceSelect
                 onValueChange={setDiscoverySource}
                 value={discoverySource}
+                ariaLabel="Found by"
+                id="bug-source"
               >
-                <SelectTrigger
-                  aria-label="Found by"
-                  className="w-full"
-                  id="bug-source"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employee_report">
-                    Employee report
-                  </SelectItem>
-                  <SelectItem value="internal_qa">Internal QA</SelectItem>
-                  <SelectItem value="customer_report">
-                    Customer report
-                  </SelectItem>
-                  <SelectItem value="support">Support</SelectItem>
-                  <SelectItem value="automated_test">Automated test</SelectItem>
-                  <SelectItem value="monitoring">Monitoring</SelectItem>
-                </SelectContent>
-              </Select>
+                <WorkspaceSelectItem value="employee_report">
+                  Employee report
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="internal_qa">
+                  Internal QA
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="customer_report">
+                  Customer report
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="support">
+                  Support
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="automated_test">
+                  Automated test
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="monitoring">
+                  Monitoring
+                </WorkspaceSelectItem>
+              </WorkspaceSelect>
             </div>
           </section>
           <section
@@ -298,22 +300,24 @@ export const BugReportDialog = ({
             </div>
             <div className="bug-form-field bug-form-wide">
               <Label htmlFor="bug-environment">Environment</Label>
-              <Select onValueChange={setEnvironment} value={environment}>
-                <SelectTrigger
-                  aria-label="Environment"
-                  className="w-full"
-                  id="bug-environment"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="staging">Staging</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="test">Test</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <WorkspaceSelect
+                onValueChange={setEnvironment}
+                value={environment}
+                ariaLabel="Environment"
+                id="bug-environment"
+              >
+                <WorkspaceSelectItem value="production">
+                  Production
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="staging">
+                  Staging
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="development">
+                  Development
+                </WorkspaceSelectItem>
+                <WorkspaceSelectItem value="test">Test</WorkspaceSelectItem>
+                <WorkspaceSelectItem value="other">Other</WorkspaceSelectItem>
+              </WorkspaceSelect>
             </div>
             <BugEnvironmentFields />
           </section>

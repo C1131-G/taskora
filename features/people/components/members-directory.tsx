@@ -330,4 +330,4 @@ const MembersDirectory = ({
   );
 };
 
-export { MembersDirectory };
+export { MembersDirectory, RolePermissions };

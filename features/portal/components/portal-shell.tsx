@@ -106,6 +106,14 @@ const unreadBadge = (
   </Suspense>
 );
 
+// Holds the company name's line so the nav below does not move when it loads.
+// A company logo adds a row the fallback cannot know about.
+const portalCompanyLine = (
+  <p aria-hidden="true" className="portal-company">
+    <span className="portal-company-name">&nbsp;</span>
+  </p>
+);
+
 // The portal has a compact client sidebar. `workspace-app` supplies the
 // design tokens the shared classes rely on.
 const PortalShell = ({ children }: { readonly children: ReactNode }) => (
@@ -120,7 +128,7 @@ const PortalShell = ({ children }: { readonly children: ReactNode }) => (
         </span>
         <span>Taskora</span>
       </Link>
-      <Suspense fallback={<p className="portal-company" />}>
+      <Suspense fallback={portalCompanyLine}>
         <PortalCompanyName />
       </Suspense>
       <PortalNavLinks
@@ -129,9 +137,9 @@ const PortalShell = ({ children }: { readonly children: ReactNode }) => (
       />
     </aside>
     <div className="portal-content">
-      <Suspense
-        fallback={<div aria-hidden="true" className="portal-preview-slot" />}
-      >
+      {/* No reserved slot: only staff previewing a client see the banner, so
+          clients (nearly every visit) keep main at the top with no shift. */}
+      <Suspense fallback={null}>
         <PortalPreviewBanner />
       </Suspense>
       <main className="portal-main" id="portal-main" tabIndex={-1}>

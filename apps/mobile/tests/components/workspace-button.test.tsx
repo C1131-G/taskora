@@ -1,7 +1,7 @@
-import { screen, userEvent } from "@testing-library/react-native";
+import { screen, userEvent, waitFor } from "@testing-library/react-native";
 
 import { WorkspaceButton, WorkspaceIconButton } from "@/components/workspace/workspace-button";
-import { View } from "react-native";
+import { AccessibilityInfo, View } from "react-native";
 import { renderWithTheme } from "./support/theme";
 
 it("renders a labeled button with the button role", async () => {
@@ -60,4 +60,15 @@ it("renders the icon button with a required label and no text", async () => {
 
   expect(screen.getByRole("button", { name: "Close dialog" })).toBeTruthy();
   expect(screen.queryByText("Close dialog")).toBeNull();
+});
+
+it("keeps a disabled button dimmed under reduced motion", async () => {
+  const spy = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+
+  await renderWithTheme(<WorkspaceButton disabled>Archive</WorkspaceButton>);
+
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Archive" })).toHaveStyle({ opacity: 0.5 }),
+  );
+  spy.mockRestore();
 });

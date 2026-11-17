@@ -7,9 +7,11 @@ import type { CSSProperties } from "react";
 import {
   SKELETON_KEYS,
   SkeletonBone,
-  SkeletonRows,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import {
+  SkeletonKeep,
+  SkelterSurface,
+} from "@/components/workspace/skelter-surface";
 import { PortalTime } from "@/features/portal/components/portal-time";
 import {
   progressPercent,
@@ -143,29 +145,60 @@ const PortalProjectView = async ({
 const PortalProjectViewSkeleton = () => (
   <SkelterSurface label="Loading project">
     <div className="portal-detail">
-      <div className="portal-back">
-        <SkeletonBone shape="short" />
-      </div>
-      <div className="portal-bug-head skeleton-copy">
-        <SkeletonBone shape="short" />
-        <SkeletonBone shape="title" />
+      <span className="portal-back">
+        <SkeletonKeep>All projects</SkeletonKeep>
+      </span>
+      <header className="portal-bug-head">
+        <span className="portal-bug-top">
+          <SkeletonBone shape="short" />
+          <SkeletonBone shape="short" />
+        </span>
+        <h1>
+          <SkeletonBone />
+        </h1>
         <SkeletonBone />
-      </div>
+        <SkeletonBone shape="short" />
+      </header>
+      <section className="panel portal-panel">
+        <SkeletonKeep>
+          <h2 className="sec">Progress</h2>
+        </SkeletonKeep>
+        <div className="row">
+          <SkeletonBone />
+        </div>
+      </section>
       <div className="portal-detail-grid">
         <div className="portal-detail-main">
-          {SKELETON_KEYS.slice(0, 2).map((key) => (
-            <div className="panel portal-panel" key={key}>
-              <SkeletonBone shape="title" />
-              <SkeletonRows rows={3} />
-            </div>
-          ))}
+          <section className="panel portal-panel">
+            <SkeletonKeep>
+              <h2 className="sec">Tasks</h2>
+            </SkeletonKeep>
+            <ul className="portal-project-tasks">
+              {SKELETON_KEYS.slice(0, 3).map((key) => (
+                <li className="portal-project-task" key={key}>
+                  <SkeletonBone />
+                  <SkeletonBone shape="short" />
+                  <SkeletonBone shape="short" />
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-        <div className="portal-detail-side">
-          <div className="panel portal-panel">
-            <SkeletonBone shape="title" />
-            <SkeletonRows rows={3} />
-          </div>
-        </div>
+        <aside className="portal-detail-side">
+          <section className="panel portal-panel">
+            <SkeletonKeep>
+              <h2 className="sec">Upcoming milestones</h2>
+            </SkeletonKeep>
+            <ol className="portal-timeline">
+              {SKELETON_KEYS.slice(0, 2).map((key) => (
+                <li key={key}>
+                  <SkeletonBone />
+                  <SkeletonBone shape="short" />
+                </li>
+              ))}
+            </ol>
+          </section>
+        </aside>
       </div>
     </div>
   </SkelterSurface>

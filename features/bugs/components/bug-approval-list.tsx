@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/workspace/empty-state";
 import { ErrorToast } from "@/components/workspace/error-toast";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { listBugs } from "@/features/bugs/bugs-queries";
 import { BugList } from "@/features/bugs/components/bug-list";
 import { getPageSession } from "@/src/server/auth/page-session";
@@ -41,4 +46,44 @@ const BugApprovalList = async () => {
   );
 };
 
-export { BugApprovalList };
+// Mirrors the summary line and BugCard (title row, context line, meta row).
+// Most queues hold one or two fixes, so two cards stand in for the list.
+const BugApprovalListSkeleton = () => (
+  <SkeletonRegion label="Loading approvals…">
+    <p className="approval-summary">
+      <SkeletonBone shape="line" width="16em" />
+    </p>
+    <div className="bug-list">
+      {SKELETON_KEYS.slice(0, 2).map((key) => (
+        <article className="panel panel-b bug-list-item" key={key}>
+          <div className="bug-list-link">
+            <span className="bug-severity" />
+            <div className="bug-list-main">
+              <div className="bug-list-title-row">
+                <span className="bug-task-key">
+                  <SkeletonBone shape="line" width="5em" />
+                </span>
+                <h2>
+                  <SkeletonBone shape="line" width="14em" />
+                </h2>
+              </div>
+              <p className="bug-list-context">
+                <SkeletonBone shape="line" width="18em" />
+              </p>
+              <div className="bug-list-meta">
+                <span>
+                  <SkeletonBone shape="line" width="4em" />
+                </span>
+                <span>
+                  <SkeletonBone shape="line" width="6em" />
+                </span>
+              </div>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </SkeletonRegion>
+);
+
+export { BugApprovalList, BugApprovalListSkeleton };

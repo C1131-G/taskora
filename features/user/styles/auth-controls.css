@@ -30,8 +30,11 @@
   background: color-mix(in srgb, var(--accent) 88%, var(--text));
 }
 
+/* Owns the press; the shared Button's translate/scale press must not stack on it. */
 .auth-app .auth-submit:active:not(:disabled) {
-  transform: scale(0.985);
+  transform: scale(0.96);
+  translate: none;
+  scale: none;
 }
 
 .auth-app .auth-submit:disabled {
@@ -43,8 +46,10 @@
   transition: transform var(--dur) var(--ease);
 }
 
-.auth-app .auth-submit:hover:not(:disabled) .auth-submit-arrow {
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .auth-app .auth-submit:hover:not(:disabled) .auth-submit-arrow {
+    transform: translateX(2px);
+  }
 }
 
 .auth-spin {
@@ -271,6 +276,14 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-spin {
     animation: none;
+  }
+
+  /* Drop movement only; color feedback keeps its transition. */
+  .auth-app .auth-submit:active:not(:disabled),
+  .auth-app .auth-submit:hover:not(:disabled) .auth-submit-arrow {
+    transform: none;
+    translate: none;
+    scale: none;
   }
 }
 

@@ -20,8 +20,8 @@ const SkelterSurface = ({
   readonly children: ReactNode;
   readonly label: string;
 }) => (
-  <section aria-busy="true" aria-label={label} className="skelter-surface">
-    <output className="sr-only">{label}</output>
+  <output aria-busy="true" aria-label={label} className="skelter-surface">
+    <span className="sr-only">{label}</span>
     <div aria-hidden="true" inert>
       <MeasuredSkeleton
         isLoadingSkeleton
@@ -36,10 +36,28 @@ const SkelterSurface = ({
         {children}
       </MeasuredSkeleton>
     </div>
-  </section>
+  </output>
+);
+
+// For skeletons built from the real markup (tables, labelled stats, forms):
+// Skelter would draw a bone over every span, th and td, so the bones placed in
+// the markup are the whole skeleton and the static labels stay as they are.
+const SkeletonRegion = ({
+  children,
+  label,
+}: {
+  readonly children: ReactNode;
+  readonly label: string;
+}) => (
+  <output aria-busy="true" aria-label={label} className="skelter-surface">
+    <span className="sr-only">{label}</span>
+    <div aria-hidden="true" className="skeleton-layout" inert>
+      {children}
+    </div>
+  </output>
 );
 
 // Static chrome (headings, column titles) stays readable inside a skeleton.
 const SkeletonKeep = SkeletonIgnore;
 
-export { SkeletonKeep, SkelterSurface };
+export { SkeletonKeep, SkeletonRegion, SkelterSurface };

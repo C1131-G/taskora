@@ -5,6 +5,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
+import { WorkspaceListGroup } from "@/components/workspace/workspace-list-row";
+import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { useErrorToast } from "@/components/workspace/error-toast-context";
 import { failureMessage } from "@/components/workspace/workspace-error-state";
@@ -19,12 +21,13 @@ import {
 import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
-import { spacing, theme } from "@/theme/tokens.generated";
+import { radii, spacing, theme } from "@/theme/tokens.generated";
 
 export interface PreferencesScreenProps {
-  readonly api: ApiContextValue;
+  /** Null while the session restores; the screen then only renders its skeleton. */
+  readonly api: ApiContextValue | null;
   readonly audience: PreferenceAudience;
-  readonly keys: KeysContextValue;
+  readonly keys: KeysContextValue | null;
   readonly preferences: readonly Preference[];
 }
 
@@ -34,7 +37,7 @@ const cellOf = (preference: Preference): string => `${preference.eventType}:${pr
  * Which notifications reach the person, per kind and channel. A switch shows
  * its new state at once and goes back if the server refuses the change.
  */
-export const PreferencesScreen = ({ api, audience, keys, preferences }: PreferencesScreenProps) => {
+const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScreenProps) => {
   const queryClient = useQueryClient();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
@@ -42,6 +45,7 @@ export const PreferencesScreen = ({ api, audience, keys, preferences }: Preferen
   const showError = useErrorToast();
 
   const toggle = (preference: Preference): void => {
+    if (api === null || keys === null) return;
     const cell = cellOf(preference);
     const next = !(shown[cell] ?? preference.enabled);
     setShown((current) => ({ ...current, [cell]: next }));
@@ -72,63 +76,67 @@ export const PreferencesScreen = ({ api, audience, keys, preferences }: Preferen
 
   const groups = groupByEvent(preferences);
 
-  return (
-    <WorkspaceScreen title="Notifications">
-      {groups.length === 0 ? (
-        <WorkspaceEmptyState message="There is nothing to switch on or off." title="No settings" />
-      ) : (
-        <View style={styles.list}>
-          {groups.map((group) => (
-            <View key={group.eventType} style={styles.group}>
-              <Text style={[typeStyle("md", { weight: 600 }), { color: palette.text }]}>
-                {EVENT_LABELS[group.eventType]}
-              </Text>
-              {group.rows.map((preference) => {
-                const enabled = shown[cellOf(preference)] ?? preference.enabled;
-                return (
-                  <Pressable
-                    accessibilityLabel={`${EVENT_LABELS[preference.eventType]}: ${CHANNEL_LABELS[preference.channel]}`}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: enabled }}
-                    key={cellOf(preference)}
-                    onPress={() => toggle(preference)}
-                    style={[styles.row, { backgroundColor: palette.surface }]}
-                  >
-                    <Text style={[typeStyle("md"), { color: palette.text }]}>
-                      {CHANNEL_LABELS[preference.channel]}
-                    </Text>
-                    <Text
-                      style={[
-                        typeStyle("sm", { weight: 600 }),
-                        { color: enabled ? palette.accent : palette.text3 },
-                      ]}
-                    >
-                      {enabled ? "On" : "Off"}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ))}
-        </View>
-      )}
-    </WorkspaceScreen>
+  return groups.length === 0 ? (
+    <WorkspaceEmptyState message="There is nothing to switch on or off." title="No settings" />
+  ) : (
+    <View style={styles.list}>
+      {groups.map((group) => (
+        <WorkspaceListGroup key={group.eventType} label={EVENT_LABELS[group.eventType]}>
+          {group.rows.map((preference) => {
+            const enabled = shown[cellOf(preference)] ?? preference.enabled;
+            return (
+              <Pressable
+                accessibilityLabel={`${EVENT_LABELS[preference.eventType]}: ${CHANNEL_LABELS[preference.channel]}`}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: enabled }}
+                key={cellOf(preference)}
+                onPress={() => toggle(preference)}
+                style={({ pressed }) => [
+                  styles.row,
+                  { backgroundColor: pressed ? palette.surface2 : "transparent" },
+                ]}
+              >
+                <Text style={[typeStyle("md"), { color: palette.text }]}>
+                  {CHANNEL_LABELS[preference.channel]}
+                </Text>
+                <Text
+                  style={[
+                    typeStyle("sm", { weight: 600 }),
+                    { color: enabled ? palette.accent : palette.text3 },
+                  ]}
+                >
+                  {enabled ? "On" : "Off"}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </WorkspaceListGroup>
+      ))}
+    </View>
   );
 };
 
-export const SkelterPreferencesScreen = withSkeleton(PreferencesScreen);
+const SkelterPreferencesContent = withSkeleton(PreferencesContent);
+
+/** The notification settings screen; the frame and title stay real while the switches load. */
+export const PreferencesScreen = ({
+  isLoading,
+  ...props
+}: PreferencesScreenProps & { readonly isLoading: boolean }) => (
+  <WorkspaceScreen title="Notifications">
+    <WorkspaceLoadingRegion isLoading={isLoading} label="Loading notification settings">
+      <SkelterPreferencesContent hasSkeleton={isLoading} isLoading={isLoading} {...props} />
+    </WorkspaceLoadingRegion>
+  </WorkspaceScreen>
+);
 
 const styles = StyleSheet.create({
-  group: {
-    gap: spacing.s1,
-    paddingVertical: spacing.s2,
-  },
   list: {
-    gap: spacing.s2,
+    gap: spacing.s5,
   },
   row: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: radii.md,
     flexDirection: "row",
     justifyContent: "space-between",
     minHeight: 44,

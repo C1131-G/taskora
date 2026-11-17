@@ -13,6 +13,7 @@ import {
   CalendarView,
   CalendarViewSkeleton,
 } from "@/features/calendar/components/calendar-view";
+import { SearchParamFallback } from "@/features/projects/components/search-param-fallback";
 
 export const metadata: Metadata = { title: "Calendar | Taskora" };
 
@@ -20,7 +21,15 @@ const CalendarPage = ({ searchParams }: PageProps<"/calendar">) => (
   <PageTransition>
     <div className="page">
       <SectionErrorBoundary title="Calendar couldn't load" variant="page">
-        <SuspenseReveal fallback={<CalendarViewSkeleton />}>
+        <SuspenseReveal
+          fallback={
+            <SearchParamFallback
+              cases={{ week: <CalendarViewSkeleton mode="week" /> }}
+              fallback={<CalendarViewSkeleton />}
+              name="calendarMode"
+            />
+          }
+        >
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}
           {searchParams.then((params) => (
             <CalendarView

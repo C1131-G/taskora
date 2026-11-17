@@ -12,9 +12,6 @@
 .workspace-app .shell.collapsed {
   grid-template-columns: 52px minmax(0, 1fr);
 }
-.workspace-app .side-scrim {
-  display: none;
-}
 .workspace-app .side {
   background: var(--bg-side);
   border-right: 1px solid var(--border);
@@ -43,7 +40,7 @@
 .workspace-app .ws-logo {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   display: grid;
   place-items: center;
   font-size: 11px;
@@ -113,13 +110,16 @@
   text-transform: uppercase;
   color: var(--text-3);
 }
-.workspace-app .sgroup-h .ibtn {
-  opacity: 0;
-  transition: opacity var(--dur);
-}
-.workspace-app .sgroup:hover .sgroup-h .ibtn,
-.workspace-app .sgroup-h .ibtn:focus-visible {
-  opacity: 1;
+/* Hover-only reveal needs a real hover; touch keeps the button visible. */
+@media (hover: hover) and (pointer: fine) {
+  .workspace-app .sgroup-h .ibtn {
+    opacity: 0;
+    transition: opacity var(--dur);
+  }
+  .workspace-app .sgroup:hover .sgroup-h .ibtn,
+  .workspace-app .sgroup-h .ibtn:focus-visible {
+    opacity: 1;
+  }
 }
 .workspace-app .sitem {
   display: flex;
@@ -188,7 +188,7 @@
 .workspace-app .sitem .pico {
   width: 18px;
   height: 18px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--c) 16%, transparent);

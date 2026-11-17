@@ -12,6 +12,14 @@
   width: 30px;
   height: 30px;
   opacity: 0.65;
+  /* Adds the reveal fade while keeping the shared Button's own transitions and timing. */
+  transition-property:
+    background-color, color, box-shadow, transform, translate, scale, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-app .project-options-trigger {
+    transition-property: background-color, color, box-shadow, opacity;
+  }
 }
 .workspace-app .pcard:hover .project-options-trigger,
 .workspace-app .project-options-trigger:focus-visible {

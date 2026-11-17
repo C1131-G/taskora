@@ -1,7 +1,8 @@
 import { Effect } from "effect";
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
-import { useStore, createStore } from "@tanstack/react-store";
+import { createStore } from "@tanstack/store";
+import { useSelector } from "@tanstack/react-store";
 
 import { useErrorToast } from "@/components/workspace/error-toast-context";
 import {
@@ -57,7 +58,7 @@ export const useTheme = (): ThemeContextValue => {
  */
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemScheme = useColorScheme();
-  const values = useStore(preferencesStore);
+  const values = useSelector(preferencesStore, (state) => state);
   const showError = useErrorToast();
 
   useEffect(() => {

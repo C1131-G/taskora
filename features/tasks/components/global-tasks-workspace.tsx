@@ -2,12 +2,27 @@
 
 "use client";
 
-import { Kanban, Table } from "@phosphor-icons/react";
+import {
+  DownloadSimple,
+  Kanban,
+  Plus,
+  Table,
+  UploadSimple,
+} from "@phosphor-icons/react";
 import { useMemo } from "react";
 
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
+import { TaskTableSkeleton } from "@/components/workspace/task-table-skeleton";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
-import { GlobalTaskFilterBar } from "@/features/tasks/components/global-task-filter-bar";
-import { GlobalTaskRows } from "@/features/tasks/components/global-task-rows";
+import { GlobalTaskBoardSkeleton } from "@/features/tasks/components/global-task-board";
+import {
+  GlobalTaskFilterBar,
+  GlobalTaskFilterBarSkeleton,
+} from "@/features/tasks/components/global-task-filter-bar";
+import {
+  GlobalTaskRows,
+  GlobalTaskSelectionBarSkeleton,
+} from "@/features/tasks/components/global-task-rows";
 import { QuickTaskForm } from "@/features/tasks/components/quick-task-form";
 import { TaskCsvTools } from "@/features/tasks/components/task-csv-tools";
 import {
@@ -29,7 +44,7 @@ type GlobalTask = Omit<
   readonly projectName: string;
 };
 
-type TaskView = "list" | "board" | "table";
+type TaskView = "list" | "board";
 
 const toTaskView = (value: string): TaskView =>
   value === "board" ? "board" : "list";
@@ -47,6 +62,30 @@ const taskDescription = (
   }
   return `Every task across ${projectCount} projects.`;
 };
+
+const TaskViewSwitch = ({
+  onSelect,
+  view,
+}: {
+  readonly onSelect?: (view: TaskView) => void;
+  readonly view: TaskView;
+}) => (
+  <nav aria-label="Task view" className="row task-view-tabs">
+    {GLOBAL_TASK_VIEWS.map((taskView) => (
+      <WorkspaceButton
+        aria-current={view === taskView ? "page" : undefined}
+        key={taskView}
+        onClick={() => onSelect?.(taskView)}
+        size="sm"
+        variant={view === taskView ? "default" : "secondary"}
+      >
+        {taskView === "list" ? <Table aria-hidden="true" size={15} /> : null}
+        {taskView === "board" ? <Kanban aria-hidden="true" size={15} /> : null}
+        {taskView === "list" ? "Table" : "Board"}
+      </WorkspaceButton>
+    ))}
+  </nav>
+);
 
 export const GlobalTasksWorkspace = ({
   employees,
@@ -77,30 +116,17 @@ export const GlobalTasksWorkspace = ({
   const view = toTaskView(search.view);
 
   const viewSwitch = (
-    <nav aria-label="Task view" className="row task-view-tabs">
-      {GLOBAL_TASK_VIEWS.map((taskView) => (
-        <WorkspaceButton
-          aria-current={view === taskView ? "page" : undefined}
-          key={taskView}
-          onClick={() => update({ view: taskView })}
-          size="sm"
-          variant={view === taskView ? "default" : "secondary"}
-        >
-          {taskView === "list" ? <Table aria-hidden="true" size={15} /> : null}
-          {taskView === "board" ? (
-            <Kanban aria-hidden="true" size={15} />
-          ) : null}
-          {taskView === "list" ? "Table" : "Board"}
-        </WorkspaceButton>
-      ))}
-    </nav>
+    <TaskViewSwitch
+      onSelect={(taskView) => update({ view: taskView })}
+      view={view}
+    />
   );
 
   return (
     <>
       <div className="ph">
         <div>
-          <h1>Tasks</h1>
+          <h1 aria-hidden="true">Tasks</h1>
           <p>
             {taskDescription(search.status, search.overdue, projects.length)}
           </p>
@@ -149,3 +175,50 @@ export const GlobalTasksWorkspace = ({
     </>
   );
 };
+
+// The loading state is the real page frame: the header and its actions, the
+// filter row and the selection bar stay as they are (inert); only the tasks and
+// the subtitle that counts them are bones. The view comes from the URL.
+export const GlobalTasksWorkspaceSkeleton = ({
+  view,
+}: {
+  readonly view: TaskView;
+}) => (
+  <>
+    <div className="ph">
+      <div>
+        <h1 aria-hidden="true">Tasks</h1>
+        <p aria-hidden="true" className="min-h-lh">
+          <SkeletonBone shape="short" />
+        </p>
+      </div>
+      <div aria-hidden="true" className="row" inert>
+        <WorkspaceButton className="btn btn-secondary btn-sm" type="button">
+          <DownloadSimple aria-hidden="true" size={14} />
+          Export CSV
+        </WorkspaceButton>
+        <WorkspaceButton className="btn btn-secondary btn-sm" type="button">
+          <UploadSimple aria-hidden="true" size={14} />
+          Import CSV
+        </WorkspaceButton>
+        <WorkspaceButton className="btn btn-primary btn-sm" type="button">
+          <Plus aria-hidden="true" size={14} />
+          New task
+        </WorkspaceButton>
+      </div>
+    </div>
+    <GlobalTaskFilterBarSkeleton
+      idPrefix="tasks"
+      searchLabel="Search tasks"
+      showGroup
+    />
+    <GlobalTaskSelectionBarSkeleton
+      viewSwitch={<TaskViewSwitch view={view} />}
+    />
+    {view === "board" ? (
+      <GlobalTaskBoardSkeleton />
+    ) : (
+      <TaskTableSkeleton global />
+    )}
+  </>
+);

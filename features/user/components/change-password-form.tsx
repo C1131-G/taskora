@@ -184,7 +184,7 @@ const ChangePasswordForm = () => {
 };
 
 const ChangePasswordFormSkeleton = () => (
-  <AuthFormSkeleton>
+  <AuthFormSkeleton label="Loading password form">
     <AuthFieldSkeleton />
     <AuthFieldSkeleton withHint />
     <AuthFieldSkeleton />

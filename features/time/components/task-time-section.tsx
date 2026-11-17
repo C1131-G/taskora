@@ -5,12 +5,31 @@
 
 import { useState } from "react";
 
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { TimeEntryForm } from "@/features/time/components/time-entry-form";
 import { TimeEntryList } from "@/features/time/components/time-entry-list";
 import { TimerControl } from "@/features/time/components/timer-control";
 import { formatMinutes, localToday } from "@/features/time/time-format";
 import type { RunningTimer, TaskTime } from "@/src/server/time/time-tracking";
+
+// One entry row with the real list markup, so the section keeps its height
+// when the entries arrive (a task with no time logged shows a shorter note).
+const TimeEntriesSkeleton = () => (
+  <output aria-busy="true" aria-label="Loading time entries…" className="block">
+    <span className="sr-only">Loading time entries…</span>
+    <ul aria-hidden="true" className="time-entries">
+      <li className="time-entry">
+        <span className="time-entry-minutes">
+          <SkeletonBone shape="short" />
+        </span>
+        <span className="time-entry-body">
+          <SkeletonBone />
+        </span>
+      </li>
+    </ul>
+  </output>
+);
 
 // Time on one task or bug: a timer, a manual entry form, the running total
 // and every entry. The drawer owns the data and reloads it after a change.
@@ -88,7 +107,7 @@ export const TaskTimeSection = ({
           today={today}
         />
       ) : (
-        <p className="muted">Loading time…</p>
+        <TimeEntriesSkeleton />
       )}
     </section>
   );

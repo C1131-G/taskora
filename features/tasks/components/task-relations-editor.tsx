@@ -7,7 +7,10 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
-import { TaskRelationsSection } from "@/features/tasks/components/task-relations-section";
+import {
+  TaskRelationsSection,
+  TaskRelationsSkeleton,
+} from "@/features/tasks/components/task-relations-section";
 import type {
   TaskLabelOption,
   TaskRelationOption,
@@ -129,9 +132,7 @@ export const TaskRelationsEditor = ({
     });
   };
 
-  let content = (
-    <output className="muted">Loading labels and dependencies…</output>
-  );
+  let content = <TaskRelationsSkeleton editable={editable} />;
   if (loaded) {
     content = (
       <TaskRelationsSection

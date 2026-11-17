@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
+import {
+  SKELETON_KEYS,
+  SkeletonBone,
+} from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import {
   formatMoney,
   levelLabel,
@@ -11,6 +15,15 @@ import {
 import { listProjectBudgets } from "@/features/projects/projects-queries";
 import { formatMinutes } from "@/features/time/time-format";
 import { readOrThrow } from "@/lib/read-result";
+
+const COLUMNS = [
+  "Project",
+  "Type",
+  "Spent",
+  "Remaining",
+  "Used",
+  "Status",
+] as const;
 
 // Every project with an hours budget: spent, remaining and percent. Admins only.
 const BudgetList = async () => {
@@ -37,12 +50,11 @@ const BudgetList = async () => {
       <table className="tbl time-table">
         <thead>
           <tr>
-            <th scope="col">Project</th>
-            <th scope="col">Type</th>
-            <th scope="col">Spent</th>
-            <th scope="col">Remaining</th>
-            <th scope="col">Used</th>
-            <th scope="col">Status</th>
+            {COLUMNS.map((column) => (
+              <th key={column} scope="col">
+                {column}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -84,8 +96,37 @@ const BudgetList = async () => {
   );
 };
 
+// Bone widths follow typical cell text, so the auto-sized columns land close
+// to the loaded ones.
+const CELL_WIDTHS = ["14em", "9em", "10em", "4em", "3ch", "6em"] as const;
+
 const BudgetListSkeleton = () => (
-  <PanelSkeleton label="Loading budgets…" rows={4} variant="list" />
+  <SkeletonRegion label="Loading budgets…">
+    <div className="tbl-wrap">
+      <table className="tbl time-table">
+        <thead>
+          <tr>
+            {COLUMNS.map((column) => (
+              <th key={column} scope="col">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {SKELETON_KEYS.slice(0, 3).map((key) => (
+            <tr key={key}>
+              {CELL_WIDTHS.map((width, index) => (
+                <td key={COLUMNS[index]}>
+                  <SkeletonBone shape="line" width={width} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </SkeletonRegion>
 );
 
 export { BudgetList, BudgetListSkeleton };

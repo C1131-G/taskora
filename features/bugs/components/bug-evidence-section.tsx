@@ -9,12 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  WorkspaceSelect,
+  WorkspaceSelectItem,
+} from "@/components/workspace/workspace-select";
 import { addBugEvidenceAction } from "@/features/bugs/bugs-actions";
 import {
   BugEvidenceHistory,
@@ -169,16 +166,15 @@ export const BugEvidenceSection = ({
       >
         <div className="bug-form-field">
           <Label htmlFor="bug-evidence-kind">Evidence stage</Label>
-          <Select onValueChange={setEvidenceKind} value={evidenceKind}>
-            <SelectTrigger id="bug-evidence-kind">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="before">Before</SelectItem>
-              <SelectItem value="after">After</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <WorkspaceSelect
+            onValueChange={setEvidenceKind}
+            value={evidenceKind}
+            id="bug-evidence-kind"
+          >
+            <WorkspaceSelectItem value="before">Before</WorkspaceSelectItem>
+            <WorkspaceSelectItem value="after">After</WorkspaceSelectItem>
+            <WorkspaceSelectItem value="other">Other</WorkspaceSelectItem>
+          </WorkspaceSelect>
         </div>
         <div className="bug-form-field">
           <Label htmlFor="bug-evidence-caption">Caption</Label>

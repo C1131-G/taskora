@@ -5,11 +5,11 @@ import type { Metadata } from "next";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import { PanelSkeleton } from "@/components/workspace/panel-skeleton";
 import {
   WorkspaceOverviewActions,
   WorkspaceOverviewActionsSkeleton,
   WorkspaceOverview,
+  WorkspaceOverviewSkeleton,
 } from "@/features/dashboard/components/workspace-overview";
 
 export const metadata: Metadata = { title: "Overview | Taskora" };
@@ -29,14 +29,7 @@ const OverviewPage = () => (
         </SectionErrorBoundary>
       </div>
       <SectionErrorBoundary title="Workspace overview couldn't load">
-        <SuspenseReveal
-          fallback={
-            <PanelSkeleton
-              label="Loading workspace overview…"
-              variant="overview"
-            />
-          }
-        >
+        <SuspenseReveal fallback={<WorkspaceOverviewSkeleton />}>
           <WorkspaceOverview />
         </SuspenseReveal>
       </SectionErrorBoundary>

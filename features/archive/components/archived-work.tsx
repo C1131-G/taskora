@@ -1,11 +1,11 @@
 /* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   SKELETON_KEYS,
   SkeletonBone,
 } from "@/components/workspace/skeleton-shapes";
-import { SkelterSurface } from "@/components/workspace/skelter-surface";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { ArchiveWorkspace } from "@/features/archive/components/archive-workspace";
 import type {
   ArchivedProject,
@@ -68,29 +68,36 @@ const ArchivedWork = async () => {
 
 const ARCHIVE_ROWS = SKELETON_KEYS.slice(0, 5);
 
-// Mirrors ArchiveWorkspace: the tab labels are static; the rows are data.
+// Mirrors ArchiveWorkspace: the tab labels are static; the counts and rows are
+// data. The admin-only Restore button never changes a row's height (the two
+// text lines decide it), so no space is held for it.
 const ArchivedWorkSkeleton = () => (
-  <section aria-label="Archived work" className="archive-workspace">
-    <Tabs value="tasks">
-      <TabsList aria-label="Choose archived work type" inert>
-        <TabsTrigger value="tasks">Tasks</TabsTrigger>
-        <TabsTrigger value="projects">Projects</TabsTrigger>
-      </TabsList>
-    </Tabs>
-    <SkelterSurface label="Loading archived work…">
-      <div className="archive-list">
-        {ARCHIVE_ROWS.map((key) => (
-          <article className="archive-row" key={key}>
-            <div className="archive-row-main">
-              <SkeletonBone />
-              <SkeletonBone shape="short" />
-            </div>
-            <SkeletonBone shape="control" />
-          </article>
-        ))}
-      </div>
-    </SkelterSurface>
-  </section>
+  <SkeletonRegion label="Loading archived work…">
+    <section className="archive-workspace">
+      <Tabs value="tasks">
+        <TabsList aria-label="Choose archived work type">
+          <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
+        </TabsList>
+        <TabsContent value="tasks">
+          <div className="archive-list">
+            {ARCHIVE_ROWS.map((key) => (
+              <article className="archive-row" key={key}>
+                <div className="archive-row-main">
+                  <strong>
+                    <SkeletonBone shape="line" width="24ch" />
+                  </strong>
+                  <span>
+                    <SkeletonBone shape="line" width="40ch" />
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </section>
+  </SkeletonRegion>
 );
 
 export { ArchivedWork, ArchivedWorkSkeleton };

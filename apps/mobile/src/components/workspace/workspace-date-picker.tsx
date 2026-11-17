@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { CalendarBlank } from "phosphor-react-native";
 
 import { WorkspaceSheet } from "@/components/workspace/workspace-sheet";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -67,7 +68,7 @@ export const WorkspaceDatePicker = ({
         >
           {value === null ? placeholder : formatValue(value, timeZone)}
         </Text>
-        <Text style={{ color: palette.text3 }}>🗓</Text>
+        <CalendarBlank color={palette.text3} size={18} />
       </Pressable>
       <WorkspaceSheet onClose={() => setOpen(false)} title={label} visible={open}>
         <DateTimePicker

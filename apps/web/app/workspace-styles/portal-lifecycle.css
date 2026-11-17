@@ -110,12 +110,6 @@
   overflow-wrap: anywhere;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .portal-app .portal-bug-card {
-    transition: none;
-  }
-}
-
 /* client lifecycle */
 .portal-app .badge[data-attention] {
   font-weight: 700;

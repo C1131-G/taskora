@@ -193,11 +193,18 @@
   left: 2px;
   position: absolute;
   top: 2px;
-  transition: transform var(--dur);
+  transition: transform 160ms var(--ease);
   width: 18px;
 }
 [data-task-drawer].workspace-app [data-slot="switch"][data-state="checked"] [data-slot="switch-thumb"] {
   transform: translateX(20px);
+}
+/* this rule outranks the component's motion-reduce utility, so it gates itself:
+   the thumb jumps, the track color change still marks the new state */
+@media (prefers-reduced-motion: reduce) {
+  [data-task-drawer].workspace-app [data-slot="switch"] [data-slot="switch-thumb"] {
+    transition: none;
+  }
 }
 [data-task-drawer].workspace-app [data-slot="switch"]:focus-visible {
   outline: 2px solid var(--accent);

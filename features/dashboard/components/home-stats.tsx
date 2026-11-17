@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 
+import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
+import { SkeletonRegion } from "@/components/workspace/skelter-surface";
+
 const HomeStats = ({
   activeProjects,
   atRisk,
@@ -46,4 +49,46 @@ const HomeStats = ({
   </div>
 );
 
-export { HomeStats };
+// Mirrors HomeStats: the tile labels and chips are static, the numbers are data.
+const HomeStatsSkeleton = () => (
+  <SkeletonRegion label="Loading workspace totals…">
+    <div className="stats" style={{ marginBottom: 16 }}>
+      <div className="stat">
+        <span className="k">Active projects</span>
+        <span className="v">
+          <SkeletonBone shape="line" width="1.5ch" />
+        </span>
+        <span className="d">
+          <SkeletonBone shape="line" width="5em" />
+        </span>
+      </div>
+      <div className="stat">
+        <span className="k">Open tasks</span>
+        <span className="v">
+          <SkeletonBone shape="line" width="2ch" />
+        </span>
+        <span className="d">
+          <SkeletonBone shape="line" width="8em" />
+        </span>
+      </div>
+      <div className="stat stat-done">
+        <span className="k">Completed</span>
+        <span className="v">
+          <SkeletonBone shape="line" width="1.5ch" />
+        </span>
+        <span className="stat-chip">this week</span>
+      </div>
+      <div className="stat stat-overdue">
+        <span className="k">Overdue</span>
+        <span className="v">
+          <SkeletonBone shape="line" width="1.5ch" />
+        </span>
+        <span className="stat-chip">
+          <SkeletonBone shape="line" width="7em" />
+        </span>
+      </div>
+    </div>
+  </SkeletonRegion>
+);
+
+export { HomeStats, HomeStatsSkeleton };

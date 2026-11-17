@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme/theme-provider";
@@ -12,7 +12,7 @@ export interface WorkspaceScreenProps {
   readonly toolbar?: ReactNode;
 }
 
-/** The page frame: safe area, optional title header and content padding. */
+/** The page frame: safe area, title header and a scrolling, padded content column. */
 export const WorkspaceScreen = ({ children, title, toolbar }: WorkspaceScreenProps) => {
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
@@ -22,31 +22,43 @@ export const WorkspaceScreen = ({ children, title, toolbar }: WorkspaceScreenPro
       {title === undefined ? null : (
         <Text
           accessibilityRole="header"
-          style={[typeStyle("xl", { weight: 600 }), styles.title, { color: palette.text }]}
+          numberOfLines={2}
+          style={[typeStyle("2xl", { leading: "tight", weight: 600 }), styles.title, { color: palette.text }]}
         >
           {title}
         </Text>
       )}
       {toolbar === undefined ? null : <View style={styles.toolbar}>{toolbar}</View>}
-      <View style={styles.content}>{children}</View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        style={styles.scroll}
+      >
+        {children}
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   content: {
-    flex: 1,
+    gap: spacing.s4,
+    paddingBottom: spacing.s8,
     paddingHorizontal: spacing.s4,
+    paddingTop: spacing.s3,
   },
   host: {
     flex: 1,
   },
+  scroll: {
+    flex: 1,
+  },
   title: {
     paddingHorizontal: spacing.s4,
-    paddingTop: spacing.s3,
+    paddingTop: spacing.s4,
   },
   toolbar: {
     paddingHorizontal: spacing.s4,
-    paddingTop: spacing.s2,
+    paddingTop: spacing.s3,
   },
 });
