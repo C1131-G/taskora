@@ -97,13 +97,17 @@ export const TaskRelationsEditor = ({
   }, [projectId, taskId]);
 
   // Labels and dependencies load as soon as the section appears, so there is no
-  // extra button to press before the choices show.
-  useEffect(() => {
-    load();
-    return () => {
-      loadSequence.current += 1;
-    };
-  }, [load]);
+  // extra button to press before the choices show. The web app has no query
+  // cache yet; bumping the sequence on cleanup drops a stale response.
+  useEffect(
+    function loadRelationChoices() {
+      load();
+      return function ignoreStaleRelationChoices() {
+        loadSequence.current += 1;
+      };
+    },
+    [load]
+  );
 
   const save = (formData: FormData) => {
     if (pending || !editable) {

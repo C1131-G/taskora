@@ -48,10 +48,14 @@ export const useTaskComments = ({
   // Another person's comment arrives as a server event; this list is client
   // state, so it reads again when the page does.
   useEffect(
-    () =>
-      subscribeToRealtimeRefresh(() => {
+    function refreshCommentsOnRealtimeSignal() {
+      const unsubscribe = subscribeToRealtimeRefresh(() => {
         void refresh();
-      }),
+      });
+      return function stopRefreshingComments() {
+        unsubscribe();
+      };
+    },
     [refresh]
   );
 

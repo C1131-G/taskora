@@ -2,7 +2,7 @@
 
 import { CaretDown } from "@phosphor-icons/react";
 import { cn } from "cn";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   Command,
@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useFormReset } from "@/components/workspace/use-form-reset";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 
 interface WorkspaceComboboxProps {
@@ -61,15 +62,7 @@ const WorkspaceCombobox = ({
     (option) => option.value === selectedValue
   );
 
-  useEffect(() => {
-    const form = hiddenInput.current?.form;
-    if (!form) {
-      return;
-    }
-    const reset = () => setLocalValue(defaultValue ?? "");
-    form.addEventListener("reset", reset);
-    return () => form.removeEventListener("reset", reset);
-  }, [defaultValue]);
+  useFormReset(hiddenInput, () => setLocalValue(defaultValue ?? ""));
 
   return (
     <Popover onOpenChange={setOpen} open={open}>

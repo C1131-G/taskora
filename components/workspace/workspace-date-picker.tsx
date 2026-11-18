@@ -2,7 +2,7 @@
 
 import { CalendarBlank } from "@phosphor-icons/react";
 import { format, parseISO } from "date-fns";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useFormReset } from "@/components/workspace/use-form-reset";
 import { cn } from "@/lib/utils";
 
 const toDate = (value: string | undefined) =>
@@ -59,15 +60,7 @@ const WorkspaceDatePicker = ({
   const currentValue = value === undefined ? selectedValue : (value ?? "");
   const selectedDate = toDate(currentValue);
 
-  useEffect(() => {
-    const form = formInput.current?.form;
-    if (!form) {
-      return;
-    }
-    const reset = () => setSelectedValue(initialValue);
-    form.addEventListener("reset", reset);
-    return () => form.removeEventListener("reset", reset);
-  }, [initialValue]);
+  useFormReset(formInput, () => setSelectedValue(initialValue));
 
   const updateValue = (date: Date | undefined) => {
     const nextValue = toDateValue(date);

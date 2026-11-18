@@ -61,15 +61,20 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const values = useSelector(preferencesStore, (state) => state);
   const showError = useErrorToast();
 
-  useEffect(() => {
-    const load = Effect.map(
-      Effect.flatMap(Effect.service(ThemePreferences), (preferences) => preferences.load),
-      (loaded) => preferencesStore.setState(() => loaded),
-    );
-    void appRuntime().runPromiseExit(
-      Effect.catchEager(load, () => Effect.sync(() => showError("Could not load appearance settings."))),
-    );
-  }, [showError]);
+  // The preferences live in device storage and land in an external store, so
+  // there is no render data to cache; the read only fills the store once.
+  useEffect(
+    function loadSavedPreferences() {
+      const load = Effect.map(
+        Effect.flatMap(Effect.service(ThemePreferences), (preferences) => preferences.load),
+        (loaded) => preferencesStore.setState(() => loaded),
+      );
+      void appRuntime().runPromiseExit(
+        Effect.catchEager(load, () => Effect.sync(() => showError("Could not load appearance settings."))),
+      );
+    },
+    [showError],
+  );
 
   const contextValue = useMemo<ThemeContextValue>(() => {
     const save = (patch: Partial<ThemeValues>): void => {

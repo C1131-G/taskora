@@ -82,8 +82,17 @@ export const TaskDetailsForm = ({
   const dirty = isDraftDirty(draft, task);
 
   // Dirty state is reported from the change handlers, not from an effect, so the
-  // panel never re-renders just to mirror the form.
-  useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
+  // panel never re-renders just to mirror the form. The form unmounts from
+  // several parent paths (tab switch, reload, drawer close), so the unmount
+  // itself clears the flag instead of each of those handlers.
+  useEffect(
+    function clearDirtyOnUnmount() {
+      return function reportClean() {
+        onDirtyChange(false);
+      };
+    },
+    [onDirtyChange]
+  );
 
   const patch = (values: Partial<TaskDetailsDraft>) => {
     const next = { ...draft, ...values };

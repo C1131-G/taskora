@@ -2,7 +2,13 @@
 
 import { WarningCircle } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useEffect, useId, useRef, useSyncExternalStore, useTransition } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { ErrorToast } from "@/components/workspace/error-toast";
@@ -33,23 +39,23 @@ const subscribe = (listener: () => void) => {
 export const ErrorState = ({ homeHref, retry, title, variant = "section" }: ErrorStateProps) => {
   const [pending, startTransition] = useTransition();
   const id = useId();
-  const retryRef = useRef(retry);
+  const retryLatest = useEffectEvent(() => retry());
   const primaryId = useSyncExternalStore(
     subscribe,
     () => [...failed].find(([, state]) => state.variant === "page")?.[0] ?? null,
     () => null
   );
-  useEffect(() => {
-    retryRef.current = retry;
-  }, [retry]);
-  useEffect(() => {
-    failed.set(id, { retry: () => retryRef.current(), variant });
-    notify();
-    return () => {
-      failed.delete(id);
+  useEffect(
+    function registerFailedBoundary() {
+      failed.set(id, { retry: () => retryLatest(), variant });
       notify();
-    };
-  }, [id]);
+      return function unregisterFailedBoundary() {
+        failed.delete(id);
+        notify();
+      };
+    },
+    [id, variant]
+  );
   if (variant === "page" && primaryId !== null && primaryId !== id) {
     return null;
   }

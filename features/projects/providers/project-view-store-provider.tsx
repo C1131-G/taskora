@@ -51,30 +51,38 @@ export const ProjectViewStoreProvider = ({
   );
 
   // URL changed from outside (navigation, back/forward, saved view link).
-  useEffect(() => {
-    const incoming = readProjectViewSearchRaw(
-      new URLSearchParams(searchParams.toString())
-    );
-    if (!isSameProjectViewSearch(incoming, projectViewStore.state.search)) {
-      projectViewStore.actions.replaceSearch(incoming);
-    }
-  }, [projectViewStore, searchParams]);
+  useEffect(
+    function applyUrlToStore() {
+      const incoming = readProjectViewSearchRaw(
+        new URLSearchParams(searchParams.toString())
+      );
+      if (!isSameProjectViewSearch(incoming, projectViewStore.state.search)) {
+        projectViewStore.actions.replaceSearch(incoming);
+      }
+    },
+    [projectViewStore, searchParams]
+  );
 
   // Store changed: mirror it into the URL without a server round trip.
-  useEffect(() => {
-    const subscription = projectViewStore.subscribe(({ search }) => {
-      const current = new URLSearchParams(window.location.search);
-      const next = writeProjectViewSearch(current, search).toString();
-      if (next !== current.toString()) {
-        window.history.replaceState(
-          window.history.state,
-          "",
-          `${window.location.pathname}${next ? `?${next}` : ""}`
-        );
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [projectViewStore]);
+  useEffect(
+    function mirrorStoreToUrl() {
+      const subscription = projectViewStore.subscribe(({ search }) => {
+        const current = new URLSearchParams(window.location.search);
+        const next = writeProjectViewSearch(current, search).toString();
+        if (next !== current.toString()) {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${window.location.pathname}${next ? `?${next}` : ""}`
+          );
+        }
+      });
+      return function stopMirroringStoreToUrl() {
+        subscription.unsubscribe();
+      };
+    },
+    [projectViewStore]
+  );
 
   const columnWidths = useSelector(
     projectViewStore,

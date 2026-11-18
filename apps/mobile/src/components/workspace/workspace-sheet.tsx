@@ -42,12 +42,12 @@ const useSheetProgress = (visible: boolean, reducedMotion: boolean) => {
   const [travel, setTravel] = useState<number | undefined>(undefined);
   const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
 
-  useEffect(() => {
-    if (visible && !rendered) {
-      // Mount first; the animation starts once the panel exists.
-      setRendered(true);
-      return;
-    }
+  // Mount first, during render; the animation starts once the panel exists.
+  if (visible && !rendered) {
+    setRendered(true);
+  }
+
+  useEffect(function animateSheetVisibility() {
     if (!rendered || (visible && travel === undefined && !reducedMotion)) {
       return;
     }
@@ -64,7 +64,9 @@ const useSheetProgress = (visible: boolean, reducedMotion: boolean) => {
         setTravel(undefined);
       }
     });
-    return () => animation.stop();
+    return function stopSheetAnimation() {
+      animation.stop();
+    };
   }, [visible, rendered, travel, reducedMotion, progress]);
 
   const onPanelLayout = (event: LayoutChangeEvent): void => {

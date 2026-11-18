@@ -1,5 +1,5 @@
 import { Cause, Effect, Exit, Option } from "effect";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 
@@ -38,6 +38,7 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
       const failure = failureOf(result);
       if (failure !== undefined) showError(failureMessage(failure));
       else if (Exit.isFailure(result)) showError("Could not change your password. Please try again.");
+      else onDone();
     },
     onError: () => showError("Could not change your password. Please try again."),
   });
@@ -60,13 +61,6 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
     }
     change.mutate({ currentPassword, newPassword });
   };
-
-  const succeeded = change.data !== undefined && Exit.isSuccess(change.data);
-  useEffect(() => {
-    if (succeeded) {
-      onDone();
-    }
-  }, [succeeded, onDone]);
 
   return (
     <WorkspaceScreen title="Change password">
