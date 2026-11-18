@@ -55,7 +55,7 @@ const subscribeAndRegister = async (publicKey: string): Promise<boolean> => {
   }
 };
 
-// One request at a time; once enabled the button goes away.
+// One request at a time; enabling again re-registers the same endpoint.
 type EnableStatus = "idle" | "pending" | "enabled";
 
 const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
@@ -95,12 +95,13 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
   }, [publicKey]);
 
   const enableNotifications = async () => {
-    if (!publicKey || status !== "idle") {
+    if (!publicKey || status === "pending") {
       return;
     }
+    const wasEnabled = status === "enabled";
     setStatus("pending");
     const enabled = await subscribeAndRegister(publicKey);
-    setStatus(enabled ? "enabled" : "idle");
+    setStatus(enabled || wasEnabled ? "enabled" : "idle");
   };
 
   if (!available) {
@@ -112,18 +113,16 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
       <output aria-live="polite" className="text-sm">
         {status === "enabled" ? "Notifications are enabled." : ""}
       </output>
-      {status === "enabled" ? null : (
-        <Button
-          aria-busy={status === "pending"}
-          variant="outline"
-          className="rounded-md border bg-background px-4 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2"
-          disabled={status === "pending"}
-          onClick={enableNotifications}
-          type="button"
-        >
-          Enable notifications
-        </Button>
-      )}
+      <Button
+        aria-busy={status === "pending"}
+        variant="outline"
+        className="rounded-md border bg-background px-4 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+        disabled={status === "pending"}
+        onClick={enableNotifications}
+        type="button"
+      >
+        Enable notifications
+      </Button>
     </aside>
   );
 };
