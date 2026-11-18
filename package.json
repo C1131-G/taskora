@@ -17,7 +17,7 @@
     "format": "ultracite fix",
     "test": "bun run scripts/test-backend.ts",
     "test:backend": "bun run scripts/test-backend.ts",
-    "test:ui": "bun test tests/ui",
+    "test:ui": "TZ=Asia/Kuala_Lumpur bun test tests/ui",
     "bootstrap:admin": "bun run scripts/bootstrap-admin.ts",
     "worker": "bun --conditions=react-server scripts/run-worker.ts",
     "check": "ultracite check",
