@@ -99,10 +99,15 @@ export const slaClockText = (clock: SlaClock): string => {
         ? `Breached (was due ${due})`
         : `Breached, ${formatBusinessMinutes(left)} overdue (was due ${due})`;
     }
-    default: {
+    case "ok":
+    case "warning": {
       return left === null
         ? `Due ${due}`
         : `Due ${due} (${formatBusinessMinutes(left)} left${clock.state === "warning" ? ", running low" : ""})`;
+    }
+    default: {
+      const _exhaustive: never = clock.state;
+      return _exhaustive;
     }
   }
 };

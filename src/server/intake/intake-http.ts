@@ -60,7 +60,10 @@ export const appErrorResponse = (error: AppError): Response => {
         { "retry-after": String(RATE_LIMIT_RETRY_SECONDS) }
       );
     }
-    default: {
+    case "UNAUTHENTICATED":
+    case "FORBIDDEN":
+    case "CONFLICT":
+    case "UNAVAILABLE": {
       return failureResponse(
         503,
         "UNAVAILABLE",
@@ -68,6 +71,10 @@ export const appErrorResponse = (error: AppError): Response => {
         {},
         { "retry-after": "60" }
       );
+    }
+    default: {
+      const _exhaustive: never = error.code;
+      return _exhaustive;
     }
   }
 };

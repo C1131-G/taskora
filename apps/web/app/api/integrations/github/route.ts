@@ -30,8 +30,15 @@ const respond = (outcome: GithubIngestOutcome): Response => {
     case "bad_request": {
       return failureResponse(400, "BAD_REQUEST", "The delivery is not valid.");
     }
-    default: {
+    case "pong":
+    case "ignored":
+    case "duplicate":
+    case "processed": {
       return json(200, outcome);
+    }
+    default: {
+      const _exhaustive: never = outcome;
+      return _exhaustive;
     }
   }
 };
