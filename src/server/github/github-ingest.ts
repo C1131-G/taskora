@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { Context, Effect, Layer } from "effect";
 
+import { isRecord } from "@/src/lib/type-guards";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
@@ -15,7 +16,6 @@ import {
 } from "./github-payload";
 import { syncPull } from "./github-pull-sync";
 import { verifyGithubSignature } from "./github-signature";
-import { isRecord } from "@/src/lib/type-guards";
 
 export interface GithubDeliveryRequest {
   readonly rawBody: Uint8Array;

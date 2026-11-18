@@ -1,11 +1,11 @@
 import { clientStatusLabel } from "@/features/portal/client-status";
+import { isOneOf, isRecord } from "@/src/lib/type-guards";
 
 import { CLIENT_REOPEN_LIMIT } from "../work/bug-workflow-client-support";
 import { decodeBugWorkflowStatus } from "../work/bug-workflow-internal";
 import type { Transaction } from "../work/work-internal";
 import type { loadCompanyBug } from "./portal-bug-access";
 import type { PortalActor, PortalBugDetail } from "./portal-contracts";
-import { isOneOf, isRecord } from "@/src/lib/type-guards";
 
 const PREVIEW_TYPES = new Set([
   "application/pdf",
@@ -144,8 +144,7 @@ export const buildLifecycle = async (
       bug.satisfaction === null,
     canReportAgain: status === "closed",
     closedReason:
-      status === "closed" &&
-      isOneOf(CLOSED_REASONS, bug.resolution)
+      status === "closed" && isOneOf(CLOSED_REASONS, bug.resolution)
         ? bug.resolution
         : null,
     duplicateOf,

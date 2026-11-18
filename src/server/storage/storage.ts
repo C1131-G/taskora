@@ -12,9 +12,10 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Context, Effect, Layer } from "effect";
 
+import { isRecord } from "@/src/lib/type-guards";
+
 import { AppError } from "../core/action-result";
 import { FILE_SIGNATURE_BYTES, matchesFileSignature } from "./file-signature";
-import { isRecord } from "@/src/lib/type-guards";
 
 export interface StorageApi {
   readonly listObjects?: (

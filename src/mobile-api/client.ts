@@ -149,7 +149,7 @@ export const buildClient = <const Routes extends readonly RouteDefinition[]>(
       method: route.method.toUpperCase(),
     });
     const answer = Schema.decodeUnknownOption(ResponseEnvelopeSchema)(
-      await response.json().catch(() => undefined)
+      await response.json().catch(() => null)
     );
 
     if (!response.ok || answer._tag === "None" || !answer.value.ok) {

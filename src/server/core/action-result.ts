@@ -3,8 +3,9 @@ import { randomUUID } from "node:crypto";
 import { Cause, Data, Effect, Exit } from "effect";
 import { io } from "next/cache";
 
-import { logger } from "./logger";
 import { isOneOf, isRecord } from "@/src/lib/type-guards";
+
+import { logger } from "./logger";
 
 export type AppErrorCode =
   | "UNAUTHENTICATED"

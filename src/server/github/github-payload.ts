@@ -1,8 +1,9 @@
 import { Schema } from "effect";
 
+import { isRecord } from "@/src/lib/type-guards";
+
 import type { PullState } from "./github-contracts";
 import { isRepoFullName } from "./github-contracts";
-import { isRecord } from "@/src/lib/type-guards";
 
 // Only the fields a link needs. Everything else in a GitHub payload is
 // ignored, and nothing here is trusted until the signature has been checked.
