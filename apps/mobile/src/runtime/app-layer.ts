@@ -2,17 +2,20 @@ import { Layer } from "effect";
 
 import { makeApiLayer, resolveApiMode } from "@/api/api-mode";
 
-import { AppLifecycle, AppLifecycleLive } from "@/services/app-lifecycle";
-import { Connectivity, ConnectivityLive } from "@/services/connectivity";
-import { makeIdempotencyKeys, IdempotencyKeys } from "@/services/idempotency-keys";
-import { Haptics, HapticsLive } from "@/services/haptics";
-import { MobileApi, TokenSource } from "@/services/mobile-api";
+import type { AppLifecycle } from "@/services/app-lifecycle";
+import { AppLifecycleLive } from "@/services/app-lifecycle";
+import type { Connectivity } from "@/services/connectivity";
+import { ConnectivityLive } from "@/services/connectivity";
+import type { IdempotencyKeys } from "@/services/idempotency-keys";
+import { makeIdempotencyKeys } from "@/services/idempotency-keys";
+import type { Haptics } from "@/services/haptics";
+import { HapticsLive } from "@/services/haptics";
+import type { MobileApi, TokenSource } from "@/services/mobile-api";
 import { SecureStorageLive } from "@/services/secure-storage";
-import { makeSessionLayer, Session, TokenSourceFromSession } from "@/services/session";
-import {
-  ThemePreferences,
-  ThemePreferencesServiceLive,
-} from "@/services/theme-preferences";
+import type { Session } from "@/services/session";
+import { makeSessionLayer, TokenSourceFromSession } from "@/services/session";
+import type { ThemePreferences } from "@/services/theme-preferences";
+import { ThemePreferencesServiceLive } from "@/services/theme-preferences";
 import { KeyValueStoreLive } from "@/services/key-value-store";
 
 /** The app origin; Android emulator 10.0.2.2 reaches the host machine. */

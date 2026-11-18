@@ -1,4 +1,6 @@
-import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
+import type { Stream } from "effect";
+import { Context, Effect, Layer, SubscriptionRef } from "effect";
+import type { AppStateStatus } from "react-native";
 
 /** The app's foreground/background state. */
 export type LifecycleState = "active" | "background";
@@ -39,7 +41,7 @@ export const AppLifecycleLive: Layer.Layer<AppLifecycle> = Layer.effect(
     const ref = yield* makeRef();
     const unsubscribe = appState.AppState.addEventListener(
       "change",
-      (state: import("react-native").AppStateStatus) => {
+      (state: AppStateStatus) => {
         Effect.runFork(SubscriptionRef.set(ref, state === "active" ? "active" : "background"));
       },
     );

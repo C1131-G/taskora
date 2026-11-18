@@ -1,4 +1,5 @@
-import { Effect, Layer, Schema } from "effect";
+import type { Layer } from "effect";
+import { Effect, Schema } from "effect";
 
 import { clientRoutes } from "@/api/routes-for-client";
 import type { RouteDefinition } from "@api/route-definition";

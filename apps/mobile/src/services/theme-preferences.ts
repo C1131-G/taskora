@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Schema } from "effect";
 
-import { DecodeFailure, StorageFailure } from "@/errors";
+import type { DecodeFailure, StorageFailure } from "@/errors";
 import { KeyValueStore, KeyValueStoreLive } from "@/services/key-value-store";
 import type { StoreOps } from "@/services/storage-adapter";
 import type { AccentName } from "@/theme/tokens.generated";
