@@ -9,19 +9,12 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
 
 import type {
   TimelineEmployee,
   TimelineScale,
 } from "../types/workspace-timeline-types";
-
-const STATUS_LABELS = {
-  backlog: "Backlog",
-  done: "Done",
-  progress: "In Progress",
-  review: "Review",
-  todo: "To Do",
-} as const;
 
 const PRIORITY_LABELS = {
   high: "High",
@@ -92,7 +85,7 @@ export const WorkspaceTimelineControls = ({
           value={status}
         >
           <WorkspaceSelectItem value="all">All statuses</WorkspaceSelectItem>
-          {Object.entries(STATUS_LABELS).map(([value, label]) => (
+          {TASK_STATUSES.map(({ id: value, label }) => (
             <WorkspaceSelectItem key={value} value={value}>
               {label}
             </WorkspaceSelectItem>

@@ -14,8 +14,8 @@ export class TokenSource extends Context.Service<
   {
     /** The bearer token for the signed-in session, or null when signed out. */
     readonly currentToken: Effect.Effect<string | null>;
-    /** Reacts to a 401 by clearing the session. */
-    readonly onUnauthenticated: Effect.Effect<void, AppFailure>;
+    /** Reacts to a 401 for `token` by clearing the session it belonged to. */
+    readonly onUnauthenticated: (token: string) => Effect.Effect<void, AppFailure>;
   }
 >()("taskora/mobile/TokenSource") {}
 
@@ -56,7 +56,7 @@ export const makeMobileApi = (deps: MobileApiDeps) =>
             try: () => run(client),
           }).pipe(
             Effect.tapError((failure) =>
-              failure._tag === "Unauthenticated" ? tokens.onUnauthenticated : Effect.void,
+              failure._tag === "Unauthenticated" ? tokens.onUnauthenticated(token) : Effect.void,
             ),
           );
         }),

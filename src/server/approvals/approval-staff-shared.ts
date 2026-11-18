@@ -5,6 +5,7 @@ import { db } from "@/src/prisma/db";
 import { AppError } from "../core/action-result";
 import { UUIDSchema } from "../core/input-schemas";
 import { toApprovalStatus } from "./approval-access";
+import { canCancel } from "./approval-rules";
 
 export const isUuid = Schema.is(UUIDSchema);
 
@@ -43,11 +44,12 @@ interface RequestRow {
   readonly version: number;
 }
 
-// The staff view of requests: who asked, who decided, the company and the
-// attached file names, newest version first. Also returns the loaded
-// companies (those of the requests plus any asked for) so callers need not
-// read them twice.
+// The staff view of requests: who asked, who decided, the company, the
+// attached file names and whether this reader may withdraw it, newest version
+// first. Also returns the loaded companies (those of the requests plus any
+// asked for) so callers need not read them twice.
 export const describeRequests = async (
+  reader: { readonly id: string; readonly role: string },
   rows: readonly RequestRow[],
   extraCompanyIds: readonly string[] = []
 ) => {
@@ -85,6 +87,7 @@ export const describeRequests = async (
   const requests = rows
     .toSorted((first, second) => second.version - first.version)
     .map((row) => ({
+      canCancel: canCancel(reader, row),
       cancelledAt: row.cancelledAt?.toISOString() ?? null,
       companyId: row.companyId,
       companyName: companyNames.get(row.companyId) ?? "",

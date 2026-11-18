@@ -7,6 +7,7 @@ export interface SignInTarget {
   readonly id: string;
   readonly lockedUntil: Date | null;
   readonly failedLoginCount: number;
+  readonly deactivatedAt: Date | null;
 }
 
 export const normalizeEmail = (value: unknown): string | null =>
@@ -16,7 +17,7 @@ export const findSignInTarget = async (
   email: string
 ): Promise<SignInTarget | null> => {
   const result = await authPool.query<SignInTarget>(
-    'SELECT id, "lockedUntil", "failedLoginCount" FROM "user" WHERE "emailNormalized" = $1',
+    'SELECT id, "lockedUntil", "failedLoginCount", "deactivatedAt" FROM "user" WHERE "emailNormalized" = $1',
     [email]
   );
   return result.rows[0] ?? null;
@@ -26,10 +27,24 @@ export const findSignInTargetById = async (
   userId: string
 ): Promise<SignInTarget | null> => {
   const result = await authPool.query<SignInTarget>(
-    'SELECT id, "lockedUntil", "failedLoginCount" FROM "user" WHERE id = $1',
+    'SELECT id, "lockedUntil", "failedLoginCount", "deactivatedAt" FROM "user" WHERE id = $1',
     [userId]
   );
   return result.rows[0] ?? null;
+};
+
+export const isDeactivated = (target: SignInTarget | null): boolean =>
+  Boolean(target?.deactivatedAt);
+
+// The writer-side guard: a deactivated user never gets a new session, whatever
+// path asks for one.
+export const isUserDeactivated = async (userId: string): Promise<boolean> => {
+  const result = await authPool.query<{ deactivatedAt: Date | null }>(
+    'SELECT "deactivatedAt" FROM "user" WHERE id = $1',
+    [userId]
+  );
+  const [row] = result.rows;
+  return !row || row.deactivatedAt !== null;
 };
 
 export const isLocked = (target: SignInTarget | null, now: Date): boolean =>

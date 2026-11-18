@@ -41,6 +41,8 @@ model Task {
   @@unique([projectId, projectTaskNumber])
   @@check(expression: "\"projectTaskNumber\" > 0", name: "task_project_number_positive")
   @@check(expression: "(\"archivedAt\" IS NULL) = (\"archivedById\" IS NULL)", name: "task_archive_pair")
+  // A task is done exactly when it has a completion time.
+  @@check(expression: "(\"status\" = 'done') = (\"completedAt\" IS NOT NULL)", name: "task_completion_pair")
   @@index([projectId, status, position])
   @@index([createdById])
   @@index([dueDate])

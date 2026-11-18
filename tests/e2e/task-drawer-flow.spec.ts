@@ -2,6 +2,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import { ADMIN_STATE } from "./auth-state";
+import { openTaskSection } from "./task-drawer-tabs";
 
 const openPopulatedTable = async (page: Page) => {
   await page.goto("/projects");
@@ -99,9 +100,10 @@ test.describe("task drawer", () => {
     // A unique value keeps the form dirty even when an earlier run saved one.
     const value = `${Date.now() % 100_000}h`;
     await estimate.fill(value);
-    await drawer.getByRole("button", { name: "Save details" }).click();
+    await drawer.getByRole("button", { name: "Save changes" }).click();
+    // A saved form has nothing left to save, and the button says so.
     await expect(
-      drawer.getByRole("button", { name: "Save details" })
+      drawer.getByRole("button", { name: "No changes to save" })
     ).toBeDisabled({ timeout: 15_000 });
 
     await page.reload();
@@ -119,7 +121,8 @@ test.describe("task drawer", () => {
   test("typing @ offers employees and inserts a mention token", async () => {
     await openFirstTaskDrawer(page);
     const drawer = page.getByRole("dialog");
-    const comment = drawer.getByLabel("Add a comment");
+    await openTaskSection(page, "Comments");
+    const comment = drawer.getByLabel("Write a comment");
     await comment.fill("Looping in @");
     await expect(drawer.getByRole("listbox")).toBeVisible();
     await drawer.getByRole("option").first().click();
@@ -130,7 +133,8 @@ test.describe("task drawer", () => {
   test("a removed comment can be restored from the global undo stack", async () => {
     await openFirstTaskDrawer(page);
     const drawer = page.getByRole("dialog");
-    const comment = drawer.getByLabel("Add a comment");
+    await openTaskSection(page, "Comments");
+    const comment = drawer.getByLabel("Write a comment");
     const text = `e2e note ${Date.now()}`;
     await comment.fill(text);
     await drawer.getByRole("button", { exact: true, name: "Comment" }).click();
@@ -153,6 +157,7 @@ test.describe("task drawer", () => {
     });
 
     await openFirstTaskDrawer(page);
+    await openTaskSection(page, "Comments");
     await expect(page.getByRole("dialog").getByText(text)).toBeVisible({
       timeout: 15_000,
     });

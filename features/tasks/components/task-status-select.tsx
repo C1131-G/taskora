@@ -16,16 +16,10 @@ import {
   undoTaskCompletionAction,
 } from "@/features/tasks/tasks-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
+import type { TaskStatusId } from "@/src/mobile-api/task-statuses";
 
-const statuses = [
-  ["backlog", "Backlog"],
-  ["todo", "To Do"],
-  ["progress", "In Progress"],
-  ["review", "Review"],
-  ["done", "Done"],
-] as const;
-
-type TaskStatus = (typeof statuses)[number][0];
+type TaskStatus = TaskStatusId;
 
 const TaskStatusSelect = ({
   taskId,
@@ -88,9 +82,9 @@ const TaskStatusSelect = ({
           className="pstatus"
           disabled={pending}
           onValueChange={(nextStatus) => {
-            const selectedStatus = statuses.find(
-              ([value]) => value === nextStatus
-            )?.[0];
+            const selectedStatus = TASK_STATUSES.find(
+              ({ id }) => id === nextStatus
+            )?.id;
             if (selectedStatus) {
               changeStatus(selectedStatus);
             }
@@ -98,7 +92,7 @@ const TaskStatusSelect = ({
           status={shownStatus}
           value={shownStatus}
         >
-          {statuses.map(([value, label]) => (
+          {TASK_STATUSES.map(({ id: value, label }) => (
             <WorkspaceSelectItem key={value} value={value}>
               {label}
             </WorkspaceSelectItem>

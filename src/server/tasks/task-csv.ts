@@ -255,7 +255,7 @@ const importTasks = (
         for (const row of parsed.rows) {
           // Rows are created in file order so task numbers follow the file.
           // oxlint-disable-next-line no-await-in-loop, react-doctor/async-await-in-loop -- Each row needs the next task number, so rows are created in order.
-          const created = await createTaskInTransaction(
+          await createTaskInTransaction(
             transaction,
             actorId,
             {
@@ -273,12 +273,6 @@ const importTasks = (
             "task",
             row.status
           );
-          if (row.status === "done") {
-            // eslint-disable-next-line no-await-in-loop
-            await transaction.orm.public.Task.where({
-              id: created.id,
-            }).updateAndCount({ completedAt: new Date() });
-          }
         }
       });
       return { created: parsed.rows.length, errors: [] };

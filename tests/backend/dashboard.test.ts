@@ -35,7 +35,7 @@ it("summarizes active projects, task statuses, overdue work, and employee worklo
     [milestoneId, projectId, "Dashboard milestone"]
   );
   await authPool.query(
-    'INSERT INTO task (id, "projectId", "projectTaskNumber", title, status, "dueDate", "createdById") VALUES ($1, $2, 1, $3, $4, current_date - 1, $5), ($6, $2, 2, $7, $8, NULL, $5)',
+    'INSERT INTO task (id, "projectId", "projectTaskNumber", title, status, "dueDate", "createdById", "completedAt") VALUES ($1, $2, 1, $3, $4, current_date - 1, $5, NULL), ($6, $2, 2, $7, $8, NULL, $5, now())',
     [
       todoTaskId,
       projectId,

@@ -2,6 +2,8 @@ import type { Effect } from "effect";
 import { Context, Schema } from "effect";
 
 import type { AppError } from "../core/action-result";
+import { FileCopyStateSchema } from "./upload-states";
+import type { FileCopyState } from "./upload-states";
 
 export interface RequestTaskUploadInput {
   readonly taskId: string;
@@ -35,7 +37,7 @@ export const UploadTicketSchema = Schema.Struct({
 
 export const FinalizedFileSchema = Schema.Struct({
   contentType: Schema.String,
-  copyState: Schema.Literals(["pending", "ready", "failed"]),
+  copyState: FileCopyStateSchema,
   createdAt: Schema.String,
   id: Schema.String,
   originalName: Schema.String,
@@ -59,7 +61,7 @@ export const AvatarUploadResultSchema = Schema.Struct({
 
 export const FileCopyResultSchema = Schema.Struct({
   fileId: Schema.String,
-  state: Schema.Literals(["pending", "ready", "failed"]),
+  state: FileCopyStateSchema,
 });
 
 export interface FinalizedFile {
@@ -71,7 +73,7 @@ export interface FinalizedFile {
   readonly sizeBytes: number;
   readonly uploadedById: string;
   readonly createdAt: string;
-  readonly copyState: "pending" | "ready" | "failed";
+  readonly copyState: FileCopyState;
 }
 export interface UndoReceipt {
   readonly undoId: string;
@@ -87,7 +89,7 @@ export interface AvatarUploadResult {
 }
 export interface FileCopyResult {
   readonly fileId: string;
-  readonly state: "pending" | "ready" | "failed";
+  readonly state: FileCopyState;
 }
 
 export class Uploads extends Context.Service<

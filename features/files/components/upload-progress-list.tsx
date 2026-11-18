@@ -5,7 +5,7 @@
 import { Progress } from "@/components/ui/progress";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
-import { uploadPercent } from "@/features/files/upload-store";
+import { isUploadActive, uploadPercent } from "@/features/files/upload-store";
 import type { UploadItem } from "@/features/files/upload-store";
 
 const statusLabel = (upload: UploadItem): string => {
@@ -20,6 +20,11 @@ const statusLabel = (upload: UploadItem): string => {
   }
   return `${uploadPercent(upload)}%`;
 };
+
+const isUploadFailure = (upload: UploadItem): boolean =>
+  upload.status === "error" ||
+  upload.status === "finalize-error" ||
+  upload.status === "refresh-error";
 
 export const UploadProgressList = ({
   onCancel,
@@ -37,9 +42,7 @@ export const UploadProgressList = ({
   if (uploads.length === 0) {
     return null;
   }
-  const finished = uploads.some(
-    (upload) => upload.status !== "uploading" && upload.status !== "finalizing"
-  );
+  const finished = uploads.some((upload) => !isUploadActive(upload));
   return (
     <section aria-label="Uploads" className="panel-b stack upload-list">
       <ul className="stack">
@@ -52,15 +55,14 @@ export const UploadProgressList = ({
                 onClick: () => onRetry(upload.id),
               }}
               message={
-                upload.status === "error" || upload.status === "refresh-error"
+                isUploadFailure(upload)
                   ? `${upload.name}: ${upload.error ?? "Upload failed"}`
                   : null
               }
             />
             <div className="row">
               <span className="trunc grow">{upload.name}</span>
-              {upload.status === "error" ||
-              upload.status === "refresh-error" ? null : (
+              {isUploadFailure(upload) ? null : (
                 <span className="muted">{statusLabel(upload)}</span>
               )}
               {upload.status === "uploading" ? (
@@ -74,8 +76,7 @@ export const UploadProgressList = ({
                   Cancel
                 </WorkspaceButton>
               ) : null}
-              {upload.status !== "uploading" &&
-              upload.status !== "finalizing" ? (
+              {isUploadActive(upload) ? null : (
                 <>
                   {upload.status === "done" ? null : (
                     <WorkspaceButton
@@ -100,9 +101,9 @@ export const UploadProgressList = ({
                     Dismiss
                   </WorkspaceButton>
                 </>
-              ) : null}
+              )}
             </div>
-            {upload.status === "uploading" || upload.status === "finalizing" ? (
+            {isUploadActive(upload) ? (
               <Progress
                 aria-label={`Uploading ${upload.name}`}
                 value={uploadPercent(upload)}

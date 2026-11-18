@@ -2,19 +2,14 @@ import { Schema } from "effect";
 
 import type { RouteDefinition } from "./route-definition";
 import { NextCursorSchema, PageQuerySchema } from "./routes-paging";
+import { TaskStatusSchema } from "./task-statuses";
 
 // Task actions: context, quick updates, discussions, subtasks, own timer.
 // Owned by one branch, so adding routes here never conflicts with the others.
 
 const IdSchema = Schema.String.check(Schema.isUUID());
 
-export const TaskStatusSchema = Schema.Literals([
-  "backlog",
-  "todo",
-  "progress",
-  "review",
-  "done",
-]);
+export { TaskStatusSchema } from "./task-statuses";
 export const TaskPrioritySchema = Schema.Literals([
   "urgent",
   "high",

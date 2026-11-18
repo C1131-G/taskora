@@ -13,12 +13,12 @@ import {
   decodeInboxCursor,
   encodeInboxCursor,
 } from "../notifications/inbox-cursor";
+import { COMPLETED_BUG_STATUSES } from "../work/bug-status-edges";
 import { decodeBugWorkflowStatus } from "../work/bug-workflow-internal";
 import type { Transaction } from "../work/work-internal";
 import {
   PROJECT_REMOVED_MESSAGE,
   loadCompanyBug,
-  ARCHIVED_OR_CLOSED,
   run,
 } from "./portal-bug-access";
 import {
@@ -268,7 +268,7 @@ export const getBug = (
     const status = decodeBugWorkflowStatus(bug.status);
     const label = clientStatusLabel(status, bug.resolution);
     const timeline = clientTimeline(activities);
-    const open = !ARCHIVED_OR_CLOSED.has(status) && projectLinked;
+    const open = !COMPLETED_BUG_STATUSES.has(status) && projectLinked;
     const isReporter = bug.reporterId === actor.id;
     const built = await buildLifecycle(
       transaction,

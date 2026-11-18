@@ -2,6 +2,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import { ADMIN_STATE } from "./auth-state";
+import { openTaskSection } from "./task-drawer-tabs";
 
 const openPopulatedTable = async (page: Page) => {
   await page.goto("/projects");
@@ -81,15 +82,17 @@ test.describe("Live updates", () => {
     await author.goto(taskUrl);
     await author.waitForLoadState("networkidle");
     const drawer = author.getByRole("dialog");
-    await expect(drawer.getByLabel("Add a comment")).toBeVisible({
+    await openTaskSection(author, "Comments");
+    await expect(drawer.getByLabel("Write a comment")).toBeVisible({
       timeout: 15_000,
     });
 
     const text = `live note ${Date.now()}`;
-    await drawer.getByLabel("Add a comment").fill(text);
+    await drawer.getByLabel("Write a comment").fill(text);
     await drawer.getByRole("button", { exact: true, name: "Comment" }).click();
     await expect(drawer.getByText(text)).toBeVisible({ timeout: 15_000 });
 
+    await openTaskSection(watcher, "Comments");
     await expect(watcher.getByRole("dialog").getByText(text)).toBeVisible({
       timeout: 15_000,
     });
@@ -99,6 +102,7 @@ test.describe("Live updates", () => {
       .locator("article.comment", { hasText: text })
       .getByRole("button", { name: "Remove" })
       .click();
+    await openTaskSection(watcher, "Comments");
     await expect(watcher.getByRole("dialog").getByText(text)).toHaveCount(0, {
       timeout: 15_000,
     });

@@ -1,5 +1,6 @@
 import { lookup } from "node:dns/promises";
 
+import { and } from "@prisma/orm-postgres/orm-client";
 import { Effect, Schema } from "effect";
 
 import { db } from "@/src/prisma/db";
@@ -7,12 +8,13 @@ import { db } from "@/src/prisma/db";
 import { AppError } from "../core/action-result";
 import { logger } from "../core/logger";
 import { WEBHOOK_MAX_ATTEMPTS } from "./webhook-contracts";
-import { WebhookEventSchema, formatSlackMessage } from "./webhook-events";
-import type { WebhookEvent } from "./webhook-events";
+import type { WebhookStatus } from "./webhook-contracts";
+import { prepare } from "./webhook-delivery-prepare";
+import type { Prepared } from "./webhook-delivery-prepare";
+import { WebhookEventSchema } from "./webhook-events";
 import { postToAddress } from "./webhook-http";
-import { isProduction, validateDestination } from "./webhook-internal";
-import { decryptSecret, webhookKeyMaterial } from "./webhook-secret";
-import { signWebhook } from "./webhook-signing";
+import { isProduction } from "./webhook-internal";
+import { webhookKeyMaterial } from "./webhook-secret";
 import { resolvePublicTarget } from "./webhook-url-guard";
 import type { HostResolver } from "./webhook-url-guard";
 
@@ -23,7 +25,6 @@ const HTTP_OK_MIN = 200;
 const HTTP_OK_MAX = 299;
 const HTTP_SERVER_ERROR_MIN = 500;
 const RETRYABLE_CLIENT_ERRORS = new Set([408, 429]);
-const USER_AGENT = "Taskora-Webhooks/1";
 
 export interface DeliveryDeps {
   readonly resolve: HostResolver;
@@ -76,70 +77,31 @@ const failureMessage = (status: number): string =>
     ? `The endpoint answered with a redirect (${status}); redirects are not followed.`
     : `The endpoint answered with status ${status}.`;
 
-interface Prepared {
-  readonly url: URL;
-  readonly headers: Record<string, string>;
-  readonly body: string;
-}
+const OPEN_STATUSES: readonly WebhookStatus[] = ["pending", "retrying"];
 
-const prepare = (
-  event: WebhookEvent,
-  endpoint: {
-    readonly kind: string;
-    readonly url: string;
-    readonly secretCiphertext: string | null;
-  },
-  deps: DeliveryDeps
-): Prepared => {
-  const slack = endpoint.kind === "slack";
-  const body = JSON.stringify(slack ? formatSlackMessage(event) : event);
-  const headers: Record<string, string> = {
-    accept: "*/*",
-    "content-type": "application/json",
-    "user-agent": USER_AGENT,
-  };
-  if (!slack) {
-    if (!endpoint.secretCiphertext) {
-      throw new AppError({
-        code: "VALIDATION_FAILED",
-        message: "The endpoint has no signing secret.",
-      });
-    }
-    const timestamp = Math.floor(deps.now().getTime() / 1000);
-    const secret = decryptSecret(endpoint.secretCiphertext, deps.keyMaterial);
-    headers["x-taskora-delivery"] = event.id;
-    headers["x-taskora-event"] = event.type;
-    headers["x-taskora-signature"] = signWebhook(secret, timestamp, body);
-    headers["x-taskora-timestamp"] = String(timestamp);
-  }
-  // Same rules as when the admin saved it, applied again because the stored
-  // row or the deployment mode may have changed since.
-  const url = new URL(
-    validateDestination(
-      slack ? "slack" : "generic",
-      endpoint.url,
-      deps.production
-    )
-  );
-  return { body, headers, url };
-};
-
-const record = (
+// Every write is a compare-and-set on the attempt count it expects and on an
+// open status, so a concurrent or stale run can neither post the same attempt
+// twice nor overwrite a finished delivery. Returns false when it lost.
+const record = async (
   deliveryId: string,
+  expectedAttempts: number,
   fields: {
     readonly attempts: number;
-    readonly status: string;
+    readonly status: WebhookStatus;
     readonly responseCode?: number | null;
     readonly responseBody?: string | null;
     readonly lastError?: string | null;
     readonly deliveredAt?: Date | null;
   },
   now: Date
-) =>
-  db.orm.public.WebhookDelivery.where({ id: deliveryId }).update({
-    ...fields,
-    updatedAt: now,
-  });
+): Promise<boolean> =>
+  (await db.orm.public.WebhookDelivery.where((delivery) =>
+    and(
+      delivery.id.eq(deliveryId),
+      delivery.attempts.eq(expectedAttempts),
+      delivery.status.in(OPEN_STATUSES)
+    )
+  ).updateAndCount({ ...fields, updatedAt: now })) > 0;
 
 const attemptDelivery = async (
   deliveryId: string,
@@ -162,6 +124,7 @@ const attemptDelivery = async (
   if (!endpoint?.enabled) {
     await record(
       deliveryId,
+      delivery.attempts,
       {
         attempts: delivery.attempts,
         lastError: "The endpoint is disabled.",
@@ -171,14 +134,28 @@ const attemptDelivery = async (
     );
     return { kind: "skipped" };
   }
+  // Claims this attempt before anything is sent; a run that loses leaves it.
+  const claimed = await record(
+    deliveryId,
+    delivery.attempts,
+    {
+      attempts,
+      status: delivery.status === "pending" ? "pending" : "retrying",
+    },
+    now
+  );
+  if (!claimed) {
+    return { kind: "skipped" };
+  }
   const exhausted = attempts >= WEBHOOK_MAX_ATTEMPTS;
   const failed = async (
     kind: "retry" | "dead",
     message: string,
     response?: { readonly status: number; readonly bodySnippet: string }
   ): Promise<Outcome> => {
-    await record(
+    const recorded = await record(
       deliveryId,
+      attempts,
       {
         attempts,
         lastError: message,
@@ -188,6 +165,9 @@ const attemptDelivery = async (
       },
       now
     );
+    if (!recorded) {
+      return { kind: "skipped" };
+    }
     return { kind: kind === "dead" || exhausted ? "dead" : "retry", message };
   };
 
@@ -216,6 +196,7 @@ const attemptDelivery = async (
     if (response.status >= HTTP_OK_MIN && response.status <= HTTP_OK_MAX) {
       await record(
         deliveryId,
+        attempts,
         {
           attempts,
           deliveredAt: now,

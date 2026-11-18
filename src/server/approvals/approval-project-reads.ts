@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import { isProjectShared } from "../portal/client-visibility";
 import type { ProjectApprovals } from "./approval-contracts";
 import {
   assertStaffReader,
@@ -36,8 +37,7 @@ const forProjectInternal = async (
     throw notFound();
   }
   const rows = await db.orm.public.ApprovalRequest.where({ projectId }).all();
-  const canRequest =
-    actor.role === "admin" && project.clientVisible && !project.archivedAt;
+  const canRequest = actor.role === "admin" && isProjectShared(project);
   const links = canRequest
     ? await db.orm.public.ClientCompanyProject.where({
         projectId,
@@ -47,6 +47,7 @@ const forProjectInternal = async (
         .all()
     : [];
   const { companies, requests } = await describeRequests(
+    { id: actorId, role: actor.role },
     rows,
     links.map(({ companyId }) => companyId)
   );

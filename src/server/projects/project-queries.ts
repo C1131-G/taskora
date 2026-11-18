@@ -1,9 +1,10 @@
 import { Effect } from "effect";
 
-import { getUtcToday } from "@/src/lib/utc-today";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import { getCompanyToday } from "../work/work-company-today";
+import { isOverdue } from "../work/work-overdue";
 import type { ProjectListItem } from "./project-contracts";
 import { mapError, toSummary } from "./project-internal";
 
@@ -35,7 +36,7 @@ export const listProjects = (
         .orderBy((project) => project.position.asc())
         .all();
       const projectIds = projects.map(({ id }) => id);
-      const [members, tasks] = await Promise.all([
+      const [members, tasks, today] = await Promise.all([
         db.orm.public.ProjectMember.where((member) =>
           member.projectId.in(projectIds)
         )
@@ -44,8 +45,8 @@ export const listProjects = (
         db.orm.public.Task.where((task) => task.projectId.in(projectIds))
           .select("projectId", "status", "archivedAt", "dueDate")
           .all(),
+        getCompanyToday(),
       ]);
-      const today = getUtcToday();
       return projects.map((project) => {
         const projectTasks = tasks.flatMap((task) =>
           task.projectId === project.id && !task.archivedAt ? [task] : []
@@ -56,7 +57,7 @@ export const listProjects = (
         for (const task of projectTasks) {
           if (task.status === "done") {
             completedTaskCount += 1;
-          } else if (task.dueDate && task.dueDate < today) {
+          } else if (isOverdue(task, today)) {
             overdueTaskCount += 1;
           }
         }

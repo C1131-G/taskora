@@ -2,101 +2,35 @@ import { randomUUID } from "node:crypto";
 
 import { and, or } from "@prisma/orm-postgres/orm-client";
 
-import type { SlaSettings } from "../company/sla-settings";
 import { loadSlaSettings } from "../company/sla-settings";
-import { activeAdminIds, notifyUsers } from "../notifications/notify-users";
+import { activeAdminIds } from "../notifications/notify-users";
 import { SLA_SWEEP_INTERVAL_MS, SLA_SWEEP_JOB, WARNING_RATIO } from "./bug-sla";
-import type { SlaRow } from "./bug-sla";
+import {
+  assigneeIdsOf,
+  keyOf,
+  notifySla,
+  warningRecipients,
+} from "./bug-sla-sweep-notify";
+import type { SweepContext } from "./bug-sla-sweep-notify";
 import { businessElapsedMs } from "./business-time";
 import type { Transaction } from "./work-internal";
 
-const keyOf = (
-  project: { readonly key: string },
-  task: { readonly projectTaskNumber: number }
-): string => `${project.key}-${task.projectTaskNumber}`;
-
-interface SweepContext {
-  readonly sla: SlaRow;
-  readonly settings: SlaSettings;
-  readonly now: Date;
-  readonly bug: {
-    readonly id: string;
-    readonly clientCompanyId: string | null;
-    readonly taskId: string;
-    readonly projectId: string;
-  };
-  readonly key: string;
-  readonly title: string;
-  // Loaded once per sweep; every breach and handler-less warning goes here.
-  readonly adminIds: readonly string[];
-}
-
-const assigneeIdsOf = async (
-  transaction: Transaction,
-  taskId: string
-): Promise<string[]> => {
-  const assignees = await transaction.orm.public.TaskAssignee.where({ taskId })
-    .select("userId")
-    .all();
-  return assignees.map(({ userId }) => userId);
-};
-
-// Whoever should hear a warning: the assignee, or the company's handlers
-// while nobody has picked the bug (the admins if it has none).
-const warningRecipients = async (
-  transaction: Transaction,
-  context: SweepContext
-): Promise<readonly string[]> => {
-  const assignees = await assigneeIdsOf(transaction, context.bug.taskId);
-  if (assignees.length > 0) {
-    return assignees;
-  }
-  const handlers = context.bug.clientCompanyId
-    ? await transaction.orm.public.ClientCompanyHandler.where({
-        companyId: context.bug.clientCompanyId,
-      })
-        .select("employeeId")
-        .all()
-    : [];
-  const active = handlers.length
-    ? await transaction.orm.public.User.where((user) =>
-        and(
-          user.id.in(handlers.map(({ employeeId }) => employeeId)),
-          user.deactivatedAt.isNull()
-        )
-      )
-        .select("id")
-        .all()
-    : [];
-  return active.length > 0 ? active.map(({ id }) => id) : context.adminIds;
-};
-
-const notifySla = async (
-  transaction: Transaction,
-  context: SweepContext,
-  recipientIds: readonly string[],
-  text: string
-): Promise<void> => {
-  await notifyUsers(transaction, {
-    actorId: null,
-    now: context.now,
-    projectId: context.bug.projectId,
-    recipientIds,
-    snippet: context.title,
-    taskId: context.bug.taskId,
-    text,
-    type: "sla",
-    url: `/bugs/${context.bug.id}`,
-  });
-};
-
 type ClockName = "response" | "resolution";
+
+// The clock must still be running when the flag is claimed: the sweep read
+// the row earlier, and a status change may have answered, resolved or paused
+// the bug since.
+const clockStillOpen = {
+  resolution: { pausedAt: null, resolvedAt: null },
+  response: { firstRespondedAt: null, resolvedAt: null },
+} as const satisfies Record<ClockName, object>;
 
 // Flags are claimed with a guarded update, so a warning or breach goes out
 // once even if two sweeps overlap.
 const claimFlag = async (
   transaction: Transaction,
   bugId: string,
+  clock: ClockName,
   flags: Record<string, boolean>,
   guard:
     | "warnedResponse"
@@ -106,6 +40,7 @@ const claimFlag = async (
   now: Date
 ): Promise<boolean> => {
   const claimed = await transaction.orm.public.BugSla.where({
+    ...clockStillOpen[clock],
     bugId,
     [guard]: false,
   }).updateAndCount({ ...flags, updatedAt: now });
@@ -132,6 +67,7 @@ const sweepClock = async (
     const claimed = await claimFlag(
       transaction,
       sla.bugId,
+      clock,
       response
         ? { breachedResponse: true, warnedResponse: true }
         : { breachedResolution: true, warnedResolution: true },
@@ -155,6 +91,7 @@ const sweepClock = async (
     const claimed = await claimFlag(
       transaction,
       sla.bugId,
+      clock,
       response ? { warnedResponse: true } : { warnedResolution: true },
       response ? "warnedResponse" : "warnedResolution",
       now
@@ -190,14 +127,16 @@ const sweepBug = async (
   return notices;
 };
 
-// Checks every open clock; warns at 75% of the target and alerts on breach.
-// Returns how many notices went out.
-export const runSlaSweep = async (
+const SWEEP_BATCH_SIZE = 500;
+
+// One page of open clocks, after the given bug id. Paging in a fixed order
+// means every open clock is looked at on each sweep, however many there are.
+const openClocksAfter = (
   transaction: Transaction,
-  now: Date
-): Promise<number> => {
-  const open = await transaction.orm.public.BugSla.where((sla) =>
-    or(
+  afterBugId: string | undefined
+) =>
+  transaction.orm.public.BugSla.where((sla) => {
+    const open = or(
       and(
         sla.firstRespondedAt.isNull(),
         sla.resolvedAt.isNull(),
@@ -208,21 +147,25 @@ export const runSlaSweep = async (
         sla.pausedAt.isNull(),
         sla.breachedResolution.eq(false)
       )
-    )
-  )
-    .limit(500)
+    );
+    return afterBugId === undefined
+      ? open
+      : and(sla.bugId.gt(afterBugId), open);
+  })
+    .orderBy((sla) => sla.bugId.asc())
+    .limit(SWEEP_BATCH_SIZE)
     .all();
-  if (open.length === 0) {
-    return 0;
-  }
-  const [settings, bugs] = await Promise.all([
-    loadSlaSettings(transaction),
-    transaction.orm.public.BugReport.where((bug) =>
-      bug.id.in(open.map(({ bugId }) => bugId))
-    )
-      .select("id", "clientCompanyId", "taskId", "projectId")
-      .all(),
-  ]);
+
+const sweepBatch = async (
+  transaction: Transaction,
+  open: readonly SweepContext["sla"][],
+  shared: Pick<SweepContext, "adminIds" | "now" | "settings">
+): Promise<number> => {
+  const bugs = await transaction.orm.public.BugReport.where((bug) =>
+    bug.id.in(open.map(({ bugId }) => bugId))
+  )
+    .select("id", "clientCompanyId", "taskId", "projectId")
+    .all();
   const bugById = new Map(bugs.map((bug) => [bug.id, bug]));
   const tasks = await transaction.orm.public.Task.where((task) =>
     task.id.in(bugs.map(({ taskId }) => taskId))
@@ -233,10 +176,9 @@ export const runSlaSweep = async (
   const projects = await transaction.orm.public.Project.where((project) =>
     project.id.in([...new Set(bugs.map(({ projectId }) => projectId))])
   )
-    .select("id", "key")
+    .select("id", "key", "archivedAt")
     .all();
   const projectById = new Map(projects.map((project) => [project.id, project]));
-  const adminIds = await activeAdminIds(transaction);
   // Bugs touch only their own SLA row and notices, so they are swept
   // together; the clocks within one bug still run in turn.
   const notices = await Promise.all(
@@ -244,21 +186,50 @@ export const runSlaSweep = async (
       const bug = bugById.get(sla.bugId);
       const task = bug ? taskById.get(bug.taskId) : undefined;
       const project = bug ? projectById.get(bug.projectId) : undefined;
-      if (!bug || !task || !project || task.archivedAt) {
+      // Archived work is read only: its clocks raise no notices.
+      if (!bug || !task || !project || task.archivedAt || project.archivedAt) {
         return 0;
       }
       return sweepBug(transaction, {
-        adminIds,
+        ...shared,
         bug,
         key: keyOf(project, task),
-        now,
-        settings,
         sla,
         title: task.title,
       });
     })
   );
   return notices.reduce((total, count) => total + count, 0);
+};
+
+// Sweeps one page, then the pages after it in turn.
+const sweepFrom = async (
+  transaction: Transaction,
+  afterBugId: string | undefined,
+  shared: Pick<SweepContext, "adminIds" | "now" | "settings">
+): Promise<number> => {
+  const open = await openClocksAfter(transaction, afterBugId);
+  const last = open.at(-1);
+  if (!last) {
+    return 0;
+  }
+  const notices = await sweepBatch(transaction, open, shared);
+  return open.length < SWEEP_BATCH_SIZE
+    ? notices
+    : notices + (await sweepFrom(transaction, last.bugId, shared));
+};
+
+// Checks every open clock; warns at 75% of the target and alerts on breach.
+// Returns how many notices went out.
+export const runSlaSweep = async (
+  transaction: Transaction,
+  now: Date
+): Promise<number> => {
+  const [settings, adminIds] = await Promise.all([
+    loadSlaSettings(transaction),
+    activeAdminIds(transaction),
+  ]);
+  return sweepFrom(transaction, undefined, { adminIds, now, settings });
 };
 
 // The sweep runs every five minutes; one job per interval keeps a busy

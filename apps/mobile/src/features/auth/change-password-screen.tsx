@@ -19,6 +19,9 @@ const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure
     ? undefined
     : Option.getOrUndefined(Cause.findErrorOption(exit.cause));
 
+// The server's rule (password-management.ts); a shorter one is refused there.
+const MIN_PASSWORD_LENGTH = 12;
+
 interface PasswordChange {
   readonly currentPassword: string;
   readonly newPassword: string;
@@ -27,7 +30,7 @@ interface PasswordChange {
 
 export interface ChangePasswordScreenProps {
   readonly onDone: () => void;
-  readonly session?: SessionService;
+  readonly session?: SessionService | null;
 }
 
 /** The forced (or voluntary) password change; the session stays signed in. */
@@ -57,8 +60,8 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
     if (currentPassword.length === 0) {
       errors.currentPassword = "Enter your current password";
     }
-    if (newPassword.length < 8) {
-      errors.newPassword = "New password needs at least 8 characters";
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      errors.newPassword = `New password needs at least ${MIN_PASSWORD_LENGTH} characters`;
     }
     if (confirm !== newPassword) {
       errors.confirm = "The passwords do not match";

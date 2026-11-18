@@ -143,3 +143,31 @@ it("says so when there is nothing to switch", async () => {
 
   expect(screen.getByText("No settings")).toBeTruthy();
 });
+
+it("ignores taps on a switch while its write is in flight, so writes cannot reorder", async () => {
+  const sent: unknown[] = [];
+  let finish: () => void = () => undefined;
+  const api = apiThat((input) => {
+    sent.push(input);
+    return new Promise((resolve) => {
+      finish = () => resolve({ done: true });
+    });
+  });
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <PreferencesScreen isLoading={false} api={api} audience="workspace" keys={keysStub} preferences={PREFERENCES} />,
+  );
+  const name = "Mentions: In the app";
+
+  await user.press(screen.getByRole("switch", { name }));
+  await user.press(screen.getByRole("switch", { name }));
+  await user.press(screen.getByRole("switch", { name }));
+  expect(sent).toHaveLength(1);
+  expect(screen.getByRole("switch", { checked: false, name })).toBeTruthy();
+
+  finish();
+  // Once settled the next tap is a new write.
+  await waitFor(() => expect(screen.getByRole("switch", { checked: true, name })).toBeTruthy());
+  await user.press(screen.getByRole("switch", { name }));
+  expect(sent).toHaveLength(2);
+});

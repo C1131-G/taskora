@@ -20,6 +20,7 @@ model AutomationRun {
   task    Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
   @@unique([ruleId, eventId])
+  @@check(expression: "\"outcome\" IN ('matched', 'skipped', 'failed')", name: "automation_run_outcome_valid")
   @@index([projectId, createdAt])
   @@index([ruleId, taskId, createdAt])
   @@index([createdAt])

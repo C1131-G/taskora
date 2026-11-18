@@ -18,6 +18,7 @@ import {
 } from "@/components/workspace/workspace-select";
 import { bulkUpdateTasksAction } from "@/features/tasks/tasks-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
 import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
 
@@ -144,13 +145,11 @@ export const GlobalTaskBulkDialog = ({
             <WorkspaceSelectItem value="unset">
               Choose a status
             </WorkspaceSelectItem>
-            <WorkspaceSelectItem value="backlog">Backlog</WorkspaceSelectItem>
-            <WorkspaceSelectItem value="todo">To Do</WorkspaceSelectItem>
-            <WorkspaceSelectItem value="progress">
-              In Progress
-            </WorkspaceSelectItem>
-            <WorkspaceSelectItem value="review">Review</WorkspaceSelectItem>
-            <WorkspaceSelectItem value="done">Done</WorkspaceSelectItem>
+            {TASK_STATUSES.map(({ id, label }) => (
+              <WorkspaceSelectItem key={id} value={id}>
+                {label}
+              </WorkspaceSelectItem>
+            ))}
           </WorkspaceSelect>
         </label>
         <label className="field" htmlFor="global-bulk-priority">

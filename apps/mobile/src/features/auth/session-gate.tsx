@@ -1,5 +1,5 @@
 import { Effect, Exit, Fiber, Stream } from "effect";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { AppLifecycle } from "@/services/app-lifecycle";
 import { Haptics } from "@/services/haptics";
@@ -33,7 +33,11 @@ export const SessionGateContext = createContext<SessionService | null>(null);
  * session state for the group layouts and exposes the session to screens.
  */
 export const SessionGate = ({ children }: { children: ReactNode }) => {
-  const [value, setValue] = useState<SessionGateValue>(initialGateValue);
+  // `restored` turns true only when the restore has finished, so the layouts
+  // never redirect on the placeholder anonymous state.
+  const [restored, setRestored] = useState(initialGateValue.restored);
+  const [state, setState] = useState<SessionState>(initialGateValue.state);
+  const value = useMemo<SessionGateValue>(() => ({ restored, state }), [restored, state]);
   const [session, setSession] = useState<SessionService | null>(null);
   const [api, setApi] = useState<MobileApi["Service"] | null>(null);
   const [keys, setKeys] = useState<IdempotencyKeys["Service"] | null>(null);
@@ -66,7 +70,7 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
         fibers.push(runtime.runFork(
           Stream.runDrain(
             Stream.tap(sessionService.changes, (state) =>
-              Effect.sync(() => setValue({ restored: true, state })),
+              Effect.sync(() => setState(state)),
             ),
           ),
         ));
@@ -74,7 +78,15 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
           sessionService.watchClientIdle(lifecycle.changes, "2 hours"),
           (failure) => Effect.sync(() => showError("_tag" in failure ? failureMessage(failure) : failure.message)),
         ))));
-        fibers.push(runtime.runFork(Effect.flatMap(Effect.exit(sessionService.restore), (result) => {
+        // The state is read again on completion and set together with
+        // `restored`, so the first restored render already has the result.
+        const markRestored = Effect.flatMap(sessionService.current, (current) =>
+          Effect.sync(() => {
+            setState(current);
+            setRestored(true);
+          }),
+        );
+        fibers.push(runtime.runFork(Effect.flatMap(Effect.exit(Effect.ensuring(sessionService.restore, markRestored)), (result) => {
           if (Exit.isSuccess(result)) return Effect.void;
           const failure = failureOf(result);
           return Effect.sync(() => showError(failure === undefined

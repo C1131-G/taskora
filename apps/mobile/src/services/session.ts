@@ -1,6 +1,6 @@
 import { Context, Effect, Exit, Layer, Schema, Stream, SubscriptionRef } from "effect";
 
-import { buildClient } from "@api/client";
+import { buildClient, MobileApiError } from "@api/client";
 import { mobileRoutes } from "@api/routes";
 import type { MobileMe } from "@api/routes-account";
 
@@ -17,17 +17,6 @@ import { SecureStorage } from "@/services/secure-storage";
 const TOKEN_KEY = "session-token";
 
 const TokenCodec = Schema.String;
-
-
-// The server explains a refused password change as `{ error: { message } }`.
-const PasswordRejectionSchema = Schema.fromJsonString(
-  Schema.Struct({ error: Schema.Struct({ message: Schema.String }) }),
-);
-
-const rejectionMessage = (text: string): string => {
-  const rejection = Schema.decodeUnknownOption(PasswordRejectionSchema)(text);
-  return rejection._tag === "Some" ? rejection.value.error.message : "Change rejected";
-};
 
 export type SessionState =
   | { readonly kind: "anonymous" }
@@ -50,15 +39,19 @@ export class Session extends Context.Service<
     readonly signIn: (input: SignInInput) => Effect.Effect<SessionState, AppFailure>;
     /** Restores the stored token, validating it against /me. */
     readonly restore: Effect.Effect<SessionState, AppFailure>;
-    /** Changes the signed-in account's password through better-auth. */
+    /** Changes the signed-in account's password, then reloads /me. */
     readonly changeOwnPassword: (input: {
       readonly currentPassword: string;
       readonly newPassword: string;
     }) => Effect.Effect<void, AppFailure>;
     /** Revokes the server session and clears local state. */
     readonly signOut: Effect.Effect<void, Error>;
-    /** Clears local state without a server call (used on a 401 cascade). */
-    readonly invalidate: Effect.Effect<void, AppFailure>;
+    /**
+     * Clears local state without a server call (used on a 401 cascade), but
+     * only while `token` is still the current session: a late 401 for an older
+     * token never signs out a newer session.
+     */
+    readonly invalidate: (token: string) => Effect.Effect<void, AppFailure>;
     /**
      * Runs forever: signs a client-role session out after `idle` in the
      * background. Staff sessions are never timed out.
@@ -78,6 +71,12 @@ export interface SessionDeps {
 const ANONYMOUS: SessionState = { kind: "anonymous" };
 
 type AuthenticatedSession = Extract<SessionState, { kind: "authenticated" }>;
+
+// A rejected password change keeps the server's reason next to the field.
+const passwordFailure = (error: unknown): AppFailure =>
+  error instanceof MobileApiError && error.code === "VALIDATION_FAILED" && error.fieldErrors === undefined
+    ? new ValidationFailed({ fieldErrors: { currentPassword: error.message } })
+    : fromMobileApiError(error);
 
 const headValue = <A>(stream: Stream.Stream<A>): Effect.Effect<A, never> =>
   Effect.flatMap(Stream.runHead(stream), (head) =>
@@ -100,20 +99,39 @@ export const makeSession = (deps: SessionDeps) =>
 
     const clear = Effect.andThen(SubscriptionRef.set(ref, ANONYMOUS), storage.remove(TOKEN_KEY));
 
+    const isCurrent = (state: SessionState, token: string): boolean =>
+      state.kind === "authenticated" && state.token === token;
+
+    const clearIfCurrent = (token: string) =>
+      Effect.flatMap(
+        SubscriptionRef.modify(ref, (state): [boolean, SessionState] =>
+          isCurrent(state, token) ? [true, ANONYMOUS] : [false, state],
+        ),
+        (cleared) => (cleared ? storage.remove(TOKEN_KEY) : Effect.void),
+      );
+
     const authenticated = (token: string, me: MobileMe): SessionState => ({
       kind: "authenticated",
       me,
       token,
     });
 
-    const loadMe = (token: string) =>
-      Effect.flatMap(
-        Effect.tryPromise({
-          catch: (error) => fromMobileApiError(error),
-          try: () => client(token).getMe(),
-        }),
-        (me) =>
-          Effect.as(SubscriptionRef.set(ref, authenticated(token, me)), authenticated(token, me)),
+    const fetchMe = (token: string) =>
+      Effect.tryPromise({
+        catch: (error) => fromMobileApiError(error),
+        try: () => client(token).getMe(),
+      });
+
+    const become = (token: string, me: MobileMe) =>
+      Effect.as(SubscriptionRef.set(ref, authenticated(token, me)), authenticated(token, me));
+
+    const loadMe = (token: string) => Effect.flatMap(fetchMe(token), (me) => become(token, me));
+
+    // Re-reads /me for the session that is still current, e.g. after the
+    // server cleared mustChangePassword.
+    const reloadMe = (token: string) =>
+      Effect.flatMap(fetchMe(token), (me) =>
+        SubscriptionRef.update(ref, (state) => (isCurrent(state, token) ? authenticated(token, me) : state)),
       );
 
     const revokeOnServer = (token: string) =>
@@ -131,7 +149,7 @@ export const makeSession = (deps: SessionDeps) =>
     const session = Session.of({
       changes: SubscriptionRef.changes(ref),
       current: SubscriptionRef.get(ref),
-      invalidate: clear,
+      invalidate: clearIfCurrent,
       restore: Effect.flatMap(
         storage.read(TOKEN_KEY, TokenCodec),
         (token) =>
@@ -162,45 +180,21 @@ export const makeSession = (deps: SessionDeps) =>
           (token) =>
             token.length === 0
               ? Effect.fail(fromMobileApiError(new Error("sign-in rejected")))
-              : Effect.flatMap(persist(token), () => loadMe(token)),
+              : // /me first, then storage, then the state: storage never holds
+                // a token /me refused, and the state never runs ahead of storage.
+                Effect.flatMap(fetchMe(token), (me) => Effect.flatMap(persist(token), () => become(token, me))),
         ),
       changeOwnPassword: (input) =>
         Effect.flatMap(SubscriptionRef.get(ref), (state) =>
           state.kind === "authenticated"
             ? Effect.flatMap(
                 Effect.tryPromise({
-                  catch: (error) => fromMobileApiError(error),
-                  try: async () => {
-                    const response = await (deps.fetchImpl ?? fetch)(
-                      `${deps.baseUrl}/api/auth/change-password`,
-                      {
-                        body: JSON.stringify({
-                          currentPassword: input.currentPassword,
-                          newPassword: input.newPassword,
-                        }),
-                        headers: {
-                          authorization: `Bearer ${state.token}`,
-                          "content-type": "application/json",
-                        },
-                        method: "POST",
-                      },
-                    );
-                    if (response.ok) {
-                      return { ok: true as const, text: "" };
-                    }
-                    return { ok: false as const, text: await response.text() };
-                  },
+                  catch: passwordFailure,
+                  try: () => client(state.token).changePassword({ body: input }),
                 }),
-                (outcome) => {
-                  if (outcome.ok) {
-                    return Effect.void;
-                  }
-                  return Effect.fail(
-                    new ValidationFailed({
-                      fieldErrors: { currentPassword: rejectionMessage(outcome.text) },
-                    }),
-                  );
-                },
+                // The server cleared mustChangePassword; reload /me so the
+                // router leaves the change-password screen.
+                () => reloadMe(state.token),
               )
             : Effect.fail(new Unauthenticated()),
         ),
@@ -238,7 +232,7 @@ export const makeSession = (deps: SessionDeps) =>
                 outcome === "timeout"
                   ? Effect.gen(function* () {
                       const revocation = yield* Effect.exit(revokeOnServer(state.token));
-                      yield* clear;
+                      yield* clearIfCurrent(state.token);
                       if (Exit.isFailure(revocation)) {
                         return yield* Effect.fail(new Error("Could not revoke the server session. You have been signed out on this device."));
                       }
@@ -265,7 +259,7 @@ export const TokenSourceFromSession: Layer.Layer<TokenSource, never, Session> = 
       currentToken: Effect.map(session.current, (state) =>
         state.kind === "authenticated" ? state.token : null,
       ),
-      onUnauthenticated: session.invalidate,
+      onUnauthenticated: (token) => session.invalidate(token),
     }),
   ),
 );

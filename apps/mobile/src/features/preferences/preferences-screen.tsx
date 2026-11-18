@@ -1,5 +1,5 @@
 import { Effect, Exit } from "effect";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { withSkeleton } from "react-zero-skeleton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,18 +35,24 @@ const cellOf = (preference: Preference): string => `${preference.eventType}:${pr
 
 /**
  * Which notifications reach the person, per kind and channel. A switch shows
- * its new state at once and goes back if the server refuses the change.
+ * its new state at once and goes back if the server refuses the change. One
+ * write per switch at a time: taps on a switch whose write is still in flight
+ * are ignored, so writes cannot land out of order or share an intent key.
  */
 const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScreenProps) => {
   const queryClient = useQueryClient();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [shown, setShown] = useState<Readonly<Record<string, boolean>>>({});
+  // The guard is a ref so two taps inside one render cannot both pass it.
+  const inFlight = useRef(new Set<string>());
   const showError = useErrorToast();
 
   const toggle = (preference: Preference): void => {
     if (api === null || keys === null) return;
     const cell = cellOf(preference);
+    if (inFlight.current.has(cell)) return;
+    inFlight.current.add(cell);
     const next = !(shown[cell] ?? preference.enabled);
     setShown((current) => ({ ...current, [cell]: next }));
     void Effect.runPromise(
@@ -64,13 +70,18 @@ const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScr
           const failure = failureOf(exit);
           yield* Effect.sync(() => showError(failure === undefined ? "Could not save notification settings." : failureMessage(failure)));
         }
-        yield* Effect.sync(() =>
-          setShown((current) => {
-            const { [cell]: _settled, ...rest } = current;
-            return rest;
+      }).pipe(
+        // Runs even if the refresh fails, so a switch never stays locked.
+        Effect.ensuring(
+          Effect.sync(() => {
+            inFlight.current.delete(cell);
+            setShown((current) => {
+              const { [cell]: _settled, ...rest } = current;
+              return rest;
+            });
           }),
-        );
-      }),
+        ),
+      ),
     );
   };
 
@@ -83,12 +94,13 @@ const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScr
       {groups.map((group) => (
         <WorkspaceListGroup key={group.eventType} label={EVENT_LABELS[group.eventType]}>
           {group.rows.map((preference) => {
-            const enabled = shown[cellOf(preference)] ?? preference.enabled;
+            const pending = shown[cellOf(preference)];
+            const enabled = pending ?? preference.enabled;
             return (
               <Pressable
                 accessibilityLabel={`${EVENT_LABELS[preference.eventType]}: ${CHANNEL_LABELS[preference.channel]}`}
                 accessibilityRole="switch"
-                accessibilityState={{ checked: enabled }}
+                accessibilityState={{ busy: pending !== undefined, checked: enabled }}
                 key={cellOf(preference)}
                 onPress={() => toggle(preference)}
                 style={({ pressed }) => [

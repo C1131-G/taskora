@@ -26,6 +26,7 @@ import { TaskManageControls } from "@/features/tasks/components/task-manage-cont
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { withTaskStatus } from "@/features/tasks/task-status-move";
 import { changeTaskColumnAction } from "@/features/tasks/tasks-actions";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
 import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
 
@@ -41,14 +42,6 @@ interface TaskGroup {
   readonly key: string;
   readonly tasks: readonly GlobalTask[];
 }
-
-const TASK_STATUSES = [
-  { id: "backlog", label: "Backlog" },
-  { id: "todo", label: "To Do" },
-  { id: "progress", label: "In Progress" },
-  { id: "review", label: "Review" },
-  { id: "done", label: "Done" },
-] as const;
 
 export const GlobalTaskBoard = ({
   taskGroups,

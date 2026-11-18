@@ -31,6 +31,10 @@ import {
   getFilePreviewUrlAction,
 } from "@/features/files/files-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
+import {
+  ADMIN_REOPEN_FROM_STATUSES,
+  READ_ONLY_BUG_STATUSES,
+} from "@/src/server/work/bug-status-edges";
 
 import { formatDate, statusLabels } from "./bug-detail-labels";
 import type { BugHistory } from "./bug-detail-labels";
@@ -76,17 +80,7 @@ export const BugDetailWorkflow = ({
     history.assignees.some(({ id }) => id === userId);
   const latestAttempt = history.attempts.at(-1) ?? null;
   const isReadOnly =
-    history.archived ||
-    // Mirrors the server's read-only statuses in bug-workflow-internal.ts.
-    [
-      "closed",
-      "duplicate",
-      "awaiting_admin_approval",
-      "approved_for_release",
-      "released",
-      "awaiting_client",
-      "withdrawn",
-    ].includes(history.bug.status);
+    history.archived || READ_ONLY_BUG_STATUSES.has(history.bug.status);
 
   const finishAction = async (result: BugActionResult) => {
     if (!result.ok) {
@@ -164,9 +158,7 @@ export const BugDetailWorkflow = ({
           ) : null}
           {isAdmin &&
           !history.archived &&
-          ["closed", "awaiting_client", "needs_info"].includes(
-            history.bug.status
-          ) ? (
+          ADMIN_REOPEN_FROM_STATUSES.has(history.bug.status) ? (
             <Button
               disabled={pending}
               onClick={() =>

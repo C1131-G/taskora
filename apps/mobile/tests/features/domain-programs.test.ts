@@ -66,7 +66,7 @@ const MOCKED = new Set([
 
 const tokenLayer = Layer.succeed(
   TokenSource,
-  TokenSource.of({ currentToken: Effect.succeed("t"), onUnauthenticated: Effect.void }),
+  TokenSource.of({ currentToken: Effect.succeed("t"), onUnauthenticated: () => Effect.void }),
 );
 
 /** Runs one program against a fresh mock API layer. */

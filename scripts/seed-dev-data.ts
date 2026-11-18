@@ -1139,12 +1139,8 @@ const addBug = async (project: Project, title: string, options: BugOptions) => {
     projectId: project.id,
     reporterId: reporter.id,
     reproductionSteps: ["Open settings", "Change a value", "Click save"],
-    resolution:
-      status === "closed"
-        ? "fixed"
-        : status === "rejected"
-          ? "not_a_bug"
-          : null,
+    // Only a closed bug carries a resolution (bug_report_resolution_closed).
+    resolution: status === "closed" ? "fixed" : null,
     route: "/settings",
     satisfaction: status === "closed" ? "up" : null,
     satisfactionComment: status === "closed" ? "Fixed quickly, thanks." : null,

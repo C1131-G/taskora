@@ -1,23 +1,15 @@
 import { loadSlaSettings } from "../company/sla-settings";
 import { buildSlaView } from "./bug-sla";
+import {
+  ASK_CLIENT_FROM_STATUSES,
+  CLOSE_NOT_A_BUG_FROM_STATUSES,
+} from "./bug-status-edges";
 import type { Transaction } from "./work-internal";
-
-const CAN_ASK_CLIENT_STATUSES = new Set([
-  "triaged",
-  "in_progress",
-  "in_verification",
-]);
-const CAN_CLOSE_NOT_A_BUG_STATUSES = new Set([
-  "reported",
-  "triaged",
-  "in_progress",
-  "needs_info",
-]);
 
 const canWorkInStatus = (
   canWork: boolean,
   status: string,
-  allowedStatuses: ReadonlySet<string>
+  allowedStatuses: { readonly has: (status: string) => boolean }
 ) => canWork && allowedStatuses.has(status);
 
 // What a staff member may do with a client bug. The staff bug context and the
@@ -35,12 +27,12 @@ export const clientBugPermissions = (facts: {
     canAskClient: canWorkInStatus(
       canWork,
       facts.status,
-      CAN_ASK_CLIENT_STATUSES
+      ASK_CLIENT_FROM_STATUSES
     ),
     canCloseNotABug: canWorkInStatus(
       canWork,
       facts.status,
-      CAN_CLOSE_NOT_A_BUG_STATUSES
+      CLOSE_NOT_A_BUG_FROM_STATUSES
     ),
     canPick:
       facts.status === "reported" &&

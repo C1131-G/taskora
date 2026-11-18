@@ -22,7 +22,7 @@ test.describe("Bug approvals (/bug-approvals)", () => {
     await expect(
       page
         .locator(".bug-list")
-        .or(page.getByText("No bug fixes are waiting for approval."))
+        .or(page.getByRole("heading", { level: 2, name: "All caught up" }))
     ).toBeVisible();
   });
 
@@ -34,7 +34,7 @@ test.describe("Bug approvals (/bug-approvals)", () => {
     await expect(
       page
         .locator(".bug-list")
-        .or(page.getByText("No bug fixes are waiting for approval."))
+        .or(page.getByRole("heading", { level: 2, name: "All caught up" }))
     ).toBeVisible();
     await settleAnimations(page);
 

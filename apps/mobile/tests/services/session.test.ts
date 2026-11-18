@@ -32,11 +32,14 @@ const fetchImpl = ((input: Request | string | URL, init?: RequestInit) => {
   if (url.endsWith("/api/auth/sign-in/email")) {
     return jsonResponse(200, { user: ME }, { "set-auth-token": "token-new" });
   }
-  if (url.endsWith("/api/auth/change-password")) {
+  if (url.endsWith("/api/v1/me/password")) {
     const body = JSON.parse(String(init?.body ?? "{}")) as { currentPassword?: string };
     return body.currentPassword === "old-pass"
-      ? jsonResponse(200, { ok: true })
-      : jsonResponse(400, { error: { message: "Wrong current password" } });
+      ? jsonResponse(200, { data: { changed: true }, ok: true, requestId: "r" })
+      : jsonResponse(400, {
+          error: { code: "VALIDATION_FAILED", message: "Wrong current password", requestId: "r" },
+          ok: false,
+        });
   }
   if (url.endsWith("/api/auth/sign-out")) {
     return jsonResponse(200, { ok: true });
@@ -190,7 +193,8 @@ it.effect("reports storage failure when invalidating a session", () =>
   Effect.gen(function* () {
     const session = yield* Effect.service(Session);
     yield* session.signIn({ email: "c@taskora.test", password: "secret" });
-    const error = yield* Effect.flip(session.invalidate);
+    const current = yield* session.current;
+    const error = yield* Effect.flip(session.invalidate(current.kind === "authenticated" ? current.token : ""));
     expect(error._tag).toBe("StorageFailure");
     expect((yield* session.current).kind).toBe("anonymous");
   }).pipe(
@@ -277,7 +281,7 @@ it.effect("changes the password and surfaces the server field error", () =>
   }).pipe(Effect.provide(sessionLayer(null))),
 );
 
-it.effect("falls back to a generic message when the refusal body is unreadable", () =>
+it.effect("reports an unreadable refusal as unavailable, not as a field error", () =>
   Effect.gen(function* () {
     const session = yield* Effect.service(Session);
     yield* session.signIn({ email: "c@taskora.test", password: "secret" });
@@ -286,14 +290,14 @@ it.effect("falls back to a generic message when the refusal body is unreadable",
       session.changeOwnPassword({ currentPassword: "wrong", newPassword: "new-pass" }),
     );
 
-    expect("fieldErrors" in error && error.fieldErrors).toEqual({ currentPassword: "Change rejected" });
+    expect(error._tag).toBe("Unavailable");
   }).pipe(
     Effect.provide(
       Layer.provide(
         makeSessionLayer({
           baseUrl: "https://unit.test",
           fetchImpl: ((input: Request | string | URL, init?: RequestInit) =>
-            String(input).endsWith("/api/auth/change-password")
+            String(input).endsWith("/api/v1/me/password")
               ? Promise.resolve(new Response("<html>bad gateway</html>", { status: 502 }))
               : fetchImpl(input, init)) as typeof fetch,
         }),

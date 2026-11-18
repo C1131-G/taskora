@@ -9,6 +9,7 @@ import { BugPickDialog } from "@/features/bugs/components/bug-pick-dialog";
 import { BugSlaChip } from "@/features/bugs/components/bug-sla-chip";
 import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
 import type { BugListItemSchema } from "@/src/server/work/bug-management";
+import { COMPLETED_BUG_STATUSES } from "@/src/server/work/bug-status-edges";
 
 /* eslint-disable shadcn/no-unknown-classes -- Bug list styles are defined in apps/web/app/workspace-styles. */
 /* eslint-disable shadcn/no-restyle -- Drawer action follows existing workspace button styling. */
@@ -47,8 +48,6 @@ const impactLabel = {
 } as const;
 
 const DAY_MS = 86_400_000;
-
-const CLOSED_STATUSES = new Set(["closed", "duplicate", "withdrawn"]);
 
 const ageLabel = (discoveredAt: string): string => {
   const days = Math.floor((Date.now() - Date.parse(discoveredAt)) / DAY_MS);
@@ -96,7 +95,7 @@ export const BugCard = ({
                 {impactLabel[bug.clientImpact]}
               </span>
             ) : null}
-            {bugEntry.sla && !CLOSED_STATUSES.has(bug.status) ? (
+            {bugEntry.sla && !COMPLETED_BUG_STATUSES.has(bug.status) ? (
               <BugSlaChip sla={bugEntry.sla} />
             ) : null}
             {relatedBugIds.length > 0 ? (

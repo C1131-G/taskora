@@ -6,13 +6,10 @@ import { Effect } from "effect";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
-import { isUniqueConstraintViolation } from "../core/prisma-errors";
+import { isProjectShared, isTaskShared } from "../portal/client-visibility";
 import type { Transaction } from "../work/work-internal";
 import { assertOrdinaryTask } from "../work/work-internal";
-import {
-  assertTaskEditPermission,
-  assertWorkspaceActor,
-} from "../work/work-task-state";
+import { assertTaskEditPermission } from "../work/work-task-state";
 import { milestoneSubjectKey, taskSubjectKey } from "./approval-access";
 import type {
   ApprovalReceipt,
@@ -20,39 +17,13 @@ import type {
 } from "./approval-contracts";
 import { MAX_APPROVAL_FILES } from "./approval-contracts";
 import { notifyClientsOfRequest } from "./approval-notify";
-
-const invalid = (message: string) =>
-  new AppError({ code: "VALIDATION_FAILED", message });
-
-const forbidden = (message: string) =>
-  new AppError({ code: "FORBIDDEN", message });
-
-const toError = (error: unknown): AppError => {
-  if (error instanceof AppError) {
-    return error;
-  }
-  if (isUniqueConstraintViolation(error)) {
-    return new AppError({
-      code: "CONFLICT",
-      message: "An approval was requested at the same time. Refresh and retry.",
-    });
-  }
-  return new AppError({
-    code: "UNAVAILABLE",
-    message: "The approval request could not be completed.",
-  });
-};
-
-const loadStaffActor = async (transaction: Transaction, actorId: string) => {
-  const actor = await transaction.orm.public.User.where({ id: actorId })
-    .select("name", "role", "mustChangePassword", "deactivatedAt")
-    .first();
-  assertWorkspaceActor(actor);
-  if (actor.role === "client") {
-    throw forbidden("Clients cannot request approvals.");
-  }
-  return actor;
-};
+import { requestBlockOf } from "./approval-rules";
+import {
+  forbidden,
+  invalid,
+  loadStaffActor,
+  toError,
+} from "./approval-write-support";
 
 interface Subject {
   readonly key: string;
@@ -100,7 +71,7 @@ const loadSubject = async (
       task.createdById,
       assignments
     );
-    if (!task.clientVisible || !task.project.clientVisible) {
+    if (!isTaskShared(task, task.project)) {
       throw invalid(
         "Share the task with the client before asking for approval."
       );
@@ -127,7 +98,7 @@ const loadSubject = async (
       message: "The milestone was not found.",
     });
   }
-  if (!milestone.project.clientVisible || milestone.project.archivedAt) {
+  if (!isProjectShared(milestone.project)) {
     throw invalid(
       "Share the project with the client before asking for approval."
     );
@@ -164,12 +135,21 @@ const assertCompanyHasProject = async (
 };
 
 // Only finished uploads of this very task (or of the project, for a
-// milestone) can be shown to the client.
+// milestone) can be shown to the client. The files are locked first, so a
+// removal running at the same time either finishes before the check below
+// reads them, or waits for this request and then sees it attached.
 const assertRequestFiles = async (
   transaction: Transaction,
   subject: Subject,
   fileIds: readonly string[]
 ) => {
+  await transaction.query(
+    transaction.sql.public.file_asset
+      .select("id")
+      .where((field, fns) => fns.in(field.id, [...fileIds]))
+      .forShare()
+      .build()
+  );
   const found = await transaction.orm.public.FileAsset.where((file) =>
     and(file.id.in([...fileIds]), file.deletedAt.isNull())
   )
@@ -198,13 +178,14 @@ const nextVersion = async (
   })
     .select("version", "status")
     .all();
-  if (versions.some(({ status }) => status === "pending")) {
+  const block = requestBlockOf(versions);
+  if (block === "pending") {
     throw new AppError({
       code: "CONFLICT",
       message: "An approval is already waiting for the client.",
     });
   }
-  if (versions.some(({ status }) => status === "approved")) {
+  if (block === "approved") {
     throw new AppError({
       code: "CONFLICT",
       message: "The client already approved this.",
@@ -290,57 +271,5 @@ export const requestApproval = (
           version,
         });
         return { id, version };
-      }),
-  });
-
-// Withdraws a request the client has not answered. The person who asked and
-// administrators may do it; once the client decided it stays on record.
-export const cancelApproval = (
-  actorId: string,
-  requestId: string
-): Effect.Effect<void, AppError> =>
-  Effect.tryPromise({
-    catch: toError,
-    try: () =>
-      db.transaction(async (transaction) => {
-        const [actor, request] = await Promise.all([
-          loadStaffActor(transaction, actorId),
-          transaction.orm.public.ApprovalRequest.where({
-            id: requestId,
-          }).first(),
-        ]);
-        if (!request) {
-          throw new AppError({
-            code: "NOT_FOUND",
-            message: "The approval request was not found.",
-          });
-        }
-        if (actor.role !== "admin" && request.requestedById !== actorId) {
-          throw forbidden("You cannot cancel this approval request.");
-        }
-        const now = new Date();
-        const changed = await transaction.orm.public.ApprovalRequest.where({
-          id: requestId,
-          status: "pending",
-        }).updateAndCount({
-          cancelledAt: now,
-          cancelledById: actorId,
-          status: "cancelled",
-        });
-        if (changed) {
-          return;
-        }
-        // Cancelling twice is fine; cancelling a decided request is not.
-        const current = await transaction.orm.public.ApprovalRequest.where({
-          id: requestId,
-        })
-          .select("status")
-          .first();
-        if (current?.status !== "cancelled") {
-          throw new AppError({
-            code: "CONFLICT",
-            message: "The client already answered this request.",
-          });
-        }
       }),
   });

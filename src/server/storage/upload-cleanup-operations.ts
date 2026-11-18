@@ -6,9 +6,28 @@ import { db } from "@/src/prisma/db";
 import type { AppError } from "../core/action-result";
 import { isForeignKeyViolation } from "../core/prisma-errors";
 import type { StorageApi } from "./storage";
+import type { UploadIntentState } from "./upload-states";
 import * as internal from "./uploads-internal";
 
+// Every prefix the app writes objects under. An object under one of them that
+// no file, live upload intent or user avatar names is an orphan.
+const SWEPT_PREFIXES = [
+  "company/tasks/",
+  "company/files/",
+  "company/avatars/",
+  "company/client-logos/",
+  "company/intake/",
+] as const;
+
 export const makeUploadCleanupOperations = (storage: StorageApi) => {
+  // The database change has already committed when an object is deleted, so a
+  // failed delete must not stop the run: the orphan sweep removes the object
+  // on a later run because nothing names it any more.
+  const deleteObjectOrLeave = (key: string): Effect.Effect<boolean> =>
+    storage.deleteObject(key).pipe(
+      Effect.as(true),
+      Effect.orElseSucceed(() => false)
+    );
   const cleanupExpiredUploads = (): Effect.Effect<
     {
       readonly filesRemoved: number;
@@ -30,7 +49,10 @@ export const makeUploadCleanupOperations = (storage: StorageApi) => {
         catch: internal.mapError,
         try: () =>
           db.orm.public.UploadIntent.where((intent) =>
-            and(intent.state.eq("pending"), intent.expiresAt.lte(now))
+            and(
+              intent.state.eq("pending" satisfies UploadIntentState),
+              intent.expiresAt.lte(now)
+            )
           )
             .orderBy((intent) => intent.expiresAt.asc())
             .limit(100)
@@ -43,15 +65,15 @@ export const makeUploadCleanupOperations = (storage: StorageApi) => {
           try: () =>
             db.orm.public.UploadIntent.where({
               id: intent.id,
-              state: "pending",
+              state: "pending" satisfies UploadIntentState,
             }).updateAndCount({
               removedAt: now,
-              state: "removed",
+              state: "removed" satisfies UploadIntentState,
               updatedAt: now,
             }),
         });
         if (updated) {
-          yield* storage.deleteObject(intent.objectKey);
+          yield* deleteObjectOrLeave(intent.objectKey);
           intentsRemoved += 1;
         }
       }
@@ -103,7 +125,7 @@ export const makeUploadCleanupOperations = (storage: StorageApi) => {
           )
         );
         if (deleted) {
-          yield* storage.deleteObject(file.storageKey);
+          yield* deleteObjectOrLeave(file.storageKey);
           filesRemoved += 1;
         }
       }
@@ -111,30 +133,34 @@ export const makeUploadCleanupOperations = (storage: StorageApi) => {
       if (!listObjects) {
         return { filesRemoved, intentsRemoved, orphansRemoved: 0 };
       }
-      const [files, intents] = yield* Effect.tryPromise({
+      const [files, intents, avatars] = yield* Effect.tryPromise({
         catch: internal.mapError,
         try: () =>
           Promise.all([
             db.orm.public.FileAsset.select("storageKey").all(),
             db.orm.public.UploadIntent.where((intent) =>
-              intent.state.neq("removed")
+              intent.state.neq("removed" satisfies UploadIntentState)
             )
               .select("objectKey")
               .all(),
+            db.orm.public.User.where((user) => user.image.isNotNull())
+              .select("image")
+              .all(),
           ]),
       });
-      const knownKeys = new Set([
+      const knownKeys = new Set<string>([
         ...files.map(({ storageKey }) => storageKey),
         ...intents.map(({ objectKey }) => objectKey),
+        ...avatars.flatMap(({ image }) => (image ? [image] : [])),
       ]);
       const orphanCutoff = new Date(
         now.getTime() - internal.ORPHAN_GRACE_PERIOD_MS
       );
-      const [taskObjects, copiedObjects] = yield* Effect.all(
-        [listObjects("company/tasks/"), listObjects("company/files/")],
-        { concurrency: 2 }
-      );
-      const orphanKeys = [...taskObjects, ...copiedObjects]
+      const listed = yield* Effect.forEach(SWEPT_PREFIXES, listObjects, {
+        concurrency: 2,
+      });
+      const orphanKeys = listed
+        .flat()
         .filter(
           ({ key, lastModified }) =>
             !knownKeys.has(key) &&
@@ -143,13 +169,15 @@ export const makeUploadCleanupOperations = (storage: StorageApi) => {
         )
         .slice(0, 100)
         .map(({ key }) => key);
-      yield* Effect.forEach(orphanKeys, (key) => storage.deleteObject(key), {
-        concurrency: 10,
-      });
+      const orphanDeletes = yield* Effect.forEach(
+        orphanKeys,
+        deleteObjectOrLeave,
+        { concurrency: 10 }
+      );
       return {
         filesRemoved,
         intentsRemoved,
-        orphansRemoved: orphanKeys.length,
+        orphansRemoved: orphanDeletes.filter(Boolean).length,
       };
     });
 

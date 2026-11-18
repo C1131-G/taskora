@@ -17,6 +17,8 @@ model Job {
   createdAt TimestamptzJsDate @default(now())
   updatedAt TimestamptzJsDate @default(now())
 
+  // A job finishes one way: completed or dead, never both.
+  @@check(expression: "NOT (\"completedAt\" IS NOT NULL AND \"deadAt\" IS NOT NULL)", name: "job_not_completed_and_dead")
   // Only pending work is claimed; finished and dead rows stay out of the index.
   @@index([availableAt, leasedUntil], where: "\"completedAt\" IS NULL AND \"deadAt\" IS NULL", name: "job_claimable")
   // Retention purges and the dead-job list scan these, never the pending rows.

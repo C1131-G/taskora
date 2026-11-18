@@ -11,6 +11,7 @@ import {
 } from "@/components/workspace/skelter-surface";
 import { listProjectApprovals } from "@/features/approvals/approval-queries";
 import { APPROVAL_STATUS_BADGES } from "@/features/approvals/approval-status";
+import { ApprovalWithdrawButton } from "@/features/approvals/components/approval-withdraw-button";
 import { ProjectApprovalForm } from "@/features/approvals/components/project-approval-form";
 import { readOrThrow } from "@/lib/read-result";
 import type { ProjectApprovals as ProjectApprovalsData } from "@/src/server/approvals/approval-contracts";
@@ -61,14 +62,18 @@ const RequestRow = ({ request }: { readonly request: Request }) => {
           {request.requestedByName} on <LocalTime value={request.requestedAt} />
         </p>
         <p className="approval-request-decision">{decisionOf(request)}</p>
+        {request.canCancel ? (
+          <ApprovalWithdrawButton requestId={request.id} />
+        ) : null}
       </div>
       <span className={`badge ${badge.tone}`}>{badge.label}</span>
     </li>
   );
 };
 
-// The Approvals view: a read-only list of every request for the project's
-// tasks and milestones, and for administrators the milestone request form.
+// The Approvals view: every request for the project's tasks and milestones,
+// with Withdraw where the server allows it, and for administrators the
+// milestone request form.
 export const ProjectApprovals = async ({
   projectId,
 }: {

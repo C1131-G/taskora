@@ -109,8 +109,14 @@ test.describe("Bugs (/bugs)", () => {
         expect(dialog.getByLabel(label)).toHaveAttribute("required", "")
       )
     );
+    // The form has three steps; the duplicate search sits on the last one.
+    await dialog.getByLabel("Title").fill("Escape closes the report dialog");
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await dialog.getByLabel("Page or component").fill("Bugs page");
+    await dialog.getByLabel("URL or route").fill("/bugs");
+    await dialog.getByRole("button", { name: "Next" }).click();
     await expect(
-      dialog.getByRole("button", { name: "Find earlier reports" })
+      dialog.getByRole("button", { name: "Check for earlier reports" })
     ).toBeVisible();
 
     await page.keyboard.press("Escape");

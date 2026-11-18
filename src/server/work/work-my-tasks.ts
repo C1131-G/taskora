@@ -1,13 +1,14 @@
 import { and } from "@prisma/orm-postgres/orm-client";
 import { Effect } from "effect";
 
-import { getUtcToday } from "@/src/lib/utc-today";
 import { db } from "@/src/prisma/db";
 
 import type { MobileMyWork } from "../../mobile-api/routes-tasks";
 import type { AppError } from "../core/action-result";
+import { getCompanyToday } from "./work-company-today";
 import { decodeTaskPriority, decodeTaskStatus } from "./work-contracts";
-import { databaseError } from "./work-internal";
+import { databaseError, listActiveProjectIds } from "./work-internal";
+import { isOverdue } from "./work-overdue";
 
 export type MyWorkScope = "assigned" | "due" | "overdue";
 
@@ -27,19 +28,21 @@ export const listMyWork = (
   Effect.tryPromise({
     catch: databaseError,
     try: async (): Promise<MobileMyWork> => {
-      const today = getUtcToday();
-      const assignments = await db.orm.public.TaskAssignee.where({
-        userId: actorId,
-      })
-        .select("taskId")
-        .all();
-      if (assignments.length === 0) {
+      const [assignments, activeProjectIds, today] = await Promise.all([
+        db.orm.public.TaskAssignee.where({ userId: actorId })
+          .select("taskId")
+          .all(),
+        listActiveProjectIds(),
+        getCompanyToday(),
+      ]);
+      if (assignments.length === 0 || activeProjectIds.length === 0) {
         return { items: [], nextOffset: null };
       }
       const tasks = await db.orm.public.Task.where((task) =>
         and(
           task.id.in(assignments.map(({ taskId }) => taskId)),
           task.archivedAt.isNull(),
+          task.projectId.in(activeProjectIds),
           task.type.eq("task"),
           task.status.neq("done"),
           ...(query.scope === "assigned"
@@ -69,7 +72,7 @@ export const listMyWork = (
         items: page.map((task) => ({
           dueDate: task.dueDate,
           id: task.id,
-          isOverdue: task.dueDate !== null && task.dueDate < today,
+          isOverdue: isOverdue(task, today),
           priority: decodeTaskPriority(task.priority),
           projectId: task.projectId,
           projectName: byId.get(task.projectId)?.name ?? "",

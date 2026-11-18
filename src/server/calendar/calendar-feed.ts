@@ -6,6 +6,7 @@ import { Context, Effect, Layer, Schema } from "effect";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import { listActiveProjectIds } from "../work/work-internal";
 import { buildCalendar } from "./ical";
 import type { FeedEvent, FeedTask } from "./ical";
 
@@ -119,16 +120,18 @@ const revoke = (userId: string) =>
   });
 
 const loadTasks = async (userId: string): Promise<readonly FeedTask[]> => {
-  const assignments = await db.orm.public.TaskAssignee.where({ userId })
-    .select("taskId")
-    .all();
-  if (assignments.length === 0) {
+  const [assignments, activeProjectIds] = await Promise.all([
+    db.orm.public.TaskAssignee.where({ userId }).select("taskId").all(),
+    listActiveProjectIds(),
+  ]);
+  if (assignments.length === 0 || activeProjectIds.length === 0) {
     return [];
   }
   const tasks = await db.orm.public.Task.where((task) =>
     and(
       task.id.in(assignments.map(({ taskId }) => taskId)),
       task.archivedAt.isNull(),
+      task.projectId.in(activeProjectIds),
       task.dueDate.isNotNull(),
       task.status.neq("done")
     )

@@ -6,6 +6,7 @@ import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
 import type { StorageApi } from "./storage";
+import type { UploadIntentState } from "./upload-states";
 import { assertClientUploadAllowed } from "./uploads-client-access";
 import type {
   AvatarUploadInput,
@@ -50,7 +51,7 @@ const createUploadIntent = async (
     projectId: upload.projectId,
     removedAt: null,
     sizeBytes: BigInt(upload.sizeBytes),
-    state: "pending",
+    state: "pending" satisfies UploadIntentState,
     taskId: upload.taskId,
     updatedAt: now,
   });
@@ -172,11 +173,17 @@ export const makeUploadRequestOperations = (storage: StorageApi) => {
             if (actor.role === "client") {
               await assertClientUploadAllowed(transaction, task.id, input);
             }
+            // Locked last, so a concurrent task move either sees this pending
+            // intent or has already moved the task.
+            const projectId = await internal.lockTaskProject(
+              transaction,
+              task.id
+            );
             return createUploadIntent(transaction, actorId, {
               contentType: input.contentType,
               fileName: input.fileName,
               objectKey: `company/tasks/${task.id}/${randomUUID()}`,
-              projectId: task.projectId,
+              projectId,
               sizeBytes: input.sizeBytes,
               taskId: task.id,
             });

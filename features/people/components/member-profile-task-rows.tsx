@@ -4,6 +4,7 @@ import { CalendarBlank } from "@phosphor-icons/react/dist/ssr";
 
 import { Badge } from "@/components/ui/badge";
 import { MemberProfileTaskDetails } from "@/features/people/components/member-profile-task-details";
+import { TASK_STATUS_LABELS } from "@/src/mobile-api/task-statuses";
 import type { ProjectTaskListItemSchema } from "@/src/server/work/work-contracts";
 
 type ProjectTask = typeof ProjectTaskListItemSchema.Type;
@@ -13,29 +14,8 @@ export type MemberTask = ProjectTask & {
   readonly projectName: string;
 };
 
-const formatTaskStatus = (status: MemberTask["status"]): string => {
-  switch (status) {
-    case "backlog": {
-      return "Backlog";
-    }
-    case "done": {
-      return "Done";
-    }
-    case "progress": {
-      return "In Progress";
-    }
-    case "review": {
-      return "Review";
-    }
-    case "todo": {
-      return "To Do";
-    }
-    default: {
-      const _exhaustive: never = status;
-      return _exhaustive;
-    }
-  }
-};
+const formatTaskStatus = (status: MemberTask["status"]): string =>
+  TASK_STATUS_LABELS[status];
 
 const MemberTaskRows = ({
   employees,

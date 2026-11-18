@@ -1,6 +1,4 @@
-import { Schema } from "effect";
-
-import { BugWorkflowStatusSchema } from "./bug-contracts";
+import type { BugWorkflowStatusSchema } from "./bug-contracts";
 
 type Status = typeof BugWorkflowStatusSchema.Type;
 
@@ -34,11 +32,67 @@ const EDGES: Readonly<Record<Status, readonly Status[]>> = {
   withdrawn: [],
 };
 
-export const BUG_STATUSES: readonly Status[] = BugWorkflowStatusSchema.literals;
+export const isBugStatus = (value: string): value is Status =>
+  Object.hasOwn(EDGES, value);
+
+export const BUG_STATUSES: readonly Status[] =
+  Object.keys(EDGES).filter(isBugStatus);
 
 export const BUG_STATUS_EDGES = EDGES;
 
-const isStatus = Schema.is(BugWorkflowStatusSchema);
-
 export const canMoveBug = (from: string, to: string): boolean =>
-  isStatus(from) && isStatus(to) && EDGES[from].includes(to);
+  isBugStatus(from) && isBugStatus(to) && EDGES[from].includes(to);
+
+// Status groups that more than one place asks about. The server and the UI
+// import them from here (this module has no runtime dependencies), so a list
+// cannot drift between copies. Each entry is checked against the status union.
+interface StatusGroup extends Iterable<Status> {
+  // Takes any string so a raw database or wire value can be asked directly.
+  readonly has: (status: string) => boolean;
+}
+
+const statusGroup = (statuses: readonly Status[]): StatusGroup => ({
+  has: (status) => statuses.some((member) => member === status),
+  [Symbol.iterator]: () => statuses[Symbol.iterator](),
+});
+
+// Finished for good: the task counts as done and nothing is owed any more.
+export const COMPLETED_BUG_STATUSES = statusGroup([
+  "closed",
+  "duplicate",
+  "withdrawn",
+]);
+
+// Staff cannot edit the bug here; only an admin decision (approve, release,
+// post-release check, reopen) or the client moves it on.
+export const READ_ONLY_BUG_STATUSES = statusGroup([
+  "closed",
+  "duplicate",
+  "awaiting_admin_approval",
+  "approved_for_release",
+  "released",
+  "awaiting_client",
+  "withdrawn",
+]);
+
+// Where an assignee may ask the client a question (to needs_info).
+export const ASK_CLIENT_FROM_STATUSES = statusGroup([
+  "triaged",
+  "in_progress",
+  "in_verification",
+]);
+
+// Where an assignee may close a client report as not a bug.
+export const CLOSE_NOT_A_BUG_FROM_STATUSES = statusGroup([
+  "reported",
+  "triaged",
+  "in_progress",
+  "needs_info",
+]);
+
+// Where an admin may reopen a bug back to in_progress.
+export const ADMIN_REOPEN_FROM_STATUSES = statusGroup([
+  "closed",
+  "awaiting_client",
+  "needs_info",
+]);

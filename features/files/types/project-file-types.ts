@@ -1,3 +1,5 @@
+import type { FileCopyState } from "@/src/server/storage/upload-states";
+
 interface ProjectFile {
   readonly id: string;
   readonly projectId: string;
@@ -7,7 +9,7 @@ interface ProjectFile {
   readonly sizeBytes: number;
   readonly uploadedById: string;
   readonly createdAt: string;
-  readonly copyState: "pending" | "ready" | "failed";
+  readonly copyState: FileCopyState;
 }
 
 type FileLayout = "grid" | "list";

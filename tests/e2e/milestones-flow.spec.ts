@@ -10,6 +10,9 @@ import {
   touchDrag,
 } from "./milestone-touch-helpers";
 
+// "Fixture task 5" without matching Fixture task 50 to 59.
+const FIXTURE_TASK_5 = /Fixture task 5(?!\d)/u;
+
 test.describe("timeline milestones as admin", () => {
   test.use({ storageState: ADMIN_STATE });
 
@@ -175,6 +178,7 @@ test.describe("touch dragging as admin", () => {
     const chip = page
       .locator(".cal-chip", {
         has: page.getByRole("button", {
+          exact: true,
           name: "Open details for Fixture task 5",
         }),
       })
@@ -196,13 +200,13 @@ test.describe("touch dragging as admin", () => {
     try {
       await expect(
         page.locator(`[data-day="${target}"] .cal-chip`, {
-          hasText: "Fixture task 5",
+          hasText: FIXTURE_TASK_5,
         })
       ).toBeVisible({ timeout: 30_000 });
     } finally {
       const moved = page
         .locator(`[data-day="${target}"] .cal-chip`, {
-          hasText: "Fixture task 5",
+          hasText: FIXTURE_TASK_5,
         })
         .first();
       if ((await moved.count()) > 0) {
@@ -210,7 +214,7 @@ test.describe("touch dragging as admin", () => {
         await touchDrag(page, await centre(moved), back, 600);
         await expect(
           page.locator(`[data-day="${from}"] .cal-chip`, {
-            hasText: "Fixture task 5",
+            hasText: FIXTURE_TASK_5,
           })
         ).toBeVisible({ timeout: 30_000 });
       }
@@ -224,6 +228,7 @@ test.describe("touch dragging as admin", () => {
     const chip = page
       .locator(".cal-chip", {
         has: page.getByRole("button", {
+          exact: true,
           name: "Open details for Fixture task 5",
         }),
       })
@@ -245,7 +250,7 @@ test.describe("touch dragging as admin", () => {
     await page.waitForTimeout(1500);
     await expect(
       page.locator(`[data-day="${from}"] .cal-chip`, {
-        hasText: "Fixture task 5",
+        hasText: FIXTURE_TASK_5,
       })
     ).toBeVisible();
   });

@@ -14,7 +14,7 @@ import {
   encodeInboxCursor,
 } from "../notifications/inbox-cursor";
 import { decodeTaskPriority, decodeTaskStatus } from "./work-contracts";
-import { databaseError } from "./work-internal";
+import { databaseError, listActiveProjectIds } from "./work-internal";
 
 export interface TaskListQuery {
   readonly cursor?: string | undefined;
@@ -24,7 +24,7 @@ export interface TaskListQuery {
   readonly status?: typeof TaskStatusSchema.Type | undefined;
 }
 
-// Ordinary, unarchived tasks across every project, newest first. The id breaks
+// Ordinary, unarchived tasks across every active project, newest first. The id breaks
 // ties, so a page never repeats or skips a task even when many share one
 // creation time.
 export const listTaskPage = (
@@ -42,12 +42,14 @@ export const listTaskPage = (
             .all()
         : null;
       const mineIds = ownAssignments?.map(({ taskId }) => taskId) ?? null;
-      if (mineIds?.length === 0) {
+      const activeProjectIds = await listActiveProjectIds();
+      if (mineIds?.length === 0 || activeProjectIds.length === 0) {
         return { items: [], nextCursor: null };
       }
       const rows = await db.orm.public.Task.where((task) =>
         and(
           task.archivedAt.isNull(),
+          task.projectId.in(activeProjectIds),
           task.type.eq("task"),
           ...(query.projectId ? [task.projectId.eq(query.projectId)] : []),
           ...(query.status ? [task.status.eq(query.status)] : []),

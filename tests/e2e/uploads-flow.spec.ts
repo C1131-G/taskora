@@ -89,13 +89,12 @@ test.describe("project file uploads", () => {
     });
     await choose(page, name);
 
-    const uploads = page.getByRole("region", { name: "Uploads" });
-    await expect(uploads.getByText(/Upload failed for/u)).toBeVisible({
-      timeout: 30_000,
-    });
-    await uploads
-      .getByRole("button", { name: `Retry upload of ${name}` })
-      .click();
+    // The failure is announced in a toast that carries the Retry action.
+    const failure = page
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: `Upload failed for ${name}` });
+    await expect(failure).toBeVisible({ timeout: 30_000 });
+    await failure.getByRole("button", { name: "Retry" }).click();
     const card = page.locator("article.file-card", { hasText: name });
     await expect(card).toBeVisible({ timeout: 30_000 });
 

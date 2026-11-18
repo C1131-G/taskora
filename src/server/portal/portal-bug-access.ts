@@ -16,8 +16,6 @@ export const severityForImpact = {
   urgent: "blocker",
 } as const;
 
-export const ARCHIVED_OR_CLOSED = new Set(["closed", "duplicate", "withdrawn"]);
-
 const portalError = (error: unknown): AppError => {
   if (error instanceof AppError) {
     return error;

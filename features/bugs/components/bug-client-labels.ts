@@ -1,8 +1,6 @@
 import { formatBugDate } from "../bug-workflow-ui-shared";
 import type { BugHistory } from "../bug-workflow-ui-shared";
 
-export const CLOSED_STATUSES = new Set(["closed", "duplicate", "withdrawn"]);
-
 export const IMPACT_LABELS = {
   high: "High impact",
   low: "Low impact",
