@@ -7,7 +7,7 @@ import { PORTAL_PREVIEW_COOKIE } from "@/src/server/auth/session";
 
 const LOGIN_PATH: Route = "/login";
 const CHANGE_PASSWORD_PATH: Route = "/change-password";
-const INACTIVITY_LOGIN_PATH = "/login?reason=inactivity" as Route;
+const INACTIVITY_LOGIN_PATH: Route = "/login?reason=inactivity";
 const WORKSPACE_PATH: Route = "/";
 
 // Sends anyone who is not a signed-in client to their own home. It renders

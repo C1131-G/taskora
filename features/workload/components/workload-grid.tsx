@@ -1,7 +1,5 @@
 /* eslint-disable shadcn/no-unknown-classes */
 
-import type { CSSProperties } from "react";
-
 import {
   SKELETON_KEYS,
   SkeletonBone,
@@ -162,14 +160,12 @@ const WorkloadGrid = async () => {
                         </span>
                         <span aria-hidden="true" className="workload-bar">
                           <span
-                            style={
-                              {
-                                "--workload-bar-width": workloadWidth(
-                                  week.loadHours,
-                                  workload.capacityHours
-                                ),
-                              } as CSSProperties
-                            }
+                            style={{
+                              "--workload-bar-width": workloadWidth(
+                                week.loadHours,
+                                workload.capacityHours
+                              ),
+                            }}
                           />
                         </span>
                         {week.overloaded ? (

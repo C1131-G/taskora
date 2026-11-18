@@ -1,6 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal pages reuse the workspace stylesheet classes. */
 
-import type { Metadata, Route } from "next";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { PageTransition } from "@/components/ui/page-transition";
@@ -32,7 +32,7 @@ const Page = ({ searchParams }: PageProps<"/portal">) => (
             const as = parsePortalPreviewTarget(params);
             if (as) {
               // The documented entry URL for "View as client".
-              redirect(`/portal/preview?as=${encodeURIComponent(as)}` as Route);
+              redirect(`/portal/preview?as=${encodeURIComponent(as)}`);
             }
             return <PortalBugList filters={parsePortalBugFilters(params)} />;
           })}

@@ -123,6 +123,8 @@ interface Bucket {
   count: number;
 }
 
+const emptyBucket = (): Bucket => ({ count: 0, hours: 0 });
+
 export const aggregateWorkload = (input: {
   readonly capacityHours: number;
   readonly people: readonly WorkloadPerson[];
@@ -140,8 +142,8 @@ export const aggregateWorkload = (input: {
       id,
       {
         overdue: 0,
-        unscheduled: { count: 0, hours: 0 } as Bucket,
-        weeks: weekStarts.map((): Bucket => ({ count: 0, hours: 0 })),
+        unscheduled: emptyBucket(),
+        weeks: weekStarts.map(emptyBucket),
       },
     ])
   );
