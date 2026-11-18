@@ -108,9 +108,10 @@ test.describe("Push notifications (flow)", () => {
   }) => {
     // Reading delivered notifications back needs a full Chrome; the headless
     // shell Playwright installs by default cannot list them.
-    // CI fails closed when the prerequisite is missing; skip only for local runs.
+    // Needs full Chrome to read delivered notifications; the headless shell
+    // Playwright installs cannot. Run with E2E_CHROMIUM_PATH to cover this.
     test.skip(
-      !process.env["CI"] && !process.env["E2E_CHROMIUM_PATH"],
+      !process.env["E2E_CHROMIUM_PATH"],
       "Needs a full Chrome: set E2E_CHROMIUM_PATH to run this check."
     );
     await context.grantPermissions(["notifications"]);

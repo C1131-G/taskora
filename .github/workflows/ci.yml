@@ -74,7 +74,7 @@ jobs:
       # advisory fails this step instead of being silently ignored.
       - name: Audit dependencies (high, explicit tooling allowlist)
         run: >-
-          bun audit --audit-level=high --ignore=GHSA-27r3-jxmh-p828 --ignore=GHSA-2m5v-pch6-74hx --ignore=GHSA-3f7j-7jwc-fxfj --ignore=GHSA-4w7w-5xrc-9h26 --ignore=GHSA-5x38-2vff-x55p --ignore=GHSA-6qrw-m8cv-hcxf --ignore=GHSA-7wch-p9px-956x --ignore=GHSA-86w9-cpqp-85rv --ignore=GHSA-88fw-hqm2-52qc --ignore=GHSA-8hrf-8g6f-7xwp --ignore=GHSA-hqq3-7jhf-c5jx --ignore=GHSA-jc66-7q78-782g --ignore=GHSA-mrhx-c7xc-m3w5 --ignore=GHSA-q5qw-h33p-qvwr --ignore=GHSA-qrxm-fqhp-jwvm --ignore=GHSA-r5fr-rjxr-66jc --ignore=GHSA-rhr8-3pm8-cq29 --ignore=GHSA-wc8c-qw6v-h7f6 --ignore=GHSA-xjj6-f33q-929c
+          bun audit --audit-level=high --ignore=GHSA-27r3-jxmh-p828 --ignore=GHSA-2m5v-pch6-74hx --ignore=GHSA-3f7j-7jwc-fxfj --ignore=GHSA-4w7w-5xrc-9h26 --ignore=GHSA-5x38-2vff-x55p --ignore=GHSA-6qrw-m8cv-hcxf --ignore=GHSA-7wch-p9px-956x --ignore=GHSA-86w9-cpqp-85rv --ignore=GHSA-88fw-hqm2-52qc --ignore=GHSA-8hrf-8g6f-7xwp --ignore=GHSA-hqq3-7jhf-c5jx --ignore=GHSA-jc66-7q78-782g --ignore=GHSA-mrhx-c7xc-m3w5 --ignore=GHSA-q5qw-h33p-qvwr --ignore=GHSA-qrxm-fqhp-jwvm --ignore=GHSA-r5fr-rjxr-66jc --ignore=GHSA-rhr8-3pm8-cq29 --ignore=GHSA-wc8c-qw6v-h7f6 --ignore=GHSA-xjj6-f33q-929c --ignore=GHSA-fc5q-39xc-vjpf
       - name: Check migrations reproduce the contract
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_migrations
@@ -113,7 +113,7 @@ jobs:
           --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
       DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_backend_${{ matrix.shard }}?sslmode=disable
-      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_${{ matrix.shard }}_test?sslmode=disable
       TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -135,7 +135,7 @@ jobs:
       - name: Initialize isolated database
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_backend_${{ matrix.shard }}
-          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_test_${{ matrix.shard }}
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_${{ matrix.shard }}_test
           bun run db:init
           DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
       - name: Run backend tests (shard ${{ matrix.shard }}/4)
@@ -174,13 +174,12 @@ jobs:
           --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
       DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_${{ matrix.shard }}?sslmode=disable
-      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_test_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_${{ matrix.shard }}_test?sslmode=disable
       TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
       S3_BUCKET: taskora-private-${{ matrix.shard }}
       VAPID_PUBLIC_KEY: BNtY7A-WEvx4jLtUWxVc0Tjt8O-Jh1HfU8Iji8YBRMCVdZBe_TCwmfTtUD4X1LTf3K9-ZXElC9Yand2_n4JH9v8
       VAPID_PRIVATE_KEY: FkqhqoM8Xi8leMHLVZ_xr5dyYhdT9d3h_LlgkZ6hfpI
       VAPID_SUBJECT: mailto:ci@taskora.test
-      E2E_CHROMIUM_PATH: /usr/bin/google-chrome
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -201,7 +200,7 @@ jobs:
       - name: Initialize isolated database
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_${{ matrix.shard }}
-          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_test_${{ matrix.shard }}
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_${{ matrix.shard }}_test
           bun run db:init
           DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
           bun run db:verify

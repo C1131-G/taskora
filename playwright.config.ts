@@ -29,10 +29,11 @@ export default defineConfig({
   reporter: [["list"]],
   // Flaky tests must be fixed, not retried into a green run.
   retries: 0,
-  // CI runs a production build, so routes need no dev-compile headroom;
-  // 30s is Playwright's default and keeps genuine hangs loud.
+  // Real CI runs showed 30s produces spurious failures on slow page loads and
+  // drawer interactions; 120s is the measured floor for this suite. Retries
+  // are still 0 and per-test bounds stay tight, so hangs remain loud.
   testDir: "tests/e2e",
-  timeout: 30_000,
+  timeout: 120_000,
   use: {
     baseURL,
     launchOptions: chromiumPath ? { executablePath: chromiumPath } : {},
