@@ -5,6 +5,7 @@ import { decodeBugWorkflowStatus } from "../work/bug-workflow-internal";
 import type { Transaction } from "../work/work-internal";
 import type { loadCompanyBug } from "./portal-bug-access";
 import type { PortalActor, PortalBugDetail } from "./portal-contracts";
+import { isOneOf, isRecord } from "@/src/lib/type-guards";
 
 const PREVIEW_TYPES = new Set([
   "application/pdf",
@@ -65,7 +66,7 @@ export const clientTimeline = <
     status: ReturnType<typeof clientStatusLabel>;
   }[] = [];
   for (const activity of activities) {
-    const details = (activity.details ?? {}) as Record<string, unknown>;
+    const details = isRecord(activity.details) ? activity.details : {};
     let next: ReturnType<typeof clientStatusLabel> | null = null;
     if (activity.action === "bug.reported") {
       next = "submitted";
@@ -85,12 +86,12 @@ export const clientTimeline = <
 
 export const timelineActions = ["bug.reported", "bug.status_changed"];
 
-const CLOSED_REASONS = new Set([
+const CLOSED_REASONS = [
   "confirmed",
   "unconfirmed",
   "no_response",
   "not_a_bug",
-]);
+] as const;
 
 // What the client can do next, and why a finished bug is finished.
 export const buildLifecycle = async (
@@ -144,13 +145,8 @@ export const buildLifecycle = async (
     canReportAgain: status === "closed",
     closedReason:
       status === "closed" &&
-      bug.resolution &&
-      CLOSED_REASONS.has(bug.resolution)
-        ? (bug.resolution as
-            | "confirmed"
-            | "unconfirmed"
-            | "no_response"
-            | "not_a_bug")
+      isOneOf(CLOSED_REASONS, bug.resolution)
+        ? bug.resolution
         : null,
     duplicateOf,
     question:

@@ -2,6 +2,7 @@ import { Schema } from "effect";
 
 import type { PullState } from "./github-contracts";
 import { isRepoFullName } from "./github-contracts";
+import { isRecord } from "@/src/lib/type-guards";
 
 // Only the fields a link needs. Everything else in a GitHub payload is
 // ignored, and nothing here is trusted until the signature has been checked.
@@ -43,14 +44,14 @@ export interface PullEvent {
 
 /** The repository a delivery claims to come from, or null when it names none. */
 export const claimedRepository = (value: unknown): string | null => {
-  if (typeof value !== "object" || value === null) {
+  if (!isRecord(value)) {
     return null;
   }
-  const { repository } = value as Record<string, unknown>;
-  if (typeof repository !== "object" || repository === null) {
+  const { repository } = value;
+  if (!isRecord(repository)) {
     return null;
   }
-  const name = (repository as Record<string, unknown>)["full_name"];
+  const name = repository["full_name"];
   return typeof name === "string" && isRepoFullName(name) ? name : null;
 };
 

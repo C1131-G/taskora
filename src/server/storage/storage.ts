@@ -14,6 +14,7 @@ import { Context, Effect, Layer } from "effect";
 
 import { AppError } from "../core/action-result";
 import { FILE_SIGNATURE_BYTES, matchesFileSignature } from "./file-signature";
+import { isRecord } from "@/src/lib/type-guards";
 
 export interface StorageApi {
   readonly listObjects?: (
@@ -59,10 +60,9 @@ const storageError = () =>
 
 // Storage answers 404 for a key that was never written.
 const isMissingObject = (error: unknown): boolean =>
-  typeof error === "object" &&
-  error !== null &&
-  "$metadata" in error &&
-  (error.$metadata as { httpStatusCode?: number }).httpStatusCode === 404;
+  isRecord(error) &&
+  isRecord(error["$metadata"]) &&
+  error["$metadata"]["httpStatusCode"] === 404;
 
 const objectNotUploaded = () =>
   new AppError({

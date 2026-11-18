@@ -4,6 +4,7 @@ import { Cause, Data, Effect, Exit } from "effect";
 import { io } from "next/cache";
 
 import { logger } from "./logger";
+import { isOneOf, isRecord } from "@/src/lib/type-guards";
 
 export type AppErrorCode =
   | "UNAUTHENTICATED"
@@ -31,16 +32,13 @@ export class AppError extends Data.TaggedError("AppError")<{
 // sign in again, that the account was switched off, or that they were idle.
 // `session_ended` covers a token that is missing, unknown, expired or revoked:
 // the session store cannot tell those apart.
-export type UnauthenticatedReason =
-  | "session_ended"
-  | "deactivated"
-  | "inactivity";
-
-const UNAUTHENTICATED_REASONS: ReadonlySet<string> = new Set([
+const UNAUTHENTICATED_REASONS = [
   "session_ended",
   "deactivated",
   "inactivity",
-]);
+] as const;
+
+export type UnauthenticatedReason = (typeof UNAUTHENTICATED_REASONS)[number];
 
 export interface ActionFailure {
   readonly code: AppErrorCode;
@@ -54,15 +52,14 @@ export interface ActionFailure {
 
 const detailsOf = (error: AppError): Partial<ActionFailure> => {
   const { details } = error;
-  if (typeof details !== "object" || details === null) {
+  if (!isRecord(details)) {
     return {};
   }
-  const { reason, retryAfterSeconds } = details as Record<string, unknown>;
+  const { reason, retryAfterSeconds } = details;
   return {
     ...(error.code === "UNAUTHENTICATED" &&
-    typeof reason === "string" &&
-    UNAUTHENTICATED_REASONS.has(reason)
-      ? { reason: reason as UnauthenticatedReason }
+    isOneOf(UNAUTHENTICATED_REASONS, reason)
+      ? { reason }
       : {}),
     ...(error.code === "RATE_LIMITED" && typeof retryAfterSeconds === "number"
       ? { retryAfterSeconds }

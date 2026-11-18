@@ -15,6 +15,7 @@ import {
 } from "./github-payload";
 import { syncPull } from "./github-pull-sync";
 import { verifyGithubSignature } from "./github-signature";
+import { isRecord } from "@/src/lib/type-guards";
 
 export interface GithubDeliveryRequest {
   readonly rawBody: Uint8Array;
@@ -86,10 +87,7 @@ const receive = async (
   if (request.event === "ping") {
     return { status: "pong" };
   }
-  const action =
-    typeof payload === "object" && payload !== null
-      ? (payload as Record<string, unknown>)["action"]
-      : undefined;
+  const action = isRecord(payload) ? payload["action"] : undefined;
   if (request.event !== "pull_request" || !isHandledAction(action)) {
     return { status: "ignored" };
   }

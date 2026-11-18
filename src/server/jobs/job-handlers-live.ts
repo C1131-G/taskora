@@ -50,6 +50,7 @@ import {
 import { DATA_RETENTION_JOB, purgeExpiredData } from "./data-retention";
 import { JobHandlers } from "./job-handlers";
 import type { JsonValue } from "./job-handlers";
+import { isOneOf } from "@/src/lib/type-guards";
 
 const ISO_DATE_LENGTH = 10;
 const EmptyPayloadSchema = Schema.Struct({});
@@ -116,6 +117,8 @@ const clientWaitJobs = {
   [NEEDS_INFO_AUTOCLOSE_JOB]: autoCloseNeedsInfo,
   [NEEDS_INFO_REMINDER_JOB]: remindNeedsInfo,
 } as const;
+const isClientWaitJob = (kind: string): kind is keyof typeof clientWaitJobs =>
+  isOneOf(Object.keys(clientWaitJobs), kind);
 const UnpickedReminderPayloadSchema = Schema.Struct({
   bugId: Schema.String.check(Schema.isUUID()),
 });
@@ -210,8 +213,8 @@ export const JobHandlersLive = Layer.effect(
             )
           );
         }
-        if (kind in clientWaitJobs) {
-          const run = clientWaitJobs[kind as keyof typeof clientWaitJobs];
+        if (isClientWaitJob(kind)) {
+          const run = clientWaitJobs[kind];
           return Effect.try({
             catch: () =>
               new AppError({

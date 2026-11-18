@@ -77,12 +77,13 @@ export const withResolvedClientIp = (
     headers.set(RESOLVED_CLIENT_IP_HEADER, ip);
   }
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
-  const copy = new Request(request.url, {
+  // `duplex` is required to stream a body but missing from the DOM typings.
+  const init: RequestInit & { readonly duplex: "half" } = {
     body: hasBody ? request.body : null,
     duplex: "half",
     headers,
     method: request.method,
     signal: request.signal,
-  } as RequestInit);
-  return copy;
+  };
+  return new Request(request.url, init);
 };
