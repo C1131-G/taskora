@@ -4,6 +4,7 @@ import type { AppFailure } from "@/errors";
 import { listInbox } from "@/features/inbox/queries";
 import { listTasks, type TaskSummary } from "@/features/tasks/queries";
 import type { ListRow } from "@/features/workspace/domain-list-screen";
+import type { MobileClient } from "@api/client";
 import type { MobileApi } from "@/services/mobile-api";
 
 type Api = MobileApi["Service"];
@@ -16,16 +17,13 @@ export interface ApprovalRequest {
   readonly status: "approved" | "pending" | "rejected";
 }
 
-interface MoreClient {
-  readonly listBugApprovals: () => Promise<{ items: readonly ApprovalRequest[] }>;
-}
 
-const call = <A>(api: Api, run: (client: MoreClient) => Promise<A>): Effect.Effect<A, AppFailure> =>
-  api.call((client) => run(client as unknown as MoreClient));
+const call = <A>(api: Api, run: (client: MobileClient) => Promise<A>): Effect.Effect<A, AppFailure> =>
+  api.call(run);
 
 /** Bug approval requests with status. */
 export const bugApprovalsProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listBugApprovals()), (page) => ({
+  Effect.map(call(api, (client) => client.listBugApprovals({ query: {} })), (page) => ({
     rows: page.items.map<ListRow>((item) => ({
       id: item.id,
       subtitle: `${item.projectName} · ${item.reportedBy} · ${item.status}`,
