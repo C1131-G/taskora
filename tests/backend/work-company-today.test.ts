@@ -5,6 +5,11 @@ import { getCompanyToday } from "../../src/server/work/work-company-today";
 
 // Overdue is judged on the company calendar, not the server's UTC day.
 it("reads today on the company time zone", async () => {
+  // The settings row is created on first use, so make sure it exists when this
+  // file runs before any other test has touched it.
+  await authPool.query(
+    "INSERT INTO company_settings (id) VALUES ('company') ON CONFLICT DO NOTHING"
+  );
   const saved = await authPool.query<{ timeZone: string }>(
     "SELECT \"timeZone\" FROM company_settings WHERE id = 'company'"
   );
