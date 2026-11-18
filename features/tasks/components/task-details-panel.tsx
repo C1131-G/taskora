@@ -4,56 +4,29 @@
 "use client";
 
 import { use, useState } from "react";
-import type { ReactNode } from "react";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ErrorToast } from "@/components/workspace/error-toast";
 import { TaskApprovals } from "@/features/approvals/components/task-approvals";
 import { BugTaskDetail } from "@/features/bugs/components/bug-task-detail";
 import { TaskCustomFields } from "@/features/custom-fields/components/task-custom-fields";
-import { ProjectFiles } from "@/features/files/components/project-files";
-import { TaskLinkedPulls } from "@/features/github/components/task-linked-pulls";
 import { TaskCommentsSection } from "@/features/tasks/components/task-details-comments";
 import { TaskDetailsHeading } from "@/features/tasks/components/task-details-heading";
+import type { TaskDetailsPanelProps } from "@/features/tasks/components/task-details-panel-props";
 import { TaskDiscardDialog } from "@/features/tasks/components/task-discard-dialog";
 import { TaskDrawerTabs } from "@/features/tasks/components/task-drawer-tabs";
 import type { TaskDrawerTab } from "@/features/tasks/components/task-drawer-tabs";
+import {
+  TaskBugExtras,
+  TaskFilesSection,
+} from "@/features/tasks/components/task-panel-sections";
+import { TaskPanelError } from "@/features/tasks/components/task-panel-support";
+import { isVersionCurrent } from "@/features/tasks/components/task-panel-version";
 import { TaskWorkSections } from "@/features/tasks/components/task-work-sections";
 import { useTaskBundle } from "@/features/tasks/hooks/use-task-bundle";
 import { useTaskPanelOpen } from "@/features/tasks/hooks/use-task-panel-open";
 import { useTaskPanelSave } from "@/features/tasks/hooks/use-task-panel-save";
 import { useTaskSubtaskActions } from "@/features/tasks/hooks/use-task-subtask-actions";
-import type {
-  EmployeeOption,
-  TaskBundle,
-} from "@/features/tasks/task-details-panel-data";
 import { TaskTimeSection } from "@/features/time/components/task-time-section";
-
-const TaskPanelError = ({
-  message,
-  onRetry,
-  revision,
-}: {
-  readonly loading: boolean;
-  readonly message: string | null;
-  readonly onRetry: () => void;
-  readonly revision: number;
-}) => (
-  <ErrorToast
-    action={{ label: "Retry", onClick: onRetry }}
-    message={message}
-    resetKey={revision}
-  />
-);
-
-// The panel may edit when the task is not loaded yet, when the task is at the
-// version the caller holds, or when this panel itself produced that version.
-const isVersionCurrent = (
-  task: { readonly version: number } | null,
-  version: number,
-  trustedVersion: number | null
-): boolean =>
-  task === null || task.version === version || trustedVersion === version;
 
 /* eslint-disable react-doctor/no-giant-component -- This component coordinates the task drawer state while its sections stay delegated to focused components. */
 
@@ -76,26 +49,7 @@ export const TaskDetailsPanel = ({
   taskTitle,
   trigger,
   version,
-}: {
-  readonly currentUserId: string | null;
-  readonly bugId?: string;
-  readonly editable: boolean;
-  readonly employees: readonly EmployeeOption[];
-  // The server's read for a deep-linked task, used for the first load only.
-  readonly initialBundlePromise?: Promise<TaskBundle> | null;
-  readonly isAdmin: boolean;
-  // When open is passed, the caller owns the open state (for example a drawer
-  // driven by the URL). Otherwise the trigger opens the panel.
-  readonly onOpenChange?: (open: boolean) => void;
-  readonly onVersionChange: (version: number) => void;
-  readonly open?: boolean;
-  readonly projectId: string;
-  readonly taskId: string;
-  readonly taskType?: "task" | "bug";
-  readonly taskTitle?: string;
-  readonly trigger?: ReactNode;
-  readonly version: number;
-}) => {
+}: TaskDetailsPanelProps) => {
   // A deep-link bundle is resolved by the nearest Suspense boundary before
   // the panel mounts; its rejection is handled by the section boundary.
   const initialBundle = initialBundlePromise ? use(initialBundlePromise) : null;
@@ -175,6 +129,25 @@ export const TaskDetailsPanel = ({
     refresh,
   });
 
+  const renderWorkSections = (part: "details" | "subtasks" | "client") => (
+    <TaskWorkSections
+      editable={editable}
+      employees={employees}
+      onDirtyChange={setDetailsDirty}
+      onReload={() => refresh()}
+      onSaved={handleSaved}
+      onVersionChange={recordVersionChange}
+      part={part}
+      projectId={projectId}
+      subtaskActions={subtaskActions}
+      subtasks={subtasks}
+      task={task}
+      taskId={taskId}
+      version={version}
+      versionIsCurrent={isVersionCurrent(task, version, trustedVersion)}
+    />
+  );
+
   return (
     <section className="task-details-panel">
       <Sheet onOpenChange={requestOpenChange} open={isOpen}>
@@ -222,26 +195,7 @@ export const TaskDetailsPanel = ({
               ) : null}
               {bugDetailId ? null : (
                 <div hidden={tab !== "details"}>
-                  <TaskWorkSections
-                    editable={editable}
-                    employees={employees}
-                    onDirtyChange={setDetailsDirty}
-                    onReload={() => refresh()}
-                    onSaved={handleSaved}
-                    onVersionChange={recordVersionChange}
-                    part="details"
-                    projectId={projectId}
-                    subtaskActions={subtaskActions}
-                    subtasks={subtasks}
-                    task={task}
-                    taskId={taskId}
-                    version={version}
-                    versionIsCurrent={isVersionCurrent(
-                      task,
-                      version,
-                      trustedVersion
-                    )}
-                  />
+                  {renderWorkSections("details")}
                   <TaskCustomFields
                     customFields={customFields}
                     onChanged={refresh}
@@ -251,26 +205,7 @@ export const TaskDetailsPanel = ({
               )}
               {bugDetailId ? null : (
                 <div hidden={tab !== "subtasks"}>
-                  <TaskWorkSections
-                    editable={editable}
-                    employees={employees}
-                    onDirtyChange={setDetailsDirty}
-                    onReload={() => refresh()}
-                    onSaved={handleSaved}
-                    onVersionChange={recordVersionChange}
-                    part="subtasks"
-                    projectId={projectId}
-                    subtaskActions={subtaskActions}
-                    subtasks={subtasks}
-                    task={task}
-                    taskId={taskId}
-                    version={version}
-                    versionIsCurrent={isVersionCurrent(
-                      task,
-                      version,
-                      trustedVersion
-                    )}
-                  />
+                  {renderWorkSections("subtasks")}
                 </div>
               )}
               <div hidden={tab !== "time" && !bugDetailId}>
@@ -302,43 +237,20 @@ export const TaskDetailsPanel = ({
                 />
               </div>
               <div hidden={tab !== "files" && !bugDetailId}>
-                <section className="stack">
-                  <h3>Attachments</h3>
-                  <ProjectFiles
-                    canUpload={editable}
-                    controlledFiles={files}
-                    currentUserId={currentUserId}
-                    initialFiles={files}
-                    isAdmin={isAdmin}
-                    projectId={projectId}
-                    setControlledFiles={setFiles}
-                    taskId={taskId}
-                  />
-                </section>
-                <TaskLinkedPulls pulls={pulls} />
+                <TaskFilesSection
+                  currentUserId={currentUserId}
+                  editable={editable}
+                  files={files}
+                  isAdmin={isAdmin}
+                  projectId={projectId}
+                  pulls={pulls}
+                  setFiles={setFiles}
+                  taskId={taskId}
+                />
               </div>
               {bugDetailId ? null : (
                 <div hidden={tab !== "client"}>
-                  <TaskWorkSections
-                    editable={editable}
-                    employees={employees}
-                    onDirtyChange={setDetailsDirty}
-                    onReload={() => refresh()}
-                    onSaved={handleSaved}
-                    onVersionChange={recordVersionChange}
-                    part="client"
-                    projectId={projectId}
-                    subtaskActions={subtaskActions}
-                    subtasks={subtasks}
-                    task={task}
-                    taskId={taskId}
-                    version={version}
-                    versionIsCurrent={isVersionCurrent(
-                      task,
-                      version,
-                      trustedVersion
-                    )}
-                  />
+                  {renderWorkSections("client")}
                   <TaskApprovals
                     approvals={approvals}
                     files={files}
@@ -348,20 +260,14 @@ export const TaskDetailsPanel = ({
                 </div>
               )}
               {bugDetailId ? (
-                <>
-                  <TaskLinkedPulls pulls={pulls} />
-                  <TaskCustomFields
-                    customFields={customFields}
-                    onChanged={refresh}
-                    taskId={taskId}
-                  />
-                  <TaskApprovals
-                    approvals={approvals}
-                    files={files}
-                    onChanged={refresh}
-                    taskId={taskId}
-                  />
-                </>
+                <TaskBugExtras
+                  approvals={approvals}
+                  customFields={customFields}
+                  files={files}
+                  onChanged={refresh}
+                  pulls={pulls}
+                  taskId={taskId}
+                />
               ) : null}
             </div>
           </div>

@@ -5,10 +5,8 @@
 import type { ComponentProps } from "react";
 
 import { TaskClientVisibility } from "@/features/tasks/components/task-client-visibility";
-import {
-  TaskDetailsForm,
-  TaskDetailsFormSkeleton,
-} from "@/features/tasks/components/task-details-form";
+import { TaskDetailsForm } from "@/features/tasks/components/task-details-form";
+import { TaskDetailsFormSkeleton } from "@/features/tasks/components/task-details-form-skeleton";
 import { TaskSubtasksSection } from "@/features/tasks/components/task-details-subtasks";
 import type { TaskSubtaskView } from "@/features/tasks/components/task-details-subtasks";
 import { TaskRecurrenceEditor } from "@/features/tasks/components/task-recurrence-editor";
