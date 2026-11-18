@@ -20,24 +20,24 @@ export const createRefreshDebouncer = ({
   maxWaitMs,
   run,
 }: DebouncerOptions) => {
-  let timer: number | null = null;
+  let timer: number | undefined;
   let firstRequestAt = 0;
 
   const cancel = (): void => {
-    if (timer !== null) {
+    if (timer !== undefined) {
       clock.clearTimer(timer);
-      timer = null;
+      timer = undefined;
     }
   };
 
   const fire = (): void => {
-    timer = null;
+    timer = undefined;
     run();
   };
 
   const request = (): void => {
     const now = clock.now();
-    if (timer === null) {
+    if (timer === undefined) {
       firstRequestAt = now;
     } else {
       clock.clearTimer(timer);
