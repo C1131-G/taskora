@@ -176,11 +176,17 @@ test.describe("handler A", () => {
 
     // Comments live in the bug's workflow drawer, opened from the bug list.
     await page.goto("/bugs");
-    await page
-      .locator("article")
-      .filter({ hasText: BUG_TITLE })
-      .getByRole("button", { name: "Open workflow" })
-      .click();
+    // A click before the page hydrates does nothing, so retry until the drawer opens.
+    await expect(async () => {
+      await page
+        .locator("article")
+        .filter({ hasText: BUG_TITLE })
+        .getByRole("button", { name: "Open workflow" })
+        .click();
+      await expect(
+        page.getByRole("tablist", { name: "Task sections" })
+      ).toBeVisible({ timeout: 3000 });
+    }).toPass({ timeout: 30_000 });
     await openTaskSection(page, "Comments");
     await page.getByLabel("Add a comment").fill(INTERNAL_NOTE);
     await expect(
