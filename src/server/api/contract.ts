@@ -7,6 +7,12 @@ import { mobileRoutes } from "../../mobile-api/routes";
 
 type JsonObject = Record<string, unknown>;
 
+const JsonObjectSchema = Schema.Record(Schema.String, Schema.Unknown);
+const decodeJsonObject = Schema.decodeUnknownSync(JsonObjectSchema);
+const decodeRequired = Schema.decodeUnknownSync(
+  Schema.UndefinedOr(Schema.Array(Schema.String))
+);
+
 const SCHEMA_REF_PREFIX = "#/$defs/";
 const COMPONENT_REF_PREFIX = "#/components/schemas/";
 
@@ -14,10 +20,13 @@ const COMPONENT_REF_PREFIX = "#/components/schemas/";
 // `#/components/schemas`.
 const documentOf = (schema: Schema.Constraint) => {
   const { definitions, schema: root } = Schema.toJsonSchemaDocument(schema);
-  const rewritten = JSON.parse(
-    JSON.stringify(root).replaceAll(SCHEMA_REF_PREFIX, COMPONENT_REF_PREFIX)
-  ) as JsonObject;
-  return { definitions: definitions as JsonObject, root: rewritten };
+  const rewritten = decodeJsonObject(
+    JSON.parse(
+      JSON.stringify(root).replaceAll(SCHEMA_REF_PREFIX, COMPONENT_REF_PREFIX)
+    )
+  );
+  const definitionsObject: JsonObject = definitions;
+  return { definitions: definitionsObject, root: rewritten };
 };
 
 const successEnvelope = (data: JsonObject): JsonObject => ({
@@ -52,8 +61,8 @@ const parametersOf = (
 ): JsonObject[] => {
   const { definitions, root } = documentOf(schema);
   Object.assign(schemas, definitions);
-  const properties = (root["properties"] ?? {}) as JsonObject;
-  const required = new Set(root["required"] as string[] | undefined);
+  const properties = decodeJsonObject(root["properties"] ?? {});
+  const required = new Set(decodeRequired(root["required"]));
   return Object.entries(properties).map(([name, fieldSchema]) => ({
     in: location,
     name,

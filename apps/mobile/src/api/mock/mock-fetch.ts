@@ -58,7 +58,7 @@ export const registerFixtures = (
             }
           : {
               data: yield* Effect.orDie(
-          Schema.encodeUnknownEffect(route.data as unknown as Schema.Codec<unknown, unknown, never, never>)(
+          Schema.encodeUnknownEffect(route.data)(
             fixture.data ?? {},
           ),
         ),

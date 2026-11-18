@@ -1,10 +1,12 @@
 import { Schema } from "effect";
 
 import { IDEMPOTENCY_KEY_HEADER } from "./idempotency";
+import { FailureSchema } from "./route-definition";
 import type {
   AppErrorCode,
   RouteDefinition,
   RouteInput,
+  RouteSchema,
   UnauthenticatedReason,
 } from "./route-definition";
 import { mobileRoutes } from "./routes";
@@ -22,14 +24,15 @@ export type MobileClientFor<Routes extends readonly RouteDefinition[]> = {
 
 export type MobileClient = MobileClientFor<typeof mobileRoutes>;
 
-interface Failure {
-  readonly code: AppErrorCode;
-  readonly message: string;
-  readonly requestId: string;
-  readonly fieldErrors?: Readonly<Record<string, string>> | undefined;
-  readonly reason?: UnauthenticatedReason | undefined;
-  readonly retryAfterSeconds?: number | undefined;
-}
+type Failure = (typeof FailureSchema)["Type"]["error"];
+
+// Only `ok` and `data` are read from a success; the route's schema checks `data`.
+const ResponseEnvelopeSchema = Schema.Union([
+  Schema.Struct({ data: Schema.Unknown, ok: Schema.Literal(true) }),
+  FailureSchema,
+]);
+
+const EncodedFieldsSchema = Schema.Record(Schema.String, Schema.Unknown);
 
 export class MobileApiError extends Error {
   readonly code: AppErrorCode;
@@ -75,18 +78,20 @@ const UNAVAILABLE_FAILURE = {
   requestId: "",
 } as const;
 
-type Encoder = Schema.Codec<unknown, unknown, never, never>;
-
 // The route's own schema turns typed values into the text or JSON that goes on
 // the wire, so the client and server cannot disagree about the format.
-const encode = (schema: Schema.Constraint, value: unknown): unknown =>
-  Schema.encodeUnknownSync(schema as Encoder)(value);
+const encode = (schema: RouteSchema, value: unknown): unknown =>
+  Schema.encodeUnknownSync(schema)(value);
+
+// Path and query schemas are structs, so they encode to named fields.
+const encodeFields = (
+  schema: RouteSchema,
+  value: unknown
+): Readonly<Record<string, unknown>> =>
+  Schema.decodeUnknownSync(EncodedFieldsSchema)(encode(schema, value));
 
 const fillPath = (route: RouteDefinition, params: unknown): string => {
-  const encoded = (route.params ? encode(route.params, params) : {}) as Record<
-    string,
-    unknown
-  >;
+  const encoded = route.params ? encodeFields(route.params, params) : {};
   return route.path
     .split("/")
     .map((segment) =>
@@ -104,10 +109,7 @@ const buildUrl = (
 ): URL => {
   const url = new URL(fillPath(route, input.params), options.baseUrl);
   if (route.query) {
-    const encoded = encode(route.query, input.query ?? {}) as Record<
-      string,
-      unknown
-    >;
+    const encoded = encodeFields(route.query, input.query ?? {});
     for (const [name, value] of Object.entries(encoded)) {
       if (value !== undefined) {
         url.searchParams.set(name, String(value));
@@ -146,24 +148,22 @@ export const buildClient = <const Routes extends readonly RouteDefinition[]>(
       headers,
       method: route.method.toUpperCase(),
     });
-    const answer = (await response.json().catch(() => null)) as {
-      readonly data?: unknown;
-      readonly error?: Failure;
-      readonly ok?: boolean;
-    } | null;
+    const answer = Schema.decodeUnknownOption(ResponseEnvelopeSchema)(
+      await response.json().catch(() => undefined)
+    );
 
-    if (!response.ok || !answer?.ok) {
+    if (!response.ok || answer._tag === "None" || !answer.value.ok) {
       throw new MobileApiError(
         response.status,
-        answer?.error ?? {
-          ...UNAVAILABLE_FAILURE,
-          requestId: response.headers.get("x-request-id") ?? "",
-        }
+        answer._tag === "Some" && !answer.value.ok
+          ? answer.value.error
+          : {
+              ...UNAVAILABLE_FAILURE,
+              requestId: response.headers.get("x-request-id") ?? "",
+            }
       );
     }
-    return Schema.decodeUnknownSync(
-      route.data as Schema.ConstraintDecoder<unknown>
-    )(answer.data);
+    return Schema.decodeUnknownSync(route.data)(answer.value.data);
   };
 
   return Object.fromEntries(
