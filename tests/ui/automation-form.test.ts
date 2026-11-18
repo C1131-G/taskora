@@ -2,11 +2,13 @@ import { expect, it } from "bun:test";
 
 import {
   describeReason,
-  emptyActionDraft,
   describeRule,
+  outcomeBadge,
+} from "../../features/projects/automation-describe";
+import {
+  emptyActionDraft,
   draftToRuleInput,
   emptyRuleDraft,
-  outcomeBadge,
   ruleToDraft,
 } from "../../features/projects/automation-form";
 import type { AutomationRuleSummary } from "../../src/server/automation/automation-contracts";

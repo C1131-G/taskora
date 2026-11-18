@@ -16,11 +16,13 @@ import {
 import {
   describeReason,
   describeRule,
-  emptyRuleDraft,
   outcomeBadge,
+} from "@/features/projects/automation-describe";
+import type { Lookups } from "@/features/projects/automation-describe";
+import {
+  emptyRuleDraft,
   ruleToDraft,
 } from "@/features/projects/automation-form";
-import type { Lookups } from "@/features/projects/automation-form";
 import type { Option } from "@/features/projects/components/automation-rule-fields";
 import { AutomationRuleForm } from "@/features/projects/components/automation-rule-form";
 import { useToastTransition } from "@/hooks/use-toast-transition";

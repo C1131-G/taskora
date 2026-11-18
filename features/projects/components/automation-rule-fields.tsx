@@ -12,17 +12,17 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
-import {
-  ACTION_TYPE_LABELS,
-  CONDITION_FIELD_LABELS,
-  PRIORITY_LABELS,
-  STATUS_LABELS,
-  TASK_TYPE_LABELS,
-} from "@/features/projects/automation-form";
+import { ACTION_TYPE_LABELS } from "@/features/projects/automation-form";
 import type {
   ActionDraft,
   ConditionDraft,
 } from "@/features/projects/automation-form";
+import {
+  CONDITION_FIELD_LABELS,
+  PRIORITY_LABELS,
+  STATUS_LABELS,
+  TASK_TYPE_LABELS,
+} from "@/features/projects/automation-labels";
 import {
   ACTION_TYPES,
   CONDITION_FIELDS,

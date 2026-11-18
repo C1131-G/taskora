@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import { computeDependencyLayout } from "../../features/projects/timeline-dependencies";
-import type { DependencyTask } from "../../features/projects/timeline-dependencies";
+import type { DependencyTask } from "../../features/projects/timeline-dependency-types";
 
 const GEOMETRY = {
   barHeight: 24,
