@@ -89,12 +89,14 @@ const IntakeForm = ({
       });
       if (response.status === 201) {
         const body: unknown = await response.json();
+        const received =
+          `/intake/${encodeURIComponent(slug)}/received` as const;
         // The received page shows the reference only when it has the right shape.
-        const reference =
+        router.push(
           isRecord(body) && typeof body["referenceId"] === "string"
-            ? `?ref=${encodeURIComponent(body["referenceId"])}`
-            : "";
-        router.push(`/intake/${encodeURIComponent(slug)}/received${reference}`);
+            ? `${received}?ref=${encodeURIComponent(body["referenceId"])}`
+            : received
+        );
         return;
       }
       const failure = await readFailure(response);

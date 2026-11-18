@@ -1,5 +1,6 @@
 /* eslint-disable shadcn/no-unknown-classes */
 /* eslint-disable shadcn/no-restyle */
+import type { Route } from "next";
 import type { ReactNode } from "react";
 
 import { SheetClose } from "@/components/ui/sheet";
@@ -93,7 +94,9 @@ export const WorkspaceNavigationGroups = ({
             <NavLink
               activeClassName="on"
               className="sitem"
-              href={`/projects/${project.id}`}
+              // Typed routes cannot check a dynamic segment; a project id from
+              // the shell data names an existing project route.
+              href={`/projects/${project.id}` as Route}
               isActive={(pathname) => isProjectPath(pathname, project.id)}
               showPendingIndicator={false}
               transitionTypes={(pathname) => [
