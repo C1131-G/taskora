@@ -15,6 +15,7 @@ import {
   AuthFormSkeleton,
 } from "@/features/user/components/auth-skeleton";
 import { AuthSubmitButton } from "@/features/user/components/auth-submit-button";
+import { isRecord, isStringRecord } from "@/src/lib/type-guards";
 
 const MAX_TITLE = 150;
 const MAX_DESCRIPTION = 5000;
@@ -25,24 +26,22 @@ const ACCEPTED_TYPES =
 
 type FieldErrors = Readonly<Record<string, string>>;
 
-interface FailureBody {
-  readonly error?: {
-    readonly fieldErrors?: FieldErrors;
-    readonly message?: string;
-  };
-}
+const SEND_FAILED = "The report could not be sent.";
 
 const readFailure = async (
   response: Response
 ): Promise<{ readonly fields: FieldErrors; readonly message: string }> => {
   try {
-    const body = (await response.json()) as FailureBody;
+    const body: unknown = await response.json();
+    const error =
+      isRecord(body) && isRecord(body["error"]) ? body["error"] : {};
     return {
-      fields: body.error?.fieldErrors ?? {},
-      message: body.error?.message ?? "The report could not be sent.",
+      fields: isStringRecord(error["fieldErrors"]) ? error["fieldErrors"] : {},
+      message:
+        typeof error["message"] === "string" ? error["message"] : SEND_FAILED,
     };
   } catch {
-    return { fields: {}, message: "The report could not be sent." };
+    return { fields: {}, message: SEND_FAILED };
   }
 };
 
@@ -89,11 +88,14 @@ const IntakeForm = ({
         method: "POST",
       });
       if (response.status === 201) {
-        const { referenceId } = (await response.json()) as {
-          referenceId: string;
-        };
+        const body: unknown = await response.json();
+        const received =
+          `/intake/${encodeURIComponent(slug)}/received` as const;
+        // The received page shows the reference only when it has the right shape.
         router.push(
-          `/intake/${encodeURIComponent(slug)}/received?ref=${encodeURIComponent(referenceId)}`
+          isRecord(body) && typeof body["referenceId"] === "string"
+            ? `${received}?ref=${encodeURIComponent(body["referenceId"])}`
+            : received
         );
         return;
       }

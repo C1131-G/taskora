@@ -1,4 +1,6 @@
-import type { BugWorkflowStatusSchema } from "./bug-contracts";
+import { Schema } from "effect";
+
+import { BugWorkflowStatusSchema } from "./bug-contracts";
 
 type Status = typeof BugWorkflowStatusSchema.Type;
 
@@ -32,9 +34,11 @@ const EDGES: Readonly<Record<Status, readonly Status[]>> = {
   withdrawn: [],
 };
 
-export const BUG_STATUSES = Object.keys(EDGES) as readonly Status[];
+export const BUG_STATUSES: readonly Status[] = BugWorkflowStatusSchema.literals;
 
 export const BUG_STATUS_EDGES = EDGES;
 
+const isStatus = Schema.is(BugWorkflowStatusSchema);
+
 export const canMoveBug = (from: string, to: string): boolean =>
-  EDGES[from as Status]?.includes(to as Status) ?? false;
+  isStatus(from) && isStatus(to) && EDGES[from].includes(to);

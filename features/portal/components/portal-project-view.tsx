@@ -2,7 +2,6 @@
 
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 import {
   SKELETON_KEYS,
@@ -70,11 +69,7 @@ const PortalProjectView = async ({
           <span
             aria-hidden="true"
             className="prog"
-            style={
-              {
-                "--p": progressPercent(project.progress) / 100,
-              } as CSSProperties
-            }
+            style={{ "--p": progressPercent(project.progress) / 100 }}
           >
             <i />
           </span>

@@ -2,6 +2,7 @@ import { Effect } from "effect";
 
 import type { AppFailure } from "@/errors";
 import type { ListRow } from "@/features/workspace/domain-list-screen";
+import type { MobileClient } from "@api/client";
 import type { MobileApi } from "@/services/mobile-api";
 
 type Api = MobileApi["Service"];
@@ -85,87 +86,12 @@ export interface ArchivedItem {
   readonly title: string;
 }
 
-interface DomainClient {
-  readonly listMyTime: () => Promise<{
-    entries: readonly {
-      id: string;
-      minutes: number;
-      taskReference: string;
-      taskTitle: string;
-      workDate: string;
-    }[];
-  }>;
-  readonly listActivity: () => Promise<{
-    items: readonly {
-      action: string;
-      actorName: string;
-      createdAt: string;
-      id: string;
-      projectName: string | null;
-      taskTitle: string | null;
-    }[];
-  }>;
-  readonly listArchive: () => Promise<{ items: readonly ArchivedItem[]; nextCursor: string | null }>;
-  readonly listBudgets: () => Promise<{
-    items: readonly {
-      budgetMinutes: number;
-      projectId: string;
-      projectName: string;
-      spentMinutes: number;
-    }[];
-  }>;
-  readonly listClientCompanies: () => Promise<{
-    items: readonly {
-      active: boolean;
-      id: string;
-      name: string;
-      openBugCount: number;
-      projectCount: number;
-    }[];
-  }>;
-  readonly listFavorites: () => Promise<{ items: readonly KindItem[]; nextCursor: string | null }>;
-  readonly listFiles: () => Promise<{
-    items: readonly {
-      copyState: "failed" | "pending" | "ready";
-      id: string;
-      originalName: string;
-      projectName: string;
-      sizeBytes: number;
-    }[];
-  }>;
-  readonly listMembers: () => Promise<{
-    items: readonly {
-      employeeId: string;
-      id: string;
-      jobTitle: string | null;
-      name: string;
-      role: "admin" | "employee";
-      teamName: string | null;
-    }[];
-  }>;
-  readonly listTeams: () => Promise<{ items: readonly TeamSummary[] }>;
-  readonly listWorkload: () => Promise<{
-    people: readonly {
-      name: string;
-      peakLoadHours: number;
-      unscheduled: { taskCount: number };
-      userId: string;
-      weeks: readonly { taskCount: number }[];
-    }[];
-  }>;
-  readonly searchWorkspace: (input: {
-    readonly query: { readonly q: string };
-  }) => Promise<{
-    projects: readonly { id: string; name: string }[];
-    tasks: readonly { id: string; projectName: string; title: string }[];
-  }>;
-}
 
 const call = <A>(
   api: Api,
-  run: (client: DomainClient) => Promise<A>,
+  run: (client: MobileClient) => Promise<A>,
 ): Effect.Effect<A, AppFailure> =>
-  api.call((client) => run(client as unknown as DomainClient));
+  api.call(run);
 
 const rows = <T>(
   items: readonly T[],
@@ -176,7 +102,7 @@ const rows = <T>(
 
 /** My Time: the signed-in user's entries. */
 export const myTimeProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listMyTime()), (page) =>
+  Effect.map(call(api, (client) => client.listMyTime({ query: {} })), (page) =>
     rows(page.entries, (entry) => ({
       id: entry.id,
       subtitle: `${entry.workDate} · ${entry.taskReference} · ${hoursOf(entry.minutes)}h`,
@@ -206,7 +132,7 @@ const hoursOf = (minutes: number): number =>
 
 /** Budgets: planned versus billed hours. */
 export const budgetsProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listBudgets()), (page) =>
+  Effect.map(call(api, (client) => client.listBudgets({ query: {} })), (page) =>
     rows(page.items, (budget) => ({
       id: budget.projectId,
       subtitle: `${hoursOf(budget.spentMinutes)} of ${hoursOf(budget.budgetMinutes)} hours billed`,
@@ -227,7 +153,7 @@ const sizeLabelOf = (bytes: number): string => {
 
 /** Files: standalone workspace files. */
 export const filesProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listFiles()), (page) =>
+  Effect.map(call(api, (client) => client.listFiles({ query: {} })), (page) =>
     rows(page.items, (file) => ({
       id: file.id,
       subtitle: `${file.projectName} · ${sizeLabelOf(file.sizeBytes)} · ${file.copyState}`,
@@ -237,7 +163,7 @@ export const filesProgram = (api: Api) =>
 
 /** Members: the employee directory. */
 export const membersProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listMembers()), (page) =>
+  Effect.map(call(api, (client) => client.listMembers({ query: {} })), (page) =>
     rows(page.items, (member) => ({
       id: member.id,
       subtitle: `${member.employeeId} · ${member.role}${member.teamName === null ? "" : ` · ${member.teamName}`}`,
@@ -247,7 +173,7 @@ export const membersProgram = (api: Api) =>
 
 /** Teams: names and member counts. */
 export const teamsProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listTeams()), (page) =>
+  Effect.map(call(api, (client) => client.listTeams({ query: {} })), (page) =>
     rows(page.items, (team) => ({
       id: team.id,
       subtitle: `${team.memberCount} members`,
@@ -257,7 +183,7 @@ export const teamsProgram = (api: Api) =>
 
 /** Clients: the client companies. */
 export const clientsProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listClientCompanies()), (page) =>
+  Effect.map(call(api, (client) => client.listClientCompanies({ query: {} })), (page) =>
     rows(page.items, (company) => ({
       id: company.id,
       subtitle: `${company.projectCount} projects · ${company.openBugCount} open bugs${company.active ? "" : " · inactive"}`,
@@ -267,7 +193,7 @@ export const clientsProgram = (api: Api) =>
 
 /** Activity: the workspace feed. */
 export const activityProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listActivity()), (page) =>
+  Effect.map(call(api, (client) => client.listActivity({ query: {} })), (page) =>
     rows(page.items, (item) => ({
       id: item.id,
       subtitle: `${item.actorName} · ${item.createdAt.slice(0, 10)}`,
@@ -277,7 +203,7 @@ export const activityProgram = (api: Api) =>
 
 /** Favorites: starred projects and tasks. */
 export const favoritesProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listFavorites()), (page) =>
+  Effect.map(call(api, (client) => client.listFavorites({ query: {} })), (page) =>
     rows(page.items, (item) => ({
       id: item.id,
       kind: item.kind,
@@ -288,7 +214,7 @@ export const favoritesProgram = (api: Api) =>
 
 /** Archive: archived projects and tasks. */
 export const archiveProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listArchive()), (page) =>
+  Effect.map(call(api, (client) => client.listArchive({ query: {} })), (page) =>
     rows(page.items, (item) => ({
       id: item.id,
       subtitle: `${item.kind} · archived ${item.archivedAt.slice(0, 10)}`,

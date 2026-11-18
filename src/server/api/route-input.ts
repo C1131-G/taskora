@@ -3,6 +3,7 @@ import { Effect, Schema } from "effect";
 import type {
   RouteDefinition,
   RouteInput,
+  RouteSchema,
 } from "../../mobile-api/route-definition";
 import { AuthSession, AuthSessionLive } from "../auth/session";
 import type { AuthenticatedUser } from "../auth/session-types";
@@ -12,15 +13,13 @@ import { readIdempotencyKey } from "./idempotency-key";
 import { consumeRateLimit } from "./rate-limit";
 import { annotateRequest } from "./request-log";
 
-type Decoder = Schema.Codec<unknown, unknown, never, never>;
-
 // Failures name the field the way the web actions do, so the app can show
 // them next to the input.
 const decode = (
-  schema: Schema.Constraint,
+  schema: RouteSchema,
   value: unknown
 ): Effect.Effect<unknown, AppError> =>
-  Schema.decodeUnknownEffect(schema as Decoder)(value, {
+  Schema.decodeUnknownEffect(schema)(value, {
     errors: "all",
   }).pipe(Effect.mapError(invalidInput));
 

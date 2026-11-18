@@ -2,6 +2,7 @@ import { Effect } from "effect";
 
 import type { AppFailure } from "@/errors";
 import type { ListRow } from "@/features/workspace/domain-list-screen";
+import type { MobileClient } from "@api/client";
 import type { MobileApi } from "@/services/mobile-api";
 
 type Api = MobileApi["Service"];
@@ -21,17 +22,13 @@ export interface PortalNotificationItem {
   readonly title: string;
 }
 
-interface PortalMoreClient {
-  readonly listPortalApprovals: () => Promise<{ items: readonly ApprovalItem[] }>;
-  readonly listPortalNotifications: () => Promise<{ items: readonly PortalNotificationItem[] }>;
-}
 
-const call = <A>(api: Api, run: (client: PortalMoreClient) => Promise<A>): Effect.Effect<A, AppFailure> =>
-  api.call((client) => run(client as unknown as PortalMoreClient));
+const call = <A>(api: Api, run: (client: MobileClient) => Promise<A>): Effect.Effect<A, AppFailure> =>
+  api.call(run);
 
 /** The client's approvals. */
 export const portalApprovalsProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listPortalApprovals()), (page) => ({
+  Effect.map(call(api, (client) => client.listPortalApprovals({ query: {} })), (page) => ({
     rows: page.items.map<ListRow>((item) => ({
       id: item.id,
       subtitle: `${item.projectName} · ${item.requestedBy} · ${item.status}`,
@@ -41,7 +38,7 @@ export const portalApprovalsProgram = (api: Api) =>
 
 /** The client's portal notifications. */
 export const portalNotificationsProgram = (api: Api) =>
-  Effect.map(call(api, (client) => client.listPortalNotifications()), (page) => ({
+  Effect.map(call(api, (client) => client.listPortalNotifications({ query: {} })), (page) => ({
     rows: page.items.map<ListRow>((item) => ({
       id: item.id,
       subtitle: `${item.createdAt.slice(0, 10)}${item.readAt === null ? " · unread" : ""}`,

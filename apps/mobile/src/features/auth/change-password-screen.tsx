@@ -12,10 +12,18 @@ import { WorkspaceTextInput } from "@/components/workspace/workspace-text-input"
 import { type AppFailure } from "@/errors";
 import type { SessionService } from "@/services/session";
 
+import { useGateSession } from "./session-gate";
+
 const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure | undefined =>
   exit === undefined || Exit.isSuccess(exit)
     ? undefined
     : Option.getOrUndefined(Cause.findErrorOption(exit.cause));
+
+interface PasswordChange {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+  readonly service: SessionService;
+}
 
 export interface ChangePasswordScreenProps {
   readonly onDone: () => void;
@@ -24,7 +32,8 @@ export interface ChangePasswordScreenProps {
 
 /** The forced (or voluntary) password change; the session stays signed in. */
 export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePasswordScreenProps) => {
-  const session = sessionProp ?? null;
+  const gateSession = useGateSession();
+  const session = sessionProp ?? gateSession;
   const showError = useErrorToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -32,8 +41,8 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const change = useMutation({
-    mutationFn: (input: { currentPassword: string; newPassword: string }) =>
-      Effect.runPromiseExit(session!.changeOwnPassword(input)),
+    mutationFn: ({ service, ...input }: PasswordChange) =>
+      Effect.runPromiseExit(service.changeOwnPassword(input)),
     onSuccess: (result) => {
       const failure = failureOf(result);
       if (failure !== undefined) showError(failureMessage(failure));
@@ -59,7 +68,7 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
     if (Object.keys(errors).length > 0 || session === null) {
       return;
     }
-    change.mutate({ currentPassword, newPassword });
+    change.mutate({ currentPassword, newPassword, service: session });
   };
 
   return (

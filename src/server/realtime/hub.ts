@@ -46,8 +46,8 @@ const DEFAULT_RECONNECT_DELAY_MS = 2000;
 // stream. Every delivery passes the access filter first.
 export const createRealtimeHub = (options: HubOptions) => {
   const subscribers = new Set<Subscriber>();
-  let listener: Promise<Listener> | null = null;
-  let cancelReconnect: (() => void) | null = null;
+  let listener: Promise<Listener> | undefined;
+  let cancelReconnect: (() => void) | undefined;
 
   // The steps refer to one another, so they live on one object.
   const steps = {
@@ -88,13 +88,13 @@ export const createRealtimeHub = (options: HubOptions) => {
     },
     handlers: {
       onLost: (): void => {
-        listener = null;
+        listener = undefined;
         if (subscribers.size === 0) {
           return;
         }
         cancelReconnect?.();
         cancelReconnect = options.schedule(() => {
-          cancelReconnect = null;
+          cancelReconnect = undefined;
           void steps.reconnect();
         }, options.reconnectDelayMs ?? DEFAULT_RECONNECT_DELAY_MS);
       },
@@ -109,7 +109,7 @@ export const createRealtimeHub = (options: HubOptions) => {
       try {
         return await options.openListener(steps.handlers);
       } catch (error) {
-        listener = null;
+        listener = undefined;
         logger.warn("The realtime listener could not connect.", { error });
         // Schedules the next attempt.
         steps.handlers.onLost();
@@ -135,9 +135,9 @@ export const createRealtimeHub = (options: HubOptions) => {
         return;
       }
       cancelReconnect?.();
-      cancelReconnect = null;
+      cancelReconnect = undefined;
       const current = listener;
-      listener = null;
+      listener = undefined;
       if (current) {
         void steps.closeListener(current);
       }

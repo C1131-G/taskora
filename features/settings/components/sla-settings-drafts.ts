@@ -1,6 +1,7 @@
 import type { SlaSettingsValues } from "@/src/server/company/sla-settings";
 
-export type Unit = "minutes" | "hours" | "days";
+export const UNITS = ["minutes", "hours", "days"] as const;
+export type Unit = (typeof UNITS)[number];
 export type ImpactKey = "low" | "medium" | "high" | "urgent";
 export type TargetField = "firstResponseMinutes" | "resolutionMinutes";
 
@@ -94,8 +95,17 @@ export const buildDrafts = (values: SlaSettingsValues): Drafts => {
   };
 };
 
-export const readSlaTargets = (drafts: Drafts, dayMinutes: number) => {
-  const minutesFor = (impact: ImpactKey, field: TargetField) => {
+interface ImpactTarget {
+  readonly firstResponseMinutes: number;
+  readonly resolutionMinutes: number;
+}
+
+const readImpactTarget = (
+  drafts: Drafts,
+  dayMinutes: number,
+  impact: ImpactKey
+): ImpactTarget | { readonly message: string } => {
+  const minutesFor = (field: TargetField) => {
     const draft = drafts[impact][field];
     const amount = Number(draft.value);
     if (!(draft.value.trim() && Number.isFinite(amount) && amount > 0)) {
@@ -103,32 +113,46 @@ export const readSlaTargets = (drafts: Drafts, dayMinutes: number) => {
     }
     return Math.round(amount * unitMinutes(draft.unit, dayMinutes));
   };
-  const targets = {} as Record<
-    ImpactKey,
-    { firstResponseMinutes: number; resolutionMinutes: number }
-  >;
-  for (const { key, label } of IMPACTS) {
-    const first = minutesFor(key, "firstResponseMinutes");
-    const resolution = minutesFor(key, "resolutionMinutes");
-    if (first === null || resolution === null) {
-      return {
-        message: `Enter a first response and resolution target for ${label}.`,
-      };
-    }
-    if (
-      first < 1 ||
-      resolution < 1 ||
-      first > MAX_MINUTES ||
-      resolution > MAX_MINUTES
-    ) {
-      return {
-        message: `${label} targets must be between 1 minute and ${MAX_MINUTES.toLocaleString("en-US")} minutes of business time.`,
-      };
-    }
-    targets[key] = {
-      firstResponseMinutes: first,
-      resolutionMinutes: resolution,
+  const label = IMPACTS.find(({ key }) => key === impact)?.label ?? impact;
+  const first = minutesFor("firstResponseMinutes");
+  const resolution = minutesFor("resolutionMinutes");
+  if (first === null || resolution === null) {
+    return {
+      message: `Enter a first response and resolution target for ${label}.`,
     };
   }
-  return { targets };
+  if (
+    first < 1 ||
+    resolution < 1 ||
+    first > MAX_MINUTES ||
+    resolution > MAX_MINUTES
+  ) {
+    return {
+      message: `${label} targets must be between 1 minute and ${MAX_MINUTES.toLocaleString("en-US")} minutes of business time.`,
+    };
+  }
+  return { firstResponseMinutes: first, resolutionMinutes: resolution };
+};
+
+// Checked in display order, so the first problem shown is the topmost one.
+export const readSlaTargets = (drafts: Drafts, dayMinutes: number) => {
+  const read = (impact: ImpactKey) =>
+    readImpactTarget(drafts, dayMinutes, impact);
+  const low = read("low");
+  if ("message" in low) {
+    return low;
+  }
+  const medium = read("medium");
+  if ("message" in medium) {
+    return medium;
+  }
+  const high = read("high");
+  if ("message" in high) {
+    return high;
+  }
+  const urgent = read("urgent");
+  if ("message" in urgent) {
+    return urgent;
+  }
+  return { targets: { high, low, medium, urgent } };
 };

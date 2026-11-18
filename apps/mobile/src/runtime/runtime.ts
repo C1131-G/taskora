@@ -7,8 +7,8 @@ export type AppRuntime = ManagedRuntime.ManagedRuntime<AppServices, never>;
 
 export const makeAppRuntime = (): AppRuntime => ManagedRuntime.make(AppLive);
 
-let runtimeRef: AppRuntime | null = null;
-let bridgeRef: Bridge | null = null;
+let runtimeRef: AppRuntime | undefined;
+let bridgeRef: Bridge | undefined;
 
 /** The app's single runtime, built once on first use so tests never build the native layers. */
 export const appRuntime = (): AppRuntime => {

@@ -22,9 +22,7 @@ if (!databaseUrl) {
 
 const client = postgres<Contract>({
   contractJson,
-  // Prisma bundles a second @types/pg copy; Pool is runtime-compatible but
-  // structurally incompatible because its transitive Node declarations differ.
-  pg: authPool as NonNullable<Parameters<typeof postgres<Contract>>[0]["pg"]>,
+  pg: authPool,
 });
 
 type TransactionContext = Parameters<

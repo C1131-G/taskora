@@ -94,7 +94,8 @@ export const WorkspaceNavigationGroups = ({
             <NavLink
               activeClassName="on"
               className="sitem"
-              // A project id from the shell data names an existing project route.
+              // Typed routes cannot check a dynamic segment; a project id from
+              // the shell data names an existing project route.
               href={`/projects/${project.id}` as Route}
               isActive={(pathname) => isProjectPath(pathname, project.id)}
               showPendingIndicator={false}

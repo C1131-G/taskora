@@ -1,3 +1,5 @@
+import { isRecord } from "@/src/lib/type-guards";
+
 export interface DetectedEnvironment {
   readonly browser: string;
   readonly device: string;
@@ -63,11 +65,23 @@ const deviceKind = (userAgent: string, mobile: boolean): string => {
   return mobile ? "Phone" : "Desktop";
 };
 
+const userAgentDataOf = (browser: Navigator): UserAgentDataLike | undefined => {
+  const data = "userAgentData" in browser ? browser.userAgentData : undefined;
+  if (!isRecord(data)) {
+    return undefined;
+  }
+  const { mobile, platform } = data;
+  return {
+    ...(typeof mobile === "boolean" ? { mobile } : {}),
+    ...(typeof platform === "string" ? { platform } : {}),
+  };
+};
+
 // Best effort from what the browser volunteers. People can edit the result.
 export const detectEnvironment = (): DetectedEnvironment => {
   const { userAgent } = navigator;
-  const data = (navigator as { userAgentData?: UserAgentDataLike })
-    .userAgentData;
+  // userAgentData is Chromium-only and missing from the DOM typings.
+  const data = userAgentDataOf(navigator);
   const mobile = data?.mobile ?? /Mobi|Android|iPhone|iPod/u.test(userAgent);
   return {
     browser: detectBrowser(userAgent),
@@ -88,9 +102,17 @@ export const environmentSnapshot = (): string => {
 
 export const environmentServerSnapshot = (): string => NO_ENVIRONMENT;
 
+const textOrBlank = (value: unknown): string =>
+  typeof value === "string" ? value : "";
+
 export const parseEnvironment = (snapshot: string): DetectedEnvironment => {
-  if (!snapshot) {
+  const parsed: unknown = snapshot ? JSON.parse(snapshot) : undefined;
+  if (!isRecord(parsed)) {
     return { browser: "", device: "", os: "" };
   }
-  return JSON.parse(snapshot) as DetectedEnvironment;
+  return {
+    browser: textOrBlank(parsed["browser"]),
+    device: textOrBlank(parsed["device"]),
+    os: textOrBlank(parsed["os"]),
+  };
 };

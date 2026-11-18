@@ -37,10 +37,13 @@ const labelOfSelected = (
   let found: string | undefined;
   const visit = (node: ReactNode) => {
     for (const child of Array.isArray(node) ? node : [node]) {
-      if (found !== undefined || !isValidElement(child)) {
+      if (
+        found !== undefined ||
+        !isValidElement<{ children?: ReactNode; value?: unknown }>(child)
+      ) {
         continue;
       }
-      const props = child.props as { children?: ReactNode; value?: unknown };
+      const { props } = child;
       if (typeof props.value === "string") {
         if ((props.value || EMPTY_VALUE) === selected) {
           found = textOf(props.children).trim() || undefined;
