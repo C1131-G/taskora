@@ -15,6 +15,7 @@ import {
 } from "./auth-state";
 import { fillPortalReport } from "./portal-report-helpers";
 import { settleAnimations } from "./settle-animations";
+import { openTaskSection } from "./task-drawer-tabs";
 
 // The plan's walkthrough, end to end: first sign-in, a report with a
 // screenshot, the pick race, an internal note, a needs-info round trip, a
@@ -180,6 +181,7 @@ test.describe("handler A", () => {
       .filter({ hasText: BUG_TITLE })
       .getByRole("button", { name: "Open workflow" })
       .click();
+    await openTaskSection(page, "Comments");
     await page.getByLabel("Add a comment").fill(INTERNAL_NOTE);
     await expect(
       page.getByRole("radio", { name: "Internal note" })
