@@ -89,7 +89,12 @@ jobs:
           DATABASE_URL="postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test?sslmode=disable" bun run db:verify
       - run: bun run lint
       - run: bun run typecheck
-      - run: bun run test:ui
+      - name: Run UI tests
+        # The suite sets TZ at import time; Bun 1.4.4 on Linux ignores that,
+        # so the viewer-zone assertions need the zone fixed at process start.
+        env:
+          TZ: Asia/Kuala_Lumpur
+        run: bun run test:ui
 
   # Each shard owns its database, so parallel test files cannot contaminate
   # each other. scripts/test-backend.ts reads TEST_SHARD_INDEX/TEST_SHARD_COUNT.
@@ -115,6 +120,7 @@ jobs:
       DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_backend_${{ matrix.shard }}?sslmode=disable
       TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_${{ matrix.shard }}_test?sslmode=disable
       TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
+      S3_BUCKET: taskora-private-backend-${{ matrix.shard }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -138,6 +144,25 @@ jobs:
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_${{ matrix.shard }}_test
           bun run db:init
           DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
+      - name: Build object storage images
+        run: |
+          docker build -f docker/minio.Dockerfile --target server \
+            --cache-from=type=gha,scope=minio-server \
+            --cache-to=type=gha,mode=max,scope=minio-server \
+            -t taskora-minio-server:ci .
+          docker build -f docker/minio.Dockerfile --target client \
+            --cache-from=type=gha,scope=minio-client \
+            --cache-to=type=gha,mode=max,scope=minio-client \
+            -t taskora-minio-client:ci .
+      - name: Start object storage
+        run: |
+          docker run -d --name taskora-minio -p 9000:9000 -e MINIO_ROOT_USER=taskora -e MINIO_ROOT_PASSWORD=local-minio-password -e MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:3000,http://localhost:3001 taskora-minio-server:ci server /data
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:9000/minio/health/live; then break; fi
+            sleep 2
+          done
+          curl --fail http://localhost:9000/minio/health/live
+          docker run --rm --network host -e MC_HOST_local=http://taskora:local-minio-password@localhost:9000 taskora-minio-client:ci mb --ignore-existing "local/$S3_BUCKET"
       - name: Run backend tests (shard ${{ matrix.shard }}/4)
         env:
           TEST_SHARD_INDEX: ${{ matrix.shard }}
