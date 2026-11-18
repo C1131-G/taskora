@@ -99,6 +99,15 @@ test("the server closing the stream is final", () => {
   expect(state.connection).toBe("closed");
 });
 
+test("a closed stream still refreshes on its fallback poll, and stays closed", () => {
+  const closed = run([{ type: "opened" }, { type: "closed" }]);
+  const polled = realtimeReducer(closed, { type: "resync" });
+  expect(polled).toEqual({ connection: "closed", refreshPending: true });
+  // Stream events other than the poll are still ignored once closed.
+  expect(realtimeReducer(closed, { type: "change" })).toBe(closed);
+  expect(realtimeReducer(closed, { type: "errored" })).toBe(closed);
+});
+
 test("only disconnected or closed streams fall back to polling", () => {
   expect(shouldPoll("connecting")).toBe(false);
   expect(shouldPoll("open")).toBe(false);

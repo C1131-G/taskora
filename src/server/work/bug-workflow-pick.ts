@@ -21,7 +21,6 @@ import type { Transaction } from "./work-internal";
 
 const UNPICKED_REMINDER_DELAY_MS = 24 * 60 * 60 * 1000;
 export const UNPICKED_REMINDER_JOB = "bug.client_unpicked_reminder";
-export const CLOSED_STATUSES = new Set(["closed", "duplicate", "withdrawn"]);
 
 export const bugKey = (
   project: { readonly key: string },
@@ -82,12 +81,17 @@ export const announceClientBug = async (
     type: "client_bug",
     url: `/bugs/${bug.id}`,
   });
+  // A report the client sends back to the queue starts a fresh 24-hour clock.
+  const dedupeKey =
+    bug.clientReopenCount > 0
+      ? `${UNPICKED_REMINDER_JOB}:${bug.id}:reopen-${bug.clientReopenCount}`
+      : `${UNPICKED_REMINDER_JOB}:${bug.id}`;
   await transaction.orm.public.Job.upsert({
-    conflictOn: { dedupeKey: `${UNPICKED_REMINDER_JOB}:${bug.id}` },
+    conflictOn: { dedupeKey },
     create: {
       availableAt: new Date(input.now.getTime() + UNPICKED_REMINDER_DELAY_MS),
       createdAt: input.now,
-      dedupeKey: `${UNPICKED_REMINDER_JOB}:${bug.id}`,
+      dedupeKey,
       id: randomUUID(),
       kind: UNPICKED_REMINDER_JOB,
       payload: { bugId: bug.id },
@@ -120,6 +124,10 @@ export const remindUnpickedClientBug = async (
       .first(),
     activeAdminIds(transaction),
   ]);
+  // Nobody can pick an archived bug, so there is nothing to nag about.
+  if (task.archivedAt || project.archivedAt) {
+    return false;
+  }
   await notifyUsers(transaction, {
     actorId: null,
     now: new Date(),

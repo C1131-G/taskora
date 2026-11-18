@@ -46,7 +46,13 @@ export const getPortalApproval = async (input: unknown) =>
     (user, validated) =>
       Effect.gen(function* getPortalApprovalProgram() {
         const approvals = yield* PortalApprovals;
-        return yield* approvals.get(toPortalActor(user), validated.approvalId);
+        const detail = yield* approvals.get(
+          toPortalActor(user),
+          validated.approvalId
+        );
+        // A preview is read only: the decide action refuses it, so it is not
+        // offered.
+        return user.preview ? { ...detail, canDecide: false } : detail;
       }),
     PortalApprovalDetailSchema,
     { preview: true }

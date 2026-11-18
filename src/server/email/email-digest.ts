@@ -180,10 +180,14 @@ const digestOne = async (
   if (outcome !== "sent") {
     return false;
   }
-  await recordDeliveryReceipt(recipient.id, dedupeKey);
-  await db.orm.public.EmailSetting.where({ userId: recipient.id }).update({
-    lastDigestAt: scheduledAt,
-    updatedAt: new Date(),
+  // Receipt and cursor move together, so a crash between them cannot leave a
+  // receipt with the old cursor (the next digest would repeat these items).
+  await db.transaction(async () => {
+    await recordDeliveryReceipt(recipient.id, dedupeKey);
+    await db.orm.public.EmailSetting.where({ userId: recipient.id }).update({
+      lastDigestAt: scheduledAt,
+      updatedAt: new Date(),
+    });
   });
   return true;
 };

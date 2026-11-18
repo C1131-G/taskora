@@ -8,18 +8,14 @@ import { bearer } from "better-auth/plugins/bearer";
 
 import { db } from "@/src/prisma/db";
 
-import { recordAuditEvent } from "../audit/audit-log";
 import { RESOLVED_CLIENT_IP_HEADER } from "../core/client-ip";
 import { authPool } from "./database";
+import { isUserDeactivated } from "./lockout";
 import {
-  LOGIN_LOCK_MINUTES,
-  clearExpiredLock,
-  findSignInTarget,
-  isLocked,
-  normalizeEmail,
-  recordFailedSignIn,
-  recordSuccessfulSignIn,
-} from "./lockout";
+  INVALID_SIGN_IN,
+  auditSignInOutcome,
+  rejectUnavailableSignIn,
+} from "./sign-in-guard";
 
 const authSecret = process.env["BETTER_AUTH_SECRET"];
 if (!authSecret || authSecret.length < 32) {
@@ -35,100 +31,6 @@ const accessControl = createAccessControl(statement);
 const adminRole = accessControl.newRole({ session: [], user: [] });
 const employeeRole = accessControl.newRole({ session: [], user: [] });
 const clientRole = accessControl.newRole({ session: [], user: [] });
-
-const INVALID_SIGN_IN = "Invalid email or password.";
-
-interface SignInContext {
-  readonly body?: unknown;
-  readonly headers?: Headers | undefined;
-  readonly context: { readonly returned?: unknown };
-}
-
-const emailOf = (context: SignInContext): string | null => {
-  const { body } = context;
-  return typeof body === "object" && body !== null && "email" in body
-    ? normalizeEmail(body.email)
-    : null;
-};
-
-// A locked account is refused with the same message as a wrong password, so
-// the response never confirms that the account exists or is locked.
-const rejectLockedSignIn = async (context: SignInContext): Promise<void> => {
-  const email = emailOf(context);
-  if (!email) {
-    return;
-  }
-  const now = new Date();
-  const target = await findSignInTarget(email);
-  await clearExpiredLock(target, now);
-  if (isLocked(target, now)) {
-    // The refusal below skips the after-hook, so the attempt is audited here.
-    try {
-      await recordAuditEvent(db, {
-        details: { reason: "locked" },
-        headers: context.headers ?? null,
-        subjectUserId: target?.id ?? null,
-        type: "login_blocked",
-      });
-    } catch {
-      // The trail must never turn a refusal into a server error.
-    }
-    throw new APIError("UNAUTHORIZED", { message: INVALID_SIGN_IN });
-  }
-};
-
-// Counts failures, locks after too many, resets on success, and writes each
-// outcome to the audit trail.
-const auditSignInOutcome = async (context: SignInContext): Promise<void> => {
-  const email = emailOf(context);
-  if (!email) {
-    return;
-  }
-  const now = new Date();
-  const headers = context.headers ?? null;
-  const target = await findSignInTarget(email);
-  const failed = context.context.returned instanceof APIError;
-  const subjectUserId = target?.id ?? null;
-  try {
-    if (failed && target && isLocked(target, now)) {
-      await recordAuditEvent(db, {
-        details: { reason: "locked" },
-        headers,
-        subjectUserId,
-        type: "login_blocked",
-      });
-      return;
-    }
-    if (failed) {
-      const outcome = target ? await recordFailedSignIn(target.id) : null;
-      await recordAuditEvent(db, {
-        details: target ? { attempts: outcome?.count ?? 0 } : { email },
-        headers,
-        subjectUserId,
-        type: "login_failed",
-      });
-      if (outcome?.locked) {
-        await recordAuditEvent(db, {
-          details: { minutes: LOGIN_LOCK_MINUTES },
-          headers,
-          subjectUserId,
-          type: "account_locked",
-        });
-      }
-      return;
-    }
-    if (target) {
-      await recordSuccessfulSignIn(target.id);
-      await recordAuditEvent(db, {
-        headers,
-        subjectUserId,
-        type: "login_succeeded",
-      });
-    }
-  } catch {
-    // Counting and auditing must never turn a sign-in into a server error.
-  }
-};
 
 const unrestrictedAuthPaths = new Set([
   "/change-password",
@@ -146,6 +48,16 @@ export const auth = betterAuth({
   baseURL: process.env["BETTER_AUTH_URL"],
   database: authPool,
   databaseHooks: {
+    session: {
+      create: {
+        // Writer guard: no path may open a session for a deactivated user.
+        before: async (session) => {
+          if (await isUserDeactivated(session.userId)) {
+            throw new APIError("UNAUTHORIZED", { message: INVALID_SIGN_IN });
+          }
+        },
+      },
+    },
     user: {
       create: {
         before: (user) =>
@@ -188,7 +100,7 @@ export const auth = betterAuth({
     }),
     before: createAuthMiddleware(async (context) => {
       if (context.path === "/sign-in/email") {
-        await rejectLockedSignIn(context);
+        await rejectUnavailableSignIn(context);
         return;
       }
       const { session } = context.context;

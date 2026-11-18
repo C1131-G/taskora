@@ -5,16 +5,9 @@ import Link from "next/link";
 import { ProjectUpcomingTaskDetails } from "@/features/projects/components/project-upcoming-task-details";
 import type { ProjectOverviewTask } from "@/features/projects/types/project-overview-contracts";
 import { TaskCompletionCheckbox } from "@/features/tasks/components/task-completion-checkbox";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
 import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 import type { ProjectListItem } from "@/src/server/projects/project-contracts";
-
-const TASK_STATUS_ORDER = [
-  { label: "Backlog", value: "backlog" },
-  { label: "To Do", value: "todo" },
-  { label: "In Progress", value: "progress" },
-  { label: "Review", value: "review" },
-  { label: "Done", value: "done" },
-] as const;
 
 const getDaysUntil = (date: string, today: string): number =>
   Math.ceil(
@@ -73,7 +66,7 @@ const ProjectProgress = ({
         {overdueTasks > 0 ? ` · ${overdueTasks} overdue` : ""}
       </p>
       <ul className="project-status-breakdown">
-        {TASK_STATUS_ORDER.map(({ label, value }) => {
+        {TASK_STATUSES.map(({ label, id: value }) => {
           const count = statusCounts.get(value) ?? 0;
           const share =
             project.taskCount === 0

@@ -181,8 +181,8 @@ export const seedTask = async (seed: TaskSeed = {}): Promise<string> => {
   const taskId = randomUUID();
   numberCounter += 1;
   await authPool.query(
-    `INSERT INTO task (id, "projectId", "projectTaskNumber", title, "createdById", "dueDate", priority, status, type, "archivedAt", "archivedById")
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    `INSERT INTO task (id, "projectId", "projectTaskNumber", title, "createdById", "dueDate", priority, status, type, "archivedAt", "archivedById", "completedAt")
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CASE WHEN $8::text = 'done' THEN now() END)`,
     [
       taskId,
       seed.projectId ?? ids.projectId,

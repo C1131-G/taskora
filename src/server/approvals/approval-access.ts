@@ -4,6 +4,7 @@ import { Schema } from "effect";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import { loadSharedProjects } from "../portal/client-visibility";
 import type { Transaction } from "../work/work-internal";
 import type { ApprovalStatus } from "./approval-contracts";
 import { ApprovalStatusSchema } from "./approval-contracts";
@@ -15,8 +16,13 @@ export const milestoneSubjectKey = (milestoneId: string) =>
 const isStatus = Schema.is(ApprovalStatusSchema);
 
 // The status column is text; the check constraint keeps it to these values.
-export const toApprovalStatus = (value: string): ApprovalStatus =>
-  isStatus(value) ? value : "pending";
+// Anything else is a broken row, never a request waiting for the client.
+export const toApprovalStatus = (value: string): ApprovalStatus => {
+  if (isStatus(value)) {
+    return value;
+  }
+  throw new Error(`Unknown approval status: ${value}`);
+};
 
 export const approvalNotFound = () =>
   new AppError({
@@ -39,24 +45,7 @@ export const loadVisibleRequests = async (
   companyId: string,
   filter: VisibleFilter = {}
 ) => {
-  const links = await transaction.orm.public.ClientCompanyProject.where({
-    companyId,
-    removedAt: null,
-  })
-    .select("projectId")
-    .all();
-  if (links.length === 0) {
-    return { projects: new Map<string, string>(), requests: [] };
-  }
-  const projects = await transaction.orm.public.Project.where((project) =>
-    and(
-      project.id.in(links.map(({ projectId }) => projectId)),
-      project.clientVisible.eq(true),
-      project.archivedAt.isNull()
-    )
-  )
-    .select("id", "name")
-    .all();
+  const projects = await loadSharedProjects(transaction, companyId);
   const projectNames = new Map(projects.map(({ id, name }) => [id, name]));
   if (projectNames.size === 0) {
     return { projects: projectNames, requests: [] };
@@ -97,6 +86,27 @@ export const loadVisibleRequests = async (
       ({ taskId }) => taskId === null || sharedTasks.has(taskId)
     ),
   };
+};
+
+// Whether a milestone still exists, holding a share lock on it for the rest
+// of the transaction so it cannot be deleted underneath the caller.
+export const lockMilestone = async (
+  transaction: Transaction,
+  milestoneId: string
+): Promise<boolean> => {
+  await transaction.query(
+    transaction.sql.public.project_milestone
+      .select("id")
+      .where((field, fns) => fns.eq(field.id, milestoneId))
+      .forShare()
+      .build()
+  );
+  const milestone = await transaction.orm.public.ProjectMilestone.where({
+    id: milestoneId,
+  })
+    .select("id")
+    .first();
+  return milestone !== null;
 };
 
 export const loadVisibleRequest = async (

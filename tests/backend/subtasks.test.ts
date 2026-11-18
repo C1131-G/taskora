@@ -142,16 +142,29 @@ it("creates, completes, and promotes a subtask through task services", async () 
     const removal = await Effect.runPromise(
       Effect.provide(removeDisposable, SubtaskManagementLive)
     );
-    const promote = Effect.gen(function* promoteSubtask() {
-      const subtasks = yield* SubtaskManagement;
-      return yield* subtasks.promoteSubtask(
-        actorId,
-        created.subtask.id,
-        removal.parentVersion
-      );
-    });
+    const promote = (subtaskId: string) =>
+      Effect.gen(function* promoteSubtask() {
+        const subtasks = yield* SubtaskManagement;
+        return yield* subtasks.promoteSubtask(
+          actorId,
+          subtaskId,
+          removal.parentVersion
+        );
+      });
+    // A completed checklist item is never reopened as a new todo task.
+    const refused = await Effect.runPromise(
+      Effect.flip(
+        Effect.provide(promote(created.subtask.id), SubtaskManagementLive)
+      )
+    );
+    expect(refused.code).toBe("CONFLICT");
+    const kept = await authPool.query<{ isCompleted: boolean }>(
+      'SELECT "isCompleted" FROM task_subtask WHERE id = $1',
+      [created.subtask.id]
+    );
+    expect(kept.rows[0]?.isCompleted).toBe(true);
     const promoted = await Effect.runPromise(
-      Effect.provide(promote, SubtaskManagementLive)
+      Effect.provide(promote(secondSubtask.subtask.id), SubtaskManagementLive)
     );
 
     expect(created.subtask.description).toBe("<p>Draft slides</p>");
@@ -160,7 +173,8 @@ it("creates, completes, and promotes a subtask through task services", async () 
     expect(removal.parentVersion).toBe(7);
     expect(promoted.id).not.toBe(task.id);
     expect(promoted.projectTaskNumber).toBe(2);
-    expect(promoted.title).toBe("Draft slides");
+    expect(promoted.title).toBe("Second subtask");
+    expect(promoted.status).toBe("todo");
   } finally {
     await authPool.query('DELETE FROM activity WHERE "actorId" = $1', [
       actorId,

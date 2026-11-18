@@ -11,6 +11,7 @@ import type { CreatedTask, CreateTaskInput } from "./work-contracts";
 import {
   assertStartNotAfterDue,
   databaseError,
+  taskStatusFields,
   validateInput,
 } from "./work-internal";
 import type { Transaction } from "./work-internal";
@@ -102,7 +103,7 @@ export const createTaskInTransaction = async (
   await transaction.orm.public.Task.create({
     archivedAt: null,
     archivedById: null,
-    completedAt: null,
+    ...taskStatusFields(initialStatus, null, now),
     createdAt: now,
     createdById: actorId,
     description: input.description,
@@ -114,7 +115,6 @@ export const createTaskInTransaction = async (
     projectId: input.projectId,
     projectTaskNumber,
     startDate: input.startDate ?? null,
-    status: initialStatus,
     title: input.title,
     type,
     updatedAt: now,
@@ -180,7 +180,7 @@ export const createTaskInTransaction = async (
     priority: input.priority,
     projectId: input.projectId,
     projectTaskNumber,
-    status: "todo",
+    status: initialStatus,
     title: input.title,
     version: 1,
   };

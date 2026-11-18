@@ -109,19 +109,6 @@ export const removeFile = (
             message: "You can remove only your own uploads.",
           });
         }
-        // An approval request lists the files the client is asked to look at.
-        // Taking one away would change what they agreed to.
-        const approvalFile =
-          await transaction.orm.public.ApprovalRequestFile.where({ fileId })
-            .select("id")
-            .first();
-        if (approvalFile) {
-          throw new AppError({
-            code: "CONFLICT",
-            message:
-              "A file on an approval request stays until the request is gone.",
-          });
-        }
         await internal.assertActiveFileLocation(
           transaction,
           actor.role,
@@ -137,6 +124,21 @@ export const removeFile = (
           throw new AppError({
             code: "CONFLICT",
             message: "The file changed before it could be removed.",
+          });
+        }
+        // An approval request lists the files the client is asked to look at.
+        // Taking one away would change what they agreed to. Checked after the
+        // update, which holds the row lock an approval request takes on its
+        // files, so a request committed meanwhile is seen and this rolls back.
+        const approvalFile =
+          await transaction.orm.public.ApprovalRequestFile.where({ fileId })
+            .select("id")
+            .first();
+        if (approvalFile) {
+          throw new AppError({
+            code: "CONFLICT",
+            message:
+              "A file on an approval request stays until the request is gone.",
           });
         }
         const undoId = randomUUID();

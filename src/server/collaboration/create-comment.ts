@@ -10,6 +10,7 @@ import { LONG_TEXT_MAX_LENGTH } from "../core/text-limits";
 import { notifyUsers } from "../notifications/notify-users";
 import { enqueueWebhookEvent } from "../webhooks/webhook-enqueue";
 import { markFirstResponse } from "../work/bug-sla";
+import { COMPLETED_BUG_STATUSES } from "../work/bug-status-edges";
 import type { CommentVisibility, CreatedComment } from "./contracts";
 import { mapError, uuidSchema, extractMentionIds } from "./internal";
 
@@ -74,7 +75,7 @@ const assertCommentAllowed = (
       message: "The active task was not found.",
     });
   }
-  if (["closed", "duplicate", "withdrawn"].includes(bug.status)) {
+  if (COMPLETED_BUG_STATUSES.has(bug.status)) {
     throw forbidden("Closed bugs are read only.");
   }
 };

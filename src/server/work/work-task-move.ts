@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 
+import { and } from "@prisma/orm-postgres/orm-client";
 import { Effect, Schema } from "effect";
 
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import type { UploadIntentState } from "../storage/upload-states";
 import type { CreatedTask } from "./work-contracts";
 import { decodeTaskPriority, decodeTaskStatus } from "./work-contracts";
 import { assertOrdinaryTask, databaseError } from "./work-internal";
@@ -49,6 +51,15 @@ export const moveTask = (
             message: "Change your password before continuing.",
           });
         }
+        // Upload requests, finalizes and copies lock this row too, so they
+        // finish before the move reads the task's uploads and files.
+        await transaction.query(
+          transaction.sql.public.task
+            .select("id")
+            .where((field, fns) => fns.eq(field.id, taskId))
+            .forNoKeyUpdate()
+            .build()
+        );
         const task = await transaction.orm.public.Task.where({
           id: taskId,
         }).first();
@@ -71,6 +82,7 @@ export const moveTask = (
             message: "The task changed. Refresh and try again.",
           });
         }
+        const now = new Date();
         const [assignments, projects, pendingUpload] = await Promise.all([
           transaction.orm.public.TaskAssignee.where({ taskId })
             .select("userId")
@@ -78,10 +90,15 @@ export const moveTask = (
           transaction.orm.public.Project.where((project) =>
             project.id.in([task.projectId, destinationProjectId])
           ).all(),
-          transaction.orm.public.UploadIntent.where({
-            state: "pending",
-            taskId,
-          })
+          // An expired intent can no longer be finalized, so it does not
+          // block the move while it waits for the cleanup job.
+          transaction.orm.public.UploadIntent.where((intent) =>
+            and(
+              intent.taskId.eq(taskId),
+              intent.state.eq("pending" satisfies UploadIntentState),
+              intent.expiresAt.gt(now)
+            )
+          )
             .select("id")
             .first(),
         ]);
@@ -136,7 +153,6 @@ export const moveTask = (
         }
         position += 1;
         const version = expectedVersion + 1;
-        const now = new Date();
         const moved = await transaction.orm.public.Task.where({
           id: taskId,
           version: expectedVersion,

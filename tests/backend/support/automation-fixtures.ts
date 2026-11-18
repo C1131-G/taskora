@@ -94,7 +94,7 @@ export const createTaskRow = async (
   const id = randomUUID();
   taskNumber += 1;
   await authPool.query(
-    'INSERT INTO task (id, "projectId", "projectTaskNumber", title, "createdById", status, priority, type, "dueDate") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+    'INSERT INTO task (id, "projectId", "projectTaskNumber", title, "createdById", status, priority, type, "dueDate", "completedAt") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CASE WHEN $6::text = \'done\' THEN now() END)',
     [
       id,
       overrides.projectId ?? world.projectId,

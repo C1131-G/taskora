@@ -46,6 +46,9 @@ export const ApprovalFileSchema = Schema.Struct({
 });
 
 export const StaffApprovalSchema = Schema.Struct({
+  // Whether the reader may withdraw it now: still waiting, and they asked or
+  // are an administrator.
+  canCancel: Schema.Boolean,
   cancelledAt: Schema.NullOr(Schema.String),
   companyId: UUIDSchema,
   companyName: Schema.String,
@@ -61,8 +64,9 @@ export const StaffApprovalSchema = Schema.Struct({
   version: Schema.Number,
 });
 
-// What the task drawer shows: the companies a request can go to, and every
-// version requested so far.
+// What the task drawer shows: the companies a new version can go to now (each
+// company is asked separately, so one with a request waiting or approved is
+// left out), and every version requested so far.
 export const TaskApprovalsSchema = Schema.Struct({
   canRequest: Schema.Boolean,
   companies: Schema.Array(

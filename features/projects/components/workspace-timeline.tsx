@@ -19,16 +19,10 @@ import type {
 import { useTaskReschedule } from "@/features/tasks/hooks/use-task-reschedule";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { dayKeyIn } from "@/lib/format-date";
+import { taskStatusLabel } from "@/src/mobile-api/task-statuses";
 
 const DAY_MS = 86_400_000;
 const DAY_WIDTH = { month: 12, week: 32 } as const;
-const STATUS_LABELS: Readonly<Record<string, string>> = {
-  backlog: "Backlog",
-  done: "Done",
-  progress: "In Progress",
-  review: "Review",
-  todo: "To Do",
-};
 const PRIORITY_ORDER: Readonly<Record<string, number>> = {
   high: 1,
   low: 3,
@@ -59,7 +53,7 @@ const groupTasks = (
     } else if (groupBy === "status") {
       group = {
         key: task.status,
-        label: STATUS_LABELS[task.status] ?? task.status,
+        label: taskStatusLabel(task.status),
       };
     } else {
       group = {

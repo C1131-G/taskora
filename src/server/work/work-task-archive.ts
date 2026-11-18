@@ -139,9 +139,9 @@ export const undoTaskArchive = (
             message: "The undo request no longer matches the task.",
           });
         }
-        const task = await transaction.orm.public.Task.where({
-          id: undo.entityId,
-        }).first();
+        const task = await transaction.orm.public.Task.include("project")
+          .where({ id: undo.entityId })
+          .first();
         if (!task) {
           throw new AppError({
             code: "NOT_FOUND",
@@ -149,6 +149,12 @@ export const undoTaskArchive = (
           });
         }
         assertOrdinaryTask(task);
+        if (task.project.archivedAt) {
+          throw new AppError({
+            code: "CONFLICT",
+            message: "Restore the project before restoring its tasks.",
+          });
+        }
         if (
           !task.archivedAt ||
           task.archivedById !== actorId ||

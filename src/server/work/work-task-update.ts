@@ -18,6 +18,7 @@ import {
   assertOrdinaryTask,
   assertStartNotAfterDue,
   databaseError,
+  taskStatusFields,
 } from "./work-internal";
 import { notifyTaskAssignees } from "./work-notifications";
 import {
@@ -103,14 +104,12 @@ export const updateTask = (
           id: taskId,
           version: expectedVersion,
         }).updateAndCount({
-          completedAt:
-            rawInput.status === "done" ? (task.completedAt ?? now) : null,
+          ...taskStatusFields(rawInput.status, task.completedAt, now),
           description,
           dueDate: rawInput.dueDate,
           estimate: rawInput.estimate ?? task.estimate,
           priority: rawInput.priority,
           startDate,
-          status: rawInput.status,
           title,
           updatedAt: now,
           version,

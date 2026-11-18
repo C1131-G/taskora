@@ -148,12 +148,20 @@ export const getApproval = (
         requestedById,
       ])
     );
+    // A request whose milestone was deleted cannot be decided any more.
+    const subjectGone =
+      found.milestoneId !== null &&
+      (await transaction.orm.public.ProjectMilestone.where({
+        id: found.milestoneId,
+      })
+        .select("id")
+        .first()) === null;
     const decidedByName = found.decidedById
       ? (names.get(found.decidedById) ?? null)
       : null;
     return {
       ...toSummary(found, projects, names, attached.length),
-      canDecide: found.status === "pending",
+      canDecide: found.status === "pending" && !subjectGone,
       decidedByName,
       decisionComment: found.decisionComment,
       files: attached.map(({ file }) => ({

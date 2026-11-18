@@ -178,6 +178,18 @@ test("a stream the server closed for good is not reopened", () => {
   expect(sources).toHaveLength(1);
 });
 
+test("a stream the server closed for good still refreshes on every poll", () => {
+  const { clock, controller, refreshes, sources } = setup();
+  controller.start();
+  sources[0]?.emit("closed");
+  expect(refreshes()).toBe(0);
+  clock.advance(60_000 + 300);
+  expect(refreshes()).toBe(1);
+  clock.advance(60_000 + 300);
+  expect(refreshes()).toBe(2);
+  expect(sources).toHaveLength(1);
+});
+
 test("dispose closes the stream, stops timers and ignores later events", () => {
   const { clock, controller, refreshes, sources } = setup();
   controller.start();

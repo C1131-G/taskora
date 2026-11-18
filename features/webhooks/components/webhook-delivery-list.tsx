@@ -13,6 +13,7 @@ import {
   describeEvents,
 } from "@/features/webhooks/webhook-format";
 import { redeliverWebhookAction } from "@/features/webhooks/webhooks-actions";
+import { canRedeliverWebhook } from "@/src/server/webhooks/webhook-contracts";
 import type { WebhookDeliverySummary } from "@/src/server/webhooks/webhook-contracts";
 
 export const WebhookDeliveryList = ({
@@ -86,15 +87,17 @@ export const WebhookDeliveryList = ({
                   <LocalTime value={delivery.createdAt} />
                 </td>
                 <td>
-                  <WorkspaceButton
-                    aria-label={`Redeliver ${describeEvents([delivery.eventType])} to ${endpointName}`}
-                    className="btn btn-secondary btn-sm"
-                    disabled={pending}
-                    onClick={() => redeliver(delivery.id)}
-                    type="button"
-                  >
-                    Redeliver
-                  </WorkspaceButton>
+                  {canRedeliverWebhook(delivery.status) ? (
+                    <WorkspaceButton
+                      aria-label={`Redeliver ${describeEvents([delivery.eventType])} to ${endpointName}`}
+                      className="btn btn-secondary btn-sm"
+                      disabled={pending}
+                      onClick={() => redeliver(delivery.id)}
+                      type="button"
+                    >
+                      Redeliver
+                    </WorkspaceButton>
+                  ) : null}
                 </td>
               </tr>
             );

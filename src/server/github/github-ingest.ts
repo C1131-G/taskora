@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { SqlQueryError } from "@prisma/orm-family-sql/errors";
 import { Context, Effect, Layer } from "effect";
 
 import { isRecord } from "@/src/lib/type-guards";
@@ -52,6 +53,11 @@ const parseJson = (rawBody: Uint8Array): unknown => {
   }
 };
 
+const isDuplicateDelivery = (error: unknown): boolean =>
+  isUniqueConstraintViolation(error) &&
+  SqlQueryError.is(error) &&
+  error.table === "github_delivery";
+
 const isDeliveryId = (value: string | null): value is string =>
   value !== null &&
   value.length > 0 &&
@@ -99,6 +105,16 @@ const receive = async (
   const now = new Date();
   try {
     return await db.transaction(async (transaction) => {
+      // Deliveries for one repository take turns: the next waits here until
+      // the previous commits, so its delivery check and pull-link lookups see
+      // that work instead of racing it into a unique violation.
+      await transaction.query(
+        transaction.sql.public.github_connection
+          .select("id")
+          .where((field, fns) => fns.eq(field.id, active.id))
+          .forNoKeyUpdate()
+          .build()
+      );
       const seen = await transaction.orm.public.GithubDelivery.where({
         connectionId: active.id,
         deliveryId,
@@ -119,8 +135,10 @@ const receive = async (
       return { status: "processed", ...outcome } as const;
     });
   } catch (error) {
-    // A concurrent copy of the same delivery claimed the id first.
-    if (isUniqueConstraintViolation(error)) {
+    // A concurrent copy of the same delivery claimed the id first. Any other
+    // unique violation is a real failure, so GitHub's delivery is not lost as
+    // a "duplicate".
+    if (isDuplicateDelivery(error)) {
       return { status: "duplicate" };
     }
     throw error;

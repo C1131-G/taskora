@@ -16,6 +16,38 @@ import {
 } from "@/features/files/files-actions";
 import { useUploadQueue } from "@/features/files/hooks/use-upload-queue";
 import type { UploadRunner } from "@/features/files/hooks/use-upload-queue";
+import { isUploadActive } from "@/features/files/upload-store";
+
+// Finalizing is the last step; showing the new photo is the queue refresh.
+const runner = (file: File): UploadRunner => {
+  let uploadIntentId = "";
+  return {
+    finalize: async () => {
+      const finalized = await finalizeAvatarUploadAction({
+        idempotencyKey: crypto.randomUUID(),
+        uploadIntentId,
+      });
+      return finalized.ok ? null : finalized.error.message;
+    },
+    request: async () => {
+      const ticket = await requestAvatarUploadAction({
+        contentType: file.type,
+        sizeBytes: file.size,
+      });
+      if (!ticket.ok) {
+        return { message: ticket.error.message, ok: false };
+      }
+      ({ uploadIntentId } = ticket.data);
+      return {
+        ok: true,
+        ticket: {
+          requiredHeaders: ticket.data.requiredHeaders,
+          uploadUrl: ticket.data.uploadUrl,
+        },
+      };
+    },
+  };
+};
 
 export const AvatarUpload = ({
   userId,
@@ -26,48 +58,16 @@ export const AvatarUpload = ({
 }) => {
   const [avatarUrl, setAvatarUrl] = useState(initialUrl);
   const uploadInput = useRef<HTMLInputElement>(null);
-  const queue = useUploadQueue();
-  const pending = queue.uploads.some(
-    (upload) => upload.status === "uploading" || upload.status === "finalizing"
-  );
-
-  const runner = (file: File): UploadRunner => {
-    let uploadIntentId = "";
-    return {
-      finalize: async () => {
-        const finalized = await finalizeAvatarUploadAction({
-          idempotencyKey: crypto.randomUUID(),
-          uploadIntentId,
-        });
-        if (!finalized.ok) {
-          return finalized.error.message;
-        }
-        const avatar = await getAvatarDownloadUrlAction({ userId });
-        if (!avatar.ok) {
-          return avatar.error.message;
-        }
-        setAvatarUrl(avatar.data);
-        return null;
-      },
-      request: async () => {
-        const ticket = await requestAvatarUploadAction({
-          contentType: file.type,
-          sizeBytes: file.size,
-        });
-        if (!ticket.ok) {
-          return { message: ticket.error.message, ok: false };
-        }
-        ({ uploadIntentId } = ticket.data);
-        return {
-          ok: true,
-          ticket: {
-            requiredHeaders: ticket.data.requiredHeaders,
-            uploadUrl: ticket.data.uploadUrl,
-          },
-        };
-      },
-    };
-  };
+  // Showing the new photo is a refresh after the finalize committed, so its
+  // failure is a refresh error and a retry never uploads the photo again.
+  const queue = useUploadQueue(async () => {
+    const avatar = await getAvatarDownloadUrlAction({ userId });
+    if (!avatar.ok) {
+      throw new Error(avatar.error.message);
+    }
+    setAvatarUrl(avatar.data);
+  });
+  const pending = queue.uploads.some(isUploadActive);
 
   const upload = (file: File | undefined) => {
     if (!file) {

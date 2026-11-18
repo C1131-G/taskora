@@ -15,8 +15,8 @@ import { canEditTaskRecord } from "@/features/tasks/task-permissions";
 import { columnWidthsFromPreferences } from "@/features/tasks/task-table-columns";
 import { listAllProjectTasks } from "@/features/tasks/tasks-queries";
 import { getPersonalPreferences } from "@/features/user/user-queries";
-import { getUtcToday } from "@/src/lib/utc-today";
 import { getPageSession } from "@/src/server/auth/page-session";
+import { getCompanyToday } from "@/src/server/work/work-company-today";
 
 /* eslint-disable shadcn/no-restyle */
 
@@ -25,13 +25,14 @@ const AllTasks = async ({
 }: {
   readonly initialTaskId: string | null;
 }) => {
-  const [projects, session, employeeResult, personal, preferences] =
+  const [projects, session, employeeResult, personal, preferences, today] =
     await Promise.all([
       listProjects({}),
       getPageSession(),
       listAllEmployees(),
       getPersonalWorkspace({}),
       getPersonalPreferences({}),
+      getCompanyToday(),
     ]);
   if (!projects.ok) {
     throw new Error("Tasks could not be loaded.");
@@ -96,7 +97,7 @@ const AllTasks = async ({
           isAdmin={isAdmin}
           projects={projects.data.map(({ id, name }) => ({ id, name }))}
           tasks={allTasks}
-          today={getUtcToday()}
+          today={today}
           userId={userId}
         />
       </TaskDrawerHost>

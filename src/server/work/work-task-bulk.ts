@@ -1,12 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import type { ResultType } from "@prisma/orm-postgres/components/runtime";
 import { Effect } from "effect";
 
 import { db } from "@/src/prisma/db";
 
 import { enqueueTaskFieldEvents } from "../automation/automation-enqueue";
-import { AppError } from "../core/action-result";
+import type { AppError } from "../core/action-result";
 import { enqueueTaskChange } from "../webhooks/webhook-task-event";
 import type {
   BulkTaskChanges,
@@ -30,80 +29,16 @@ import {
   loadBulkTaskRecords,
 } from "./work-task-bulk-access";
 import { validateBulkTaskInput } from "./work-task-bulk-validation";
+import type { UpdatedTaskRow } from "./work-task-bulk-write";
+import {
+  missingTasksError,
+  replaceBulkAssignees,
+  syncBulkRecurrenceDueDates,
+  writeBulkTaskChange,
+} from "./work-task-bulk-write";
 import { createRecurrenceSuccessor } from "./work-task-state";
 
-type UpdatedTaskRow = ResultType<typeof db.orm.public.Task>;
-
 const COMPLETION_UNDO_WINDOW_MS = 5 * 60 * 1000;
-
-const staleTasksError = () =>
-  new AppError({
-    code: "CONFLICT",
-    message: "One or more tasks changed. Refresh and try again.",
-  });
-
-const missingTasksError = () =>
-  new AppError({
-    code: "NOT_FOUND",
-    message: "One or more tasks were not found.",
-  });
-
-const writeBulkTaskChange = async (
-  transaction: Transaction,
-  task: BulkTaskRow,
-  expectedVersion: number | undefined,
-  changes: BulkTaskChanges,
-  now: Date
-): Promise<UpdatedTaskRow> => {
-  if (!expectedVersion) {
-    throw staleTasksError();
-  }
-  const updatedCount = await transaction.orm.public.Task.where({
-    id: task.id,
-    version: expectedVersion,
-  }).updateAndCount({
-    completedAt: changes.status === "done" ? (task.completedAt ?? now) : null,
-    dueDate: changes.dueDate,
-    priority: changes.priority,
-    status: changes.status,
-    updatedAt: now,
-    version: expectedVersion + 1,
-  });
-  if (!updatedCount) {
-    throw staleTasksError();
-  }
-  const updated = await transaction.orm.public.Task.where({
-    id: task.id,
-  }).first();
-  if (!updated) {
-    throw missingTasksError();
-  }
-  return updated;
-};
-
-const replaceBulkAssignees = async (
-  transaction: Transaction,
-  taskIds: readonly string[],
-  assigneeIds: readonly string[],
-  actorId: string,
-  now: Date
-): Promise<void> => {
-  await transaction.orm.public.TaskAssignee.where((assignment) =>
-    assignment.taskId.in(taskIds)
-  ).deleteAll();
-  await Promise.all(
-    taskIds.flatMap((taskId) =>
-      assigneeIds.map((userId) =>
-        transaction.orm.public.TaskAssignee.create({
-          assignedAt: now,
-          assignedById: actorId,
-          taskId,
-          userId,
-        })
-      )
-    )
-  );
-};
 
 const recordCompletionUndo = async (
   transaction: Transaction,
@@ -292,6 +227,13 @@ export const bulkUpdateTasks = (
           updatedTasks.map((task) => task.id),
           assigneeIds,
           actorId,
+          now
+        );
+        await syncBulkRecurrenceDueDates(
+          transaction,
+          records.tasks,
+          records.recurrences,
+          changes.dueDate,
           now
         );
         const recurrenceByTaskId = new Map(

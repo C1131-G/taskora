@@ -1,17 +1,12 @@
 import type { Effect } from "effect";
 import { Context, Schema } from "effect";
 
+import { TaskStatusSchema } from "../../mobile-api/task-statuses";
 import type { AppError } from "../core/action-result";
 import { CalendarDateSchema } from "../core/input-schemas";
 import { LONG_TEXT_MAX_LENGTH } from "../core/text-limits";
 
-export const TaskStatusSchema = Schema.Literals([
-  "backlog",
-  "todo",
-  "progress",
-  "review",
-  "done",
-]);
+export { TaskStatusSchema } from "../../mobile-api/task-statuses";
 export const TaskPrioritySchema = Schema.Literals([
   "urgent",
   "high",

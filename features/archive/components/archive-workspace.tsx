@@ -43,9 +43,12 @@ const ArchiveWorkspace = ({
                         <LocalTime format="date" value={task.archivedAt} />
                       </>
                     ) : null}
+                    {task.projectArchived
+                      ? " · Restore the project to restore this task"
+                      : null}
                   </span>
                 </div>
-                {canRestore ? (
+                {canRestore && !task.projectArchived ? (
                   <ArchiveRestoreButton
                     id={task.id}
                     kind="task"

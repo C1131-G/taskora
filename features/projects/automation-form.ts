@@ -1,3 +1,4 @@
+import { TASK_STATUS_LABELS } from "@/src/mobile-api/task-statuses";
 import type {
   AutomationOutcome,
   AutomationRuleInput,
@@ -45,13 +46,8 @@ export interface RuleDraft {
   readonly actions: readonly ActionDraft[];
 }
 
-export const STATUS_LABELS: Readonly<Record<string, string>> = {
-  backlog: "Backlog",
-  done: "Done",
-  progress: "In Progress",
-  review: "Review",
-  todo: "To Do",
-};
+export const STATUS_LABELS: Readonly<Record<string, string>> =
+  TASK_STATUS_LABELS;
 export const PRIORITY_LABELS: Readonly<Record<string, string>> = {
   high: "High",
   low: "Low",

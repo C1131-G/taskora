@@ -4,6 +4,7 @@ import type { Effect } from "effect";
 
 import { createCommentInTransaction } from "../collaboration/create-comment";
 import { AppError } from "../core/action-result";
+import { COMPLETED_BUG_STATUSES } from "../work/bug-status-edges";
 import { resumeAfterClientReply } from "../work/bug-workflow-client";
 import {
   confirmClientFix,
@@ -11,11 +12,7 @@ import {
   reopenClientFix,
 } from "../work/bug-workflow-client-verify";
 import { forbidden, writeActivity } from "../work/bug-workflow-internal";
-import {
-  ARCHIVED_OR_CLOSED,
-  loadWritableCompanyBug,
-  run,
-} from "./portal-bug-access";
+import { loadWritableCompanyBug, run } from "./portal-bug-access";
 import type {
   PortalActor,
   PortalBugReceipt,
@@ -39,7 +36,7 @@ export const addComment = (
       actor,
       input.bugId
     );
-    if (ARCHIVED_OR_CLOSED.has(bug.status)) {
+    if (COMPLETED_BUG_STATUSES.has(bug.status)) {
       forbidden("Closed bugs are read only.");
     }
     const created = await createCommentInTransaction(transaction, {
@@ -101,7 +98,7 @@ export const attachFile = (
       actor,
       input.bugId
     );
-    if (ARCHIVED_OR_CLOSED.has(bug.status)) {
+    if (COMPLETED_BUG_STATUSES.has(bug.status)) {
       forbidden("Closed bugs are read only.");
     }
     const file = await transaction.orm.public.FileAsset.where({
@@ -158,7 +155,7 @@ export const taskIdForBug = (
       actor,
       bugId
     );
-    if (ARCHIVED_OR_CLOSED.has(bug.status)) {
+    if (COMPLETED_BUG_STATUSES.has(bug.status)) {
       forbidden("Closed bugs are read only.");
     }
     return task.id;

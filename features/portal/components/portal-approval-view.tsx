@@ -16,6 +16,7 @@ import {
   approvalStatusTone,
 } from "@/features/portal/portal-approval-format";
 import { getPortalApprovalRecord } from "@/features/portal/portal-approval-queries";
+import { getPortalCompany } from "@/features/portal/portal-company";
 
 // A client sees the request message, exactly the files attached to it, the
 // decision and the earlier versions of the same deliverable. Nothing else
@@ -25,7 +26,10 @@ const PortalApprovalView = async ({
 }: {
   readonly approvalId: string;
 }) => {
-  const approval = await getPortalApprovalRecord(approvalId);
+  const [approval, company] = await Promise.all([
+    getPortalApprovalRecord(approvalId),
+    getPortalCompany(),
+  ]);
   return (
     <div className="portal-detail">
       <Link
@@ -59,6 +63,11 @@ const PortalApprovalView = async ({
         </h2>
         <PortalApprovalFiles files={approval.files} />
       </section>
+      {company?.preview && approval.status === "pending" ? (
+        <p className="portal-banner" role="note">
+          Deciding is disabled in preview.
+        </p>
+      ) : null}
       {approval.canDecide ? (
         <PortalApprovalDecision requestId={approval.id} />
       ) : (

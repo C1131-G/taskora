@@ -4,9 +4,11 @@ import { randomUUID } from "node:crypto";
 import { Effect } from "effect";
 
 import { authPool } from "../../src/server/auth/database";
+import { OVERDUE_LOOKBACK_DAYS } from "../../src/server/automation/automation-overdue";
 import { parseRetentionEnv } from "../../src/server/core/env";
 import {
   DEFAULT_RETENTION_POLICY,
+  MIN_AUTOMATION_RUN_DAYS,
   purgeExpiredData,
   retentionPolicyFromEnv,
 } from "../../src/server/jobs/data-retention";
@@ -55,12 +57,28 @@ afterAll(async () => {
 it("keeps run logs for 30 days by default and accepts an override", () => {
   expect(DEFAULT_RETENTION_POLICY.automationRunDays).toBe(30);
   expect(
-    retentionPolicyFromEnv({ RETENTION_AUTOMATION_RUN_DAYS: "7" })
+    retentionPolicyFromEnv({ RETENTION_AUTOMATION_RUN_DAYS: "10" })
       .automationRunDays
-  ).toBe(7);
+  ).toBe(10);
   expect(() =>
     parseRetentionEnv({ RETENTION_AUTOMATION_RUN_DAYS: "0" })
   ).toThrow();
+});
+
+it("never keeps run logs shorter than the overdue sweep looks back", () => {
+  // The run log is the overdue event's idempotency record: purging it while
+  // the sweep can still see the task would run the rule a second time.
+  expect(MIN_AUTOMATION_RUN_DAYS).toBe(OVERDUE_LOOKBACK_DAYS + 1);
+  for (const configured of ["1", "7"]) {
+    expect(
+      retentionPolicyFromEnv({ RETENTION_AUTOMATION_RUN_DAYS: configured })
+        .automationRunDays
+    ).toBe(MIN_AUTOMATION_RUN_DAYS);
+  }
+  expect(
+    retentionPolicyFromEnv({ RETENTION_AUTOMATION_RUN_DAYS: "8" })
+      .automationRunDays
+  ).toBe(8);
 });
 
 it("purges run log rows past the window and keeps the rest", async () => {

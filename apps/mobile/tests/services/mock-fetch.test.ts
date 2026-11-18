@@ -16,7 +16,7 @@ const ME = {
 
 const tokenSource = Layer.succeed(
   TokenSource,
-  TokenSource.of({ currentToken: Effect.succeed("token-1"), onUnauthenticated: Effect.void }),
+  TokenSource.of({ currentToken: Effect.succeed("token-1"), onUnauthenticated: () => Effect.void }),
 );
 
 const mockLayer = (fixtures: Parameters<typeof makeMockMobileApiLayer>[0]) =>

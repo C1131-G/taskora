@@ -11938,6 +11938,13 @@
               "uniques": []
             },
             "automation_run": {
+              "checks": [
+                {
+                  "expression": "\"outcome\" IN ('matched', 'skipped', 'failed')",
+                  "name": "automation_run_outcome_valid_29e3ad35",
+                  "prefix": "automation_run_outcome_valid"
+                }
+              ],
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-date@1",
@@ -13192,6 +13199,16 @@
             "bug_report": {
               "checks": [
                 {
+                  "expression": "(\"status\" = 'awaiting_client') = (\"awaitingClientSince\" IS NOT NULL)",
+                  "name": "bug_report_awaiting_client_pair_494655f1",
+                  "prefix": "bug_report_awaiting_client_pair"
+                },
+                {
+                  "expression": "\"statusBeforeNeedsInfo\" IS NULL OR \"statusBeforeNeedsInfo\" IN ('triaged', 'in_progress', 'in_verification')",
+                  "name": "bug_report_before_needs_info_valid_0ad0ae63",
+                  "prefix": "bug_report_before_needs_info_valid"
+                },
+                {
                   "expression": "\"clientImpact\" IN ('low', 'medium', 'high', 'urgent')",
                   "name": "bug_report_clientImpact_check_b835bb9b",
                   "prefix": "bug_report_clientImpact_check"
@@ -13212,6 +13229,11 @@
                   "prefix": "bug_report_environment_check"
                 },
                 {
+                  "expression": "(\"status\" = 'needs_info') = (\"needsInfoSince\" IS NOT NULL) AND (\"status\" = 'needs_info') = (\"statusBeforeNeedsInfo\" IS NOT NULL)",
+                  "name": "bug_report_needs_info_pair_7cacfb21",
+                  "prefix": "bug_report_needs_info_pair"
+                },
+                {
                   "expression": "(\"pickedById\" IS NULL AND \"pickedAt\" IS NULL) OR (\"pickedById\" IS NOT NULL AND \"pickedAt\" IS NOT NULL)",
                   "name": "bug_report_pick_fields_paired_2ed2462b",
                   "prefix": "bug_report_pick_fields_paired"
@@ -13225,6 +13247,11 @@
                   "expression": "\"resolution\" IN ('fixed', 'confirmed', 'no_response', 'unconfirmed', 'not_a_bug')",
                   "name": "bug_report_resolution_check_8950df78",
                   "prefix": "bug_report_resolution_check"
+                },
+                {
+                  "expression": "\"resolution\" IS NULL OR \"status\" = 'closed'",
+                  "name": "bug_report_resolution_closed_dba429df",
+                  "prefix": "bug_report_resolution_closed"
                 },
                 {
                   "expression": "\"satisfaction\" IN ('up', 'down')",
@@ -16479,6 +16506,13 @@
               ]
             },
             "job": {
+              "checks": [
+                {
+                  "expression": "NOT (\"completedAt\" IS NOT NULL AND \"deadAt\" IS NOT NULL)",
+                  "name": "job_not_completed_and_dead_f35d1ed7",
+                  "prefix": "job_not_completed_and_dead"
+                }
+              ],
               "columns": {
                 "attempts": {
                   "codecId": "pg/int4@1",
@@ -18166,6 +18200,11 @@
                   "expression": "(\"archivedAt\" IS NULL) = (\"archivedById\" IS NULL)",
                   "name": "task_archive_pair_dc6ab2b4",
                   "prefix": "task_archive_pair"
+                },
+                {
+                  "expression": "(\"status\" = 'done') = (\"completedAt\" IS NOT NULL)",
+                  "name": "task_completion_pair_38c1713e",
+                  "prefix": "task_completion_pair"
                 },
                 {
                   "expression": "\"priority\" IN ('urgent', 'high', 'medium', 'low', 'none')",
@@ -20059,6 +20098,13 @@
               "uniques": []
             },
             "webhook_delivery": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('pending', 'retrying', 'succeeded', 'dead')",
+                  "name": "webhook_delivery_status_valid_ede2f52d",
+                  "prefix": "webhook_delivery_status_valid"
+                }
+              ],
               "columns": {
                 "attempts": {
                   "codecId": "pg/int4@1",
@@ -20497,7 +20543,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "f001ece94fea7f773796b8e6b6efc71a8b9c28c74c14e431761920fd58b2063a"
+    "storageHash": "af6ecd66fd2aaddd35dc4c9a0a33ff8ba394c2d30cf839494cb61c02f471c2a4"
   },
   "execution": {
     "executionHash": "3ef83339784932ff44a74add40452346987a6331301bd5a1a3b4f9da50f8fc55",

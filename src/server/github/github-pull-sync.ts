@@ -6,6 +6,7 @@ import type { db } from "@/src/prisma/db";
 
 import { notifyUsers } from "../notifications/notify-users";
 import { enqueueTaskChange } from "../webhooks/webhook-task-event";
+import { taskStatusFields } from "../work/work-internal";
 import type { PullEvent } from "./github-payload";
 import { extractTaskNumbers, sanitizePullTitle } from "./github-references";
 
@@ -56,6 +57,18 @@ const upsertLink = async (
   };
   const current =
     await transaction.orm.public.GithubPullLink.where(scope).first();
+  // A merged pull request cannot reopen on GitHub, so merged is final here: an
+  // older event arriving late only refreshes the display copies.
+  if (current?.state === "merged") {
+    await transaction.orm.public.GithubPullLink.where({
+      id: current.id,
+    }).update({
+      authorLogin: event.authorLogin,
+      title: sanitizePullTitle(event.title),
+      updatedAt: now,
+    });
+    return current.state;
+  }
   const fields = {
     authorLogin: event.authorLogin,
     mergedAt:
@@ -94,8 +107,7 @@ const completeTask = async (
     id: task.id,
     version: task.version,
   }).updateAndCount({
-    completedAt: now,
-    status: "done",
+    ...taskStatusFields("done", null, now),
     updatedAt: now,
     version,
   });
@@ -203,9 +215,10 @@ export const syncPull = async (
   const project = await transaction.orm.public.Project.where({
     id: connection.projectId,
   })
-    .select("key")
+    .select("key", "archivedAt")
     .first();
-  if (!project) {
+  // An archived project is read only: nothing is linked or completed in it.
+  if (!project || project.archivedAt !== null) {
     return { completed: 0, linked: 0 };
   }
   const numbers = extractTaskNumbers(project.key, [

@@ -1,5 +1,6 @@
 import { Layer } from "effect";
 
+import { cancelApproval } from "./approval-cancel";
 import { Approvals } from "./approval-contracts";
 import { decideApproval } from "./approval-decisions";
 import {
@@ -8,7 +9,7 @@ import {
   pendingCount,
 } from "./approval-portal-reads";
 import { forProject } from "./approval-project-reads";
-import { cancelApproval, requestApproval } from "./approval-requests";
+import { requestApproval } from "./approval-requests";
 import { forTask } from "./approval-staff-reads";
 import { PortalApprovals } from "./portal-approvals-service";
 

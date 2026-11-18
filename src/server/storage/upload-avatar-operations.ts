@@ -6,8 +6,61 @@ import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
 import type { StorageApi } from "./storage";
+import { decodeUploadIntentState } from "./upload-states";
+import type { UploadIntentState } from "./upload-states";
 import type { AvatarUploadResult } from "./uploads-contracts";
 import * as internal from "./uploads-internal";
+
+// Points the user at the new avatar and retires the one it replaces: its
+// intent moves to removed and a job deletes its object. The user row is locked
+// first, so two avatar finalizes for one user take turns and each retires the
+// avatar the other one set.
+const replaceAvatar = async (
+  transaction: internal.Transaction,
+  actorId: string,
+  objectKey: string,
+  now: Date
+): Promise<void> => {
+  await transaction.query(
+    transaction.sql.public.user
+      .select("id")
+      .where((field, fns) => fns.eq(field.id, actorId))
+      .forNoKeyUpdate()
+      .build()
+  );
+  const previous = await transaction.orm.public.User.where({ id: actorId })
+    .select("image")
+    .first();
+  await transaction.orm.public.User.where({ id: actorId }).update({
+    image: objectKey,
+    updatedAt: now,
+  });
+  const previousKey = previous?.image;
+  if (
+    !previousKey?.startsWith("company/avatars/") ||
+    previousKey === objectKey
+  ) {
+    return;
+  }
+  await transaction.orm.public.UploadIntent.where({
+    objectKey: previousKey,
+    state: "finalized" satisfies UploadIntentState,
+  }).updateAndCount({
+    removedAt: now,
+    state: "removed" satisfies UploadIntentState,
+    updatedAt: now,
+  });
+  await transaction.orm.public.Job.create({
+    availableAt: now,
+    createdAt: now,
+    dedupeKey: `storage.delete-avatar:${previousKey}`,
+    id: randomUUID(),
+    kind: "storage.delete-avatar",
+    maxAttempts: 8,
+    payload: { objectKey: previousKey },
+    updatedAt: now,
+  });
+};
 
 export const makeAvatarOperations = (storage: StorageApi) => {
   const finalizeAvatarUpload = (
@@ -35,11 +88,12 @@ export const makeAvatarOperations = (storage: StorageApi) => {
                 message: "This upload is not an avatar request.",
               });
             }
-            if (found.state === "finalized") {
+            const state = decodeUploadIntentState(found.state);
+            if (state === "finalized") {
               return { alreadyFinalized: true as const, record: found };
             }
             if (
-              found.state !== "pending" ||
+              state !== "pending" ||
               found.expiresAt <= new Date() ||
               found.taskId ||
               found.projectId ||
@@ -89,9 +143,10 @@ export const makeAvatarOperations = (storage: StorageApi) => {
                 message: "The avatar upload request changed.",
               });
             }
-            if (current.state !== "finalized") {
+            const state = decodeUploadIntentState(current.state);
+            if (state !== "finalized") {
               if (
-                current.state !== "pending" ||
+                state !== "pending" ||
                 current.expiresAt <= new Date() ||
                 current.taskId ||
                 current.projectId ||
@@ -105,10 +160,10 @@ export const makeAvatarOperations = (storage: StorageApi) => {
               const now = new Date();
               const claimed = await transaction.orm.public.UploadIntent.where({
                 id: uploadIntentId,
-                state: "pending",
+                state: "pending" satisfies UploadIntentState,
               }).updateAndCount({
                 finalizedAt: now,
-                state: "finalized",
+                state: "finalized" satisfies UploadIntentState,
                 updatedAt: now,
               });
               if (!claimed) {
@@ -117,31 +172,7 @@ export const makeAvatarOperations = (storage: StorageApi) => {
                   message: "The avatar upload request was already finalized.",
                 });
               }
-              const previousAvatar = await transaction.orm.public.User.where({
-                id: actorId,
-              })
-                .select("image")
-                .first();
-              await transaction.orm.public.User.where({ id: actorId }).update({
-                image: current.objectKey,
-                updatedAt: now,
-              });
-              if (
-                previousAvatar?.image?.startsWith("company/avatars/") &&
-                previousAvatar.image !== current.objectKey
-              ) {
-                const jobId = randomUUID();
-                await transaction.orm.public.Job.create({
-                  availableAt: now,
-                  createdAt: now,
-                  dedupeKey: `storage.delete-avatar:${current.objectKey}`,
-                  id: jobId,
-                  kind: "storage.delete-avatar",
-                  maxAttempts: 8,
-                  payload: { objectKey: previousAvatar.image },
-                  updatedAt: now,
-                });
-              }
+              await replaceAvatar(transaction, actorId, current.objectKey, now);
             }
             return {
               contentType: Schema.decodeUnknownSync(
@@ -182,7 +213,7 @@ export const makeAvatarOperations = (storage: StorageApi) => {
         try: () =>
           db.orm.public.UploadIntent.where({
             objectKey,
-            state: "finalized",
+            state: "finalized" satisfies UploadIntentState,
           })
             .select("contentType")
             .first(),

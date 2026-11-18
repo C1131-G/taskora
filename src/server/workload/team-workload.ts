@@ -3,8 +3,8 @@ import { Context, Effect, Layer } from "effect";
 
 import { db } from "@/src/prisma/db";
 
-import { companyToday } from "../budgets/budget-math";
 import { AppError } from "../core/action-result";
+import { getCompanyToday } from "../work/work-company-today";
 import {
   WEEKLY_CAPACITY_HOURS,
   WORKLOAD_WEEKS,
@@ -13,7 +13,6 @@ import {
 } from "./workload-math";
 import type { WorkloadView } from "./workload-math";
 
-const DEFAULT_TIME_ZONE = "UTC";
 const DAYS_PER_WEEK = 7;
 const DAY_MS = 86_400_000;
 const OPEN_STATUSES = ["backlog", "todo", "progress", "review"] as const;
@@ -45,13 +44,6 @@ const requireStaff = async (actorId: string): Promise<void> => {
   }
 };
 
-const companyTimeZone = async (): Promise<string> => {
-  const settings = await db.orm.public.CompanySettings.where({ id: "company" })
-    .select("timeZone")
-    .first();
-  return settings?.timeZone ?? DEFAULT_TIME_ZONE;
-};
-
 const staffPeople = async () => {
   const users = await db.orm.public.User.where((user) =>
     and(user.deactivatedAt.isNull(), user.role.in(["admin", "employee"]))
@@ -62,7 +54,7 @@ const staffPeople = async () => {
 };
 
 const loadWorkload = async (now: Date): Promise<WorkloadView> => {
-  const today = companyToday(now, await companyTimeZone());
+  const today = await getCompanyToday(now);
   const weekStarts = weekStartsFrom(today, WORKLOAD_WEEKS);
   const firstWeek = weekStarts[0] ?? today;
   const horizon = new Date(

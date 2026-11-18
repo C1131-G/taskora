@@ -59,6 +59,19 @@ const mapError = (error: unknown): AppError => {
   });
 };
 
+// Failures of the key insert because a concurrent request inserted the same
+// key and has committed by the time this insert fails (the insert waits).
+const concurrentReservations = new WeakSet<AppError>();
+
+const concurrentReservation = (): AppError => {
+  const error = new AppError({
+    code: "CONFLICT",
+    message: "This request is already being processed.",
+  });
+  concurrentReservations.add(error);
+  return error;
+};
+
 const hashRequest = (operation: string, input: unknown): string =>
   createHash("sha256")
     .update(JSON.stringify({ input, operation }))
@@ -111,6 +124,10 @@ const runInTransaction = <
           key,
           requestHash,
           response: null,
+        }).catch((error: unknown) => {
+          throw isUniqueConstraintViolation(error)
+            ? concurrentReservation()
+            : error;
         });
         return { created: true as const, record };
       },
@@ -185,14 +202,24 @@ const makeRun =
   (responseStore: IdempotencyResponseStore["Service"]) =>
   <ResultSchema extends Schema.Codec<unknown, unknown, never, never>>(
     input: IdempotencyRunInput<ResultSchema>
-  ): Effect.Effect<ResultSchema["Type"], AppError> =>
-    Effect.tryPromise({
+  ): Effect.Effect<ResultSchema["Type"], AppError> => {
+    const attempt = Effect.tryPromise({
       catch: mapError,
       try: () =>
         db.transaction(() =>
           Effect.runPromise(runInTransaction(input, responseStore))
         ),
     });
+    // Once more in a fresh transaction, which then finds the committed key and
+    // replays its stored response (or reports a different request) instead
+    // of refusing a retry that raced the original.
+    return attempt.pipe(
+      Effect.catchIf(
+        (error) => concurrentReservations.has(error),
+        () => attempt
+      )
+    );
+  };
 
 export const IdempotencyServiceLive = Layer.effect(
   Idempotency,

@@ -1,4 +1,5 @@
 import type { ProjectTaskViewItem } from "@/features/projects/types/project-task-view-types";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
 import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
 
 const priorityOrder = {
@@ -12,13 +13,7 @@ const priorityOrder = {
 const TASK_STATUS_GROUPS: readonly {
   readonly status: ProjectTaskListItem["status"];
   readonly label: string;
-}[] = [
-  { label: "Backlog", status: "backlog" },
-  { label: "To Do", status: "todo" },
-  { label: "In Progress", status: "progress" },
-  { label: "Review", status: "review" },
-  { label: "Done", status: "done" },
-];
+}[] = TASK_STATUSES.map(({ id, label }) => ({ label, status: id }));
 
 // Sorts with no due date last.
 const NO_DUE_DATE = "9999-12-31";

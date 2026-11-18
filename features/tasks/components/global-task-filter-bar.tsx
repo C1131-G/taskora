@@ -8,17 +8,17 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
+import {
+  TASK_STATUS_LABELS,
+  TASK_STATUSES,
+} from "@/src/mobile-api/task-statuses";
 
 import { defaultGlobalTaskSearch } from "../global-task-view-state";
 import type { GlobalTaskSearch } from "../global-task-view-state";
 
 const STATUS_LABELS: Readonly<Record<string, string>> = {
   all: "All statuses",
-  backlog: "Backlog",
-  done: "Done",
-  progress: "In Progress",
-  review: "Review",
-  todo: "To Do",
+  ...TASK_STATUS_LABELS,
 };
 
 const PRIORITY_LABELS: Readonly<Record<string, string>> = {
@@ -97,11 +97,11 @@ export const GlobalTaskFilterBar = ({
         value={raw.status}
       >
         <WorkspaceSelectItem value="all">All statuses</WorkspaceSelectItem>
-        <WorkspaceSelectItem value="backlog">Backlog</WorkspaceSelectItem>
-        <WorkspaceSelectItem value="todo">To Do</WorkspaceSelectItem>
-        <WorkspaceSelectItem value="progress">In Progress</WorkspaceSelectItem>
-        <WorkspaceSelectItem value="review">Review</WorkspaceSelectItem>
-        <WorkspaceSelectItem value="done">Done</WorkspaceSelectItem>
+        {TASK_STATUSES.map(({ id, label }) => (
+          <WorkspaceSelectItem key={id} value={id}>
+            {label}
+          </WorkspaceSelectItem>
+        ))}
       </WorkspaceSelect>
     </label>
     <label className="field" htmlFor={`${idPrefix}-priority`}>

@@ -1,6 +1,7 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { Effect } from "effect";
 
+import ChangePasswordRoute from "@/app/(auth)/change-password";
 import { ChangePasswordScreen } from "@/features/auth/change-password-screen";
 import { LoginScreen, validateCredentials } from "@/features/auth/login-screen";
 import { SessionGateContext } from "@/features/auth/session-gate";
@@ -30,7 +31,7 @@ const stubSession = (overrides: {
     changeOwnPassword: overrides.changeOwnPassword ?? (() => Effect.void),
     changes: undefined,
     current: Effect.succeed(authenticatedState),
-    invalidate: Effect.void,
+    invalidate: () => Effect.void,
     restore: Effect.succeed(authenticatedState),
     signIn: overrides.signIn ?? (() => Effect.succeed(authenticatedState)),
     signOut: Effect.void,
@@ -175,4 +176,52 @@ it("shows the mismatch and server field errors on the change screen", async () =
   await user.press(screen.getByRole("button", { name: "Save new password" }));
 
   expect(await screen.findByText("The passwords do not match")).toBeTruthy();
+});
+
+it("the change-password route hands the gate session to the screen, so Save works", async () => {
+  const changed: string[] = [];
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <SessionGateContext.Provider
+      value={stubSession({
+        changeOwnPassword: (input) => {
+          changed.push(input.newPassword);
+          return Effect.void;
+        },
+      })}
+    >
+      <ChangePasswordRoute />
+    </SessionGateContext.Provider>,
+  );
+
+  await user.type(screen.getByLabelText("Current password"), "old-pass");
+  await user.type(screen.getByLabelText("New password"), "brand-new-pass");
+  await user.type(screen.getByLabelText("Repeat new password"), "brand-new-pass");
+  await user.press(screen.getByRole("button", { name: "Save new password" }));
+
+  await waitFor(() => expect(changed).toEqual(["brand-new-pass"]));
+});
+
+it("refuses a new password shorter than the server's 12 characters", async () => {
+  const changed: string[] = [];
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <ChangePasswordScreen
+      onDone={() => undefined}
+      session={stubSession({
+        changeOwnPassword: (input) => {
+          changed.push(input.newPassword);
+          return Effect.void;
+        },
+      })}
+    />,
+  );
+
+  await user.type(screen.getByLabelText("Current password"), "old-pass");
+  await user.type(screen.getByLabelText("New password"), "eleven-char");
+  await user.type(screen.getByLabelText("Repeat new password"), "eleven-char");
+  await user.press(screen.getByRole("button", { name: "Save new password" }));
+
+  expect(await screen.findByText("New password needs at least 12 characters")).toBeTruthy();
+  expect(changed).toEqual([]);
 });

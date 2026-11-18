@@ -6,6 +6,7 @@ import { AppError } from "../core/action-result";
 import { notifyUsers } from "../notifications/notify-users";
 import { enqueueWebhookEvent } from "../webhooks/webhook-enqueue";
 import { enqueueTaskChange } from "../webhooks/webhook-task-event";
+import { taskStatusFields } from "../work/work-internal";
 import { enqueueAutomationEvent } from "./automation-enqueue";
 import { eventsCausedBy } from "./automation-evaluator";
 import type { FieldChanges } from "./automation-evaluator";
@@ -137,7 +138,7 @@ const setStatus = async (
   if (state.status === status) {
     return;
   }
-  const completedAt = status === "done" ? (state.completedAt ?? run.now) : null;
+  const { completedAt } = taskStatusFields(status, state.completedAt, run.now);
   await writeTask(run, state, { completedAt, status });
   await recordActivity(run, "task.status_changed", {
     from: state.status,

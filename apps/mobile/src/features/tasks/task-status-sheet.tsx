@@ -6,9 +6,8 @@ import { WorkspaceSheet } from "@/components/workspace/workspace-sheet";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
+import { TASK_STATUS_ORDER, taskStatusLabel } from "@api/task-statuses";
 import type { TaskStatus } from "@/features/tasks/queries";
-
-const STATUS_ORDER: readonly TaskStatus[] = ["todo", "progress", "review", "done"];
 
 export interface TaskStatusSheetProps {
   readonly current: TaskStatus;
@@ -24,7 +23,7 @@ export const TaskStatusSheet = ({ current, onClose, onMove, open }: TaskStatusSh
 
   return (
     <WorkspaceSheet onClose={onClose} title="Move to" visible={open}>
-      {STATUS_ORDER.map((status) => (
+      {TASK_STATUS_ORDER.map((status) => (
         <Pressable
           accessibilityRole="radio"
           accessibilityState={{ checked: status === current }}
@@ -38,7 +37,9 @@ export const TaskStatusSheet = ({ current, onClose, onMove, open }: TaskStatusSh
             { backgroundColor: pressed ? palette.surface2 : "transparent" },
           ]}
         >
-          <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>{status}</Text>
+          <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>
+            {taskStatusLabel(status)}
+          </Text>
           {status === current ? <Check color={palette.accent} size={18} weight="bold" /> : null}
         </Pressable>
       ))}
@@ -64,7 +65,7 @@ export const TaskStatusTrigger = (props: Omit<TaskStatusSheetProps, "open" | "on
         ]}
       >
         <Text style={[typeStyle("sm", { weight: 500 }), { color: palette.text }]}>
-          Status: {props.current}
+          Status: {taskStatusLabel(props.current)}
         </Text>
         <CaretDown color={palette.text2} size={14} weight="bold" />
       </Pressable>

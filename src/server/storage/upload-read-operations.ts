@@ -6,6 +6,8 @@ import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
 import type { StorageApi } from "./storage";
+import { decodeUploadIntentState } from "./upload-states";
+import type { UploadIntentState } from "./upload-states";
 import { assertClientCanReadFile } from "./uploads-client-access";
 import type { FinalizedFile } from "./uploads-contracts";
 import { toFinalizedFile } from "./uploads-finalized-file";
@@ -42,10 +44,11 @@ const checkUploadIntent = (actorId: string, uploadIntentId: string) =>
         message: "You cannot finalize this upload.",
       });
     }
-    if (found.state === "finalized") {
+    const state = decodeUploadIntentState(found.state);
+    if (state === "finalized") {
       return { existing: true as const, record: found };
     }
-    if (found.state !== "pending" || found.expiresAt <= new Date()) {
+    if (state !== "pending" || found.expiresAt <= new Date()) {
       throw new AppError({
         code: "CONFLICT",
         message: "The upload request has expired or is no longer pending.",
@@ -86,29 +89,33 @@ const claimUploadIntent = (actorId: string, uploadIntentId: string) =>
     ]);
     if (
       !current ||
-      current.state !== "pending" ||
+      decodeUploadIntentState(current.state) !== "pending" ||
       current.ownerId !== actorId ||
       current.expiresAt <= new Date()
     ) {
       throw uploadChangedError();
     }
-    const { projectId } = current;
-    if (!projectId) {
+    if (!current.projectId) {
       throw unlinkedUploadError();
     }
     await internal.assertActiveFileLocation(
       transaction,
       actor.role,
       current.taskId,
-      projectId
+      current.projectId
     );
+    // A task file belongs to the task's current project, which a task move
+    // may have changed since the upload was requested.
+    const projectId = current.taskId
+      ? await internal.lockTaskProject(transaction, current.taskId)
+      : current.projectId;
     const now = new Date();
     const claimed = await transaction.orm.public.UploadIntent.where({
       id: current.id,
-      state: "pending",
+      state: "pending" satisfies UploadIntentState,
     }).updateAndCount({
       finalizedAt: now,
-      state: "finalized",
+      state: "finalized" satisfies UploadIntentState,
       updatedAt: now,
     });
     if (!claimed) {

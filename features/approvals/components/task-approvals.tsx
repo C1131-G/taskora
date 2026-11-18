@@ -13,7 +13,7 @@ interface ReadyFile {
 }
 
 // The drawer's client approval section: every version requested so far, and a
-// form to send a new one while nothing is waiting or approved.
+// form to send a new one to any company not already waiting or approved.
 export const TaskApprovals = ({
   approvals,
   files,
@@ -28,11 +28,8 @@ export const TaskApprovals = ({
   if (!approvals) {
     return null;
   }
-  const open = approvals.requests.some(
-    ({ status }) => status === "pending" || status === "approved"
-  );
-  const canAsk =
-    approvals.canRequest && approvals.companies.length > 0 && !open;
+  // The server lists only companies a new version may go to now.
+  const canAsk = approvals.canRequest && approvals.companies.length > 0;
   if (approvals.requests.length === 0 && !canAsk) {
     return null;
   }
@@ -40,7 +37,6 @@ export const TaskApprovals = ({
     <section aria-label="Client approval" className="stack">
       <h3>Client approval</h3>
       <TaskApprovalHistory
-        canCancel={approvals.canRequest}
         onChanged={onChanged}
         requests={approvals.requests}
       />

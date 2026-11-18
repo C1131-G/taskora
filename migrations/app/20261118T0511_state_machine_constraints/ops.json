@@ -1,0 +1,387 @@
+[
+  {
+    "id": "data.state_machine_constraints.checkExistingRows",
+    "label": "Check that no existing row breaks the new state constraints",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [
+      {
+        "description": "no automation run has an outcome outside matched, skipped and failed",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"automation_run\" WHERE \"outcome\" NOT IN ('matched', 'skipped', 'failed')) AS \"result\""
+      },
+      {
+        "description": "no bug has needsInfoSince or statusBeforeNeedsInfo outside needs_info, or misses them inside it",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"bug_report\" WHERE (\"status\" = 'needs_info') <> (\"needsInfoSince\" IS NOT NULL) OR (\"status\" = 'needs_info') <> (\"statusBeforeNeedsInfo\" IS NOT NULL)) AS \"result\""
+      },
+      {
+        "description": "no bug saved a status before needs_info that cannot ask the client",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"bug_report\" WHERE \"statusBeforeNeedsInfo\" IS NOT NULL AND \"statusBeforeNeedsInfo\" NOT IN ('triaged', 'in_progress', 'in_verification')) AS \"result\""
+      },
+      {
+        "description": "no bug has awaitingClientSince that disagrees with awaiting_client",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"bug_report\" WHERE (\"status\" = 'awaiting_client') <> (\"awaitingClientSince\" IS NOT NULL)) AS \"result\""
+      },
+      {
+        "description": "no bug that is not closed has a resolution",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"bug_report\" WHERE \"resolution\" IS NOT NULL AND \"status\" <> 'closed') AS \"result\""
+      },
+      {
+        "description": "no job is both completed and dead",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"job\" WHERE \"completedAt\" IS NOT NULL AND \"deadAt\" IS NOT NULL) AS \"result\""
+      },
+      {
+        "description": "no task has a status that disagrees with completedAt",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"task\" WHERE (\"status\" = 'done') <> (\"completedAt\" IS NOT NULL)) AS \"result\""
+      },
+      {
+        "description": "no webhook delivery has an unknown status",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"webhook_delivery\" WHERE \"status\" NOT IN ('pending', 'retrying', 'succeeded', 'dead')) AS \"result\""
+      }
+    ],
+    "execute": [
+      {
+        "description": "nothing to change before the constraints",
+        "sql": "SELECT 1"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "checkConstraint.automation_run.automation_run_outcome_valid_29e3ad35",
+    "label": "Add check constraint \"automation_run_outcome_valid_29e3ad35\" on \"automation_run\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "automation_run_outcome_valid_29e3ad35",
+        "table": "automation_run"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"automation_run_outcome_valid_29e3ad35\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "automation_run_outcome_valid_29e3ad35",
+          "public",
+          "\"public\".\"automation_run\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"automation_run_outcome_valid_29e3ad35\"",
+        "sql": "ALTER TABLE \"public\".\"automation_run\" ADD CONSTRAINT \"automation_run_outcome_valid_29e3ad35\" CHECK (\"outcome\" IN ('matched', 'skipped', 'failed'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"automation_run_outcome_valid_29e3ad35\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "automation_run_outcome_valid_29e3ad35",
+          "public",
+          "\"public\".\"automation_run\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.bug_report.bug_report_awaiting_client_pair_494655f1",
+    "label": "Add check constraint \"bug_report_awaiting_client_pair_494655f1\" on \"bug_report\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "bug_report_awaiting_client_pair_494655f1",
+        "table": "bug_report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"bug_report_awaiting_client_pair_494655f1\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_awaiting_client_pair_494655f1",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"bug_report_awaiting_client_pair_494655f1\"",
+        "sql": "ALTER TABLE \"public\".\"bug_report\" ADD CONSTRAINT \"bug_report_awaiting_client_pair_494655f1\" CHECK ((\"status\" = 'awaiting_client') = (\"awaitingClientSince\" IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"bug_report_awaiting_client_pair_494655f1\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_awaiting_client_pair_494655f1",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.bug_report.bug_report_before_needs_info_valid_0ad0ae63",
+    "label": "Add check constraint \"bug_report_before_needs_info_valid_0ad0ae63\" on \"bug_report\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "bug_report_before_needs_info_valid_0ad0ae63",
+        "table": "bug_report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"bug_report_before_needs_info_valid_0ad0ae63\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_before_needs_info_valid_0ad0ae63",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"bug_report_before_needs_info_valid_0ad0ae63\"",
+        "sql": "ALTER TABLE \"public\".\"bug_report\" ADD CONSTRAINT \"bug_report_before_needs_info_valid_0ad0ae63\" CHECK (\"statusBeforeNeedsInfo\" IS NULL OR \"statusBeforeNeedsInfo\" IN ('triaged', 'in_progress', 'in_verification'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"bug_report_before_needs_info_valid_0ad0ae63\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_before_needs_info_valid_0ad0ae63",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.bug_report.bug_report_needs_info_pair_7cacfb21",
+    "label": "Add check constraint \"bug_report_needs_info_pair_7cacfb21\" on \"bug_report\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "bug_report_needs_info_pair_7cacfb21",
+        "table": "bug_report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"bug_report_needs_info_pair_7cacfb21\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_needs_info_pair_7cacfb21",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"bug_report_needs_info_pair_7cacfb21\"",
+        "sql": "ALTER TABLE \"public\".\"bug_report\" ADD CONSTRAINT \"bug_report_needs_info_pair_7cacfb21\" CHECK ((\"status\" = 'needs_info') = (\"needsInfoSince\" IS NOT NULL) AND (\"status\" = 'needs_info') = (\"statusBeforeNeedsInfo\" IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"bug_report_needs_info_pair_7cacfb21\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_needs_info_pair_7cacfb21",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.bug_report.bug_report_resolution_closed_dba429df",
+    "label": "Add check constraint \"bug_report_resolution_closed_dba429df\" on \"bug_report\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "bug_report_resolution_closed_dba429df",
+        "table": "bug_report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"bug_report_resolution_closed_dba429df\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_resolution_closed_dba429df",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"bug_report_resolution_closed_dba429df\"",
+        "sql": "ALTER TABLE \"public\".\"bug_report\" ADD CONSTRAINT \"bug_report_resolution_closed_dba429df\" CHECK (\"resolution\" IS NULL OR \"status\" = 'closed')"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"bug_report_resolution_closed_dba429df\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_resolution_closed_dba429df",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.job.job_not_completed_and_dead_f35d1ed7",
+    "label": "Add check constraint \"job_not_completed_and_dead_f35d1ed7\" on \"job\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "job_not_completed_and_dead_f35d1ed7",
+        "table": "job"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"job_not_completed_and_dead_f35d1ed7\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "job_not_completed_and_dead_f35d1ed7",
+          "public",
+          "\"public\".\"job\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"job_not_completed_and_dead_f35d1ed7\"",
+        "sql": "ALTER TABLE \"public\".\"job\" ADD CONSTRAINT \"job_not_completed_and_dead_f35d1ed7\" CHECK (NOT (\"completedAt\" IS NOT NULL AND \"deadAt\" IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"job_not_completed_and_dead_f35d1ed7\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "job_not_completed_and_dead_f35d1ed7",
+          "public",
+          "\"public\".\"job\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.task.task_completion_pair_38c1713e",
+    "label": "Add check constraint \"task_completion_pair_38c1713e\" on \"task\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "task_completion_pair_38c1713e",
+        "table": "task"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"task_completion_pair_38c1713e\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "task_completion_pair_38c1713e",
+          "public",
+          "\"public\".\"task\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"task_completion_pair_38c1713e\"",
+        "sql": "ALTER TABLE \"public\".\"task\" ADD CONSTRAINT \"task_completion_pair_38c1713e\" CHECK ((\"status\" = 'done') = (\"completedAt\" IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"task_completion_pair_38c1713e\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "task_completion_pair_38c1713e",
+          "public",
+          "\"public\".\"task\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.webhook_delivery.webhook_delivery_status_valid_ede2f52d",
+    "label": "Add check constraint \"webhook_delivery_status_valid_ede2f52d\" on \"webhook_delivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "webhook_delivery_status_valid_ede2f52d",
+        "table": "webhook_delivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"webhook_delivery_status_valid_ede2f52d\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_delivery_status_valid_ede2f52d",
+          "public",
+          "\"public\".\"webhook_delivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"webhook_delivery_status_valid_ede2f52d\"",
+        "sql": "ALTER TABLE \"public\".\"webhook_delivery\" ADD CONSTRAINT \"webhook_delivery_status_valid_ede2f52d\" CHECK (\"status\" IN ('pending', 'retrying', 'succeeded', 'dead'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"webhook_delivery_status_valid_ede2f52d\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_delivery_status_valid_ede2f52d",
+          "public",
+          "\"public\".\"webhook_delivery\""
+        ]
+      }
+    ]
+  }
+]

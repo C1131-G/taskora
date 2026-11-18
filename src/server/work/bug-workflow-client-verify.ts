@@ -14,6 +14,7 @@ import {
   writeActivity,
 } from "./bug-workflow-internal";
 import type { BugWorkflowReceipt } from "./bug-workflow-internal";
+import { announceClientBug } from "./bug-workflow-pick";
 import type { Transaction } from "./work-internal";
 
 export interface ClientActor {
@@ -194,5 +195,15 @@ export const reopenClientFix = async (
     now,
     text: `${actor.name} says ${keyOf(project, task)} is still broken`,
   });
+  // Back in the queue unpicked: the handlers hear of it again and the
+  // 24-hour reminder starts over, as for a new report.
+  if (nextStatus === "reported") {
+    await announceClientBug(transaction, {
+      bugId: bug.id,
+      now,
+      reporterId: actor.id,
+      text: `${actor.name} reopened ${keyOf(project, task)}: still broken`,
+    });
+  }
   return receipt;
 };

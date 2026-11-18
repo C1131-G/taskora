@@ -3,8 +3,10 @@ import { Effect } from "effect";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import { isTaskShared } from "../portal/client-visibility";
 import { taskSubjectKey } from "./approval-access";
 import type { TaskApprovals } from "./approval-contracts";
+import { requestableCompanies } from "./approval-rules";
 import {
   assertStaffReader,
   describeRequests,
@@ -41,14 +43,11 @@ const forTaskInternal = async (
       .all(),
   ]);
   const { companies, requests } = await describeRequests(
+    { id: actorId, role: actor.role },
     rows,
     links.map(({ companyId }) => companyId)
   );
-  const shared =
-    task.clientVisible &&
-    task.project.clientVisible &&
-    !task.archivedAt &&
-    !task.project.archivedAt;
+  const shared = isTaskShared(task, task.project);
   const mayEdit =
     actor.role === "admin" ||
     task.createdById === actorId ||
@@ -57,11 +56,12 @@ const forTaskInternal = async (
   return {
     canRequest: shared && mayEdit && task.type === "task",
     companies: shared
-      ? companies
-          .flatMap(({ deactivatedAt, id, name }) =>
+      ? requestableCompanies(
+          companies.flatMap(({ deactivatedAt, id, name }) =>
             !deactivatedAt && active.has(id) ? [{ id, name }] : []
-          )
-          .toSorted((first, second) => first.name.localeCompare(second.name))
+          ),
+          rows
+        ).toSorted((first, second) => first.name.localeCompare(second.name))
       : [],
     requests,
   };

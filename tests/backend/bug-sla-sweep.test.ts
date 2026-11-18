@@ -160,3 +160,35 @@ it("never raises a response breach for a bug withdrawn before anyone answered", 
   expect(await slaNotices(personaId("owner"), taskId)).toEqual([]);
   expect(await slaField(bugId, "breachedResponse")).toBe(false);
 });
+
+it("raises no notices for a bug whose project is archived", async () => {
+  const bugId = await submit("Sweep archived project");
+  const taskId = await taskOf(bugId);
+  await pinClocks(bugId, {
+    createdAt: "2026-10-05T09:00:00Z",
+    firstResponseDueAt: "2026-10-05T10:00:00Z",
+    resolutionDueAt: "2026-10-05T12:00:00Z",
+    resolutionStartedAt: "2026-10-05T09:00:00Z",
+  });
+  const projectRows = await authPool.query<{ projectId: string }>(
+    'SELECT "projectId" FROM task WHERE id = $1',
+    [taskId]
+  );
+  const projectId = projectRows.rows[0]?.projectId;
+  expect(projectId).toBeDefined();
+  await authPool.query(
+    'UPDATE project SET "archivedAt" = now(), "archivedById" = $2 WHERE id = $1',
+    [projectId, personaId("admin")]
+  );
+  try {
+    await sweep("2026-10-05T17:00:00Z");
+    expect(await slaNotices(personaId("admin"), taskId)).toEqual([]);
+    expect(await slaNotices(personaId("owner"), taskId)).toEqual([]);
+    expect(await slaField(bugId, "breachedResponse")).toBe(false);
+  } finally {
+    await authPool.query(
+      'UPDATE project SET "archivedAt" = NULL, "archivedById" = NULL WHERE id = $1',
+      [projectId]
+    );
+  }
+});

@@ -2,6 +2,7 @@ import { Schema } from "effect";
 
 import type { BugVersionInput } from "./bug-contracts";
 import { BugVersionInputSchema } from "./bug-contracts";
+import { ADMIN_REOPEN_FROM_STATUSES } from "./bug-status-edges";
 import { transitionBugStatus } from "./bug-workflow";
 import {
   decodeBugWorkflowStatus,
@@ -141,7 +142,7 @@ export const reopenBug = async (
   const { bug, project, task } = await loadBug(transaction, input.bugId);
   if (
     bug.version !== input.expectedVersion ||
-    !["closed", "awaiting_client", "needs_info"].includes(bug.status)
+    !ADMIN_REOPEN_FROM_STATUSES.has(bug.status)
   ) {
     conflict();
   }
@@ -165,6 +166,10 @@ export const reopenBug = async (
       awaitingClientSince: null,
       needsInfoSince: null,
       resolution: null,
+      // A rating belongs to the fix the client confirmed; the next fix gets
+      // its own.
+      satisfaction: null,
+      satisfactionComment: null,
       statusBeforeNeedsInfo: null,
     },
     nextStatus,
