@@ -3,10 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mobileRoutes } from "@api/routes";
 import { pendingRoutes } from "@/api/pending-routes";
 import { TaskPrioritySchema, TaskStatusSchema } from "@/api/pending-routes/tasks";
-import {
-  TaskPrioritySchema as LiveTaskPrioritySchema,
-  TaskStatusSchema as LiveTaskStatusSchema,
-} from "@api/routes-tasks";
+import { TaskPrioritySchema as LiveTaskPrioritySchema, TaskStatusSchema as LiveTaskStatusSchema } from "@api/routes-tasks";
 
 describe("the mobile route contract", () => {
   it("keeps every operationId unique across live and pending routes", () => {

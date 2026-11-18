@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, it } from "bun:test";
 
-import { subtaskStatusRoute } from "../../src/mobile-api/routes-tasks";
+import { subtaskStatusRoute } from "../../src/mobile-api/routes-task-subtasks";
 import {
   authPool,
   personaId,

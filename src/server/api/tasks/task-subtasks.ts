@@ -3,14 +3,14 @@ import { Effect } from "effect";
 import {
   SubtaskResultSchema,
   SubtaskStatusResultSchema,
-} from "../../../mobile-api/routes-tasks";
+} from "../../../mobile-api/routes-task-subtasks";
 import type {
   MobileSubtaskAddBody,
   MobileSubtaskChangeBody,
   MobileSubtaskResult,
   MobileSubtaskStatus,
   MobileSubtaskStatusBody,
-} from "../../../mobile-api/routes-tasks";
+} from "../../../mobile-api/routes-task-subtasks";
 import { AuthSession } from "../../auth/session";
 import type { AppError } from "../../core/action-result";
 import { Idempotency } from "../../core/idempotency";

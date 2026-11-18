@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { subtaskStatusRoute } from "@/src/mobile-api/routes-tasks";
+import { subtaskStatusRoute } from "@/src/mobile-api/routes-task-subtasks";
 import { respondWith } from "@/src/server/api/http-response";
 import { readRouteInput } from "@/src/server/api/route-input";
 import { setTaskSubtaskStatus } from "@/src/server/api/tasks/task-subtasks";

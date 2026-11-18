@@ -2,14 +2,28 @@ import { Schema } from "effect";
 
 import type { RouteDefinition } from "./route-definition";
 import { NextCursorSchema, PageQuerySchema } from "./routes-paging";
+import {
+  CalendarDayText,
+  ExpectedVersionSchema,
+  IdSchema,
+  SubtaskSchema,
+  TaskPathSchema,
+} from "./routes-task-fields";
+import {
+  subtaskAddRoute,
+  subtaskChangeRoute,
+  subtaskStatusRoute,
+} from "./routes-task-subtasks";
+import {
+  myTimerRoute,
+  startMyTimerRoute,
+  stopMyTimerRoute,
+} from "./routes-task-timer";
 import { TaskStatusSchema } from "./task-statuses";
 
 // Task actions: context, quick updates, discussions, subtasks, own timer.
 // Owned by one branch, so adding routes here never conflicts with the others.
 
-const IdSchema = Schema.String.check(Schema.isUUID());
-
-export { TaskStatusSchema } from "./task-statuses";
 export const TaskPrioritySchema = Schema.Literals([
   "urgent",
   "high",
@@ -71,17 +85,6 @@ export const TaskActionSchema = Schema.Literals([
   "trackTime",
 ]);
 
-export const SubtaskSchema = Schema.Struct({
-  assigneeId: Schema.NullOr(Schema.String),
-  completed: Schema.Boolean,
-  description: Schema.NullOr(Schema.String),
-  dueDate: Schema.NullOr(Schema.String),
-  id: Schema.String,
-  position: Schema.Number,
-  taskId: Schema.String,
-  title: Schema.String,
-});
-
 export const DiscussionEntrySchema = Schema.Struct({
   authorId: Schema.String,
   authorName: Schema.String,
@@ -116,8 +119,6 @@ export const TaskContextSchema = Schema.Struct({
 
 export type MobileTaskContext = typeof TaskContextSchema.Type;
 
-const TaskPathSchema = Schema.Struct({ taskId: IdSchema });
-
 export const taskContextRoute = {
   data: TaskContextSchema,
   method: "get",
@@ -127,15 +128,6 @@ export const taskContextRoute = {
   summary:
     "One task with its assignees, subtasks, discussion, version and what the caller may do with it.",
 } as const satisfies RouteDefinition;
-
-const CalendarDayText = Schema.String.check(
-  Schema.isPattern(/^\d{4}-\d{2}-\d{2}$/u)
-);
-
-const ExpectedVersionSchema = Schema.Number.check(
-  Schema.isInt(),
-  Schema.isGreaterThanOrEqualTo(1)
-);
 
 // What a quick change or a create answers with: the task's new state and the
 // version the next write must send.
@@ -197,83 +189,6 @@ export const taskCreateRoute = {
     "Create a task in an active project and assign it. Admins and employees follow the same rules as the web.",
 } as const satisfies RouteDefinition;
 
-export const SubtaskResultSchema = Schema.Struct({
-  parentVersion: Schema.Number,
-  subtask: SubtaskSchema,
-});
-
-export type MobileSubtaskResult = typeof SubtaskResultSchema.Type;
-
-const SubtaskTextSchema = Schema.String.check(Schema.isMaxLength(240));
-
-export const SubtaskAddBodySchema = Schema.Struct({
-  assigneeId: Schema.optional(Schema.NullOr(IdSchema)),
-  description: Schema.optional(Schema.NullOr(Schema.String)),
-  dueDate: Schema.optional(Schema.NullOr(CalendarDayText)),
-  expectedVersion: ExpectedVersionSchema,
-  title: SubtaskTextSchema,
-});
-
-export type MobileSubtaskAddBody = typeof SubtaskAddBodySchema.Type;
-
-export const subtaskAddRoute = {
-  body: SubtaskAddBodySchema,
-  data: SubtaskResultSchema,
-  method: "post",
-  operationId: "addSubtask",
-  params: TaskPathSchema,
-  path: "/api/v1/workspace/tasks/{taskId}/subtasks",
-  summary:
-    "Add a subtask to a task the caller may edit. Answers with the task's new version.",
-} as const satisfies RouteDefinition;
-
-export const SubtaskChangeBodySchema = Schema.Struct({
-  assigneeId: Schema.optional(Schema.NullOr(IdSchema)),
-  completed: Schema.optional(Schema.Boolean),
-  description: Schema.optional(Schema.NullOr(Schema.String)),
-  dueDate: Schema.optional(Schema.NullOr(CalendarDayText)),
-  expectedVersion: ExpectedVersionSchema,
-  title: Schema.optional(SubtaskTextSchema),
-});
-
-export type MobileSubtaskChangeBody = typeof SubtaskChangeBodySchema.Type;
-
-export const subtaskChangeRoute = {
-  body: SubtaskChangeBodySchema,
-  data: SubtaskResultSchema,
-  method: "patch",
-  operationId: "changeSubtask",
-  params: Schema.Struct({ subtaskId: IdSchema, taskId: IdSchema }),
-  path: "/api/v1/workspace/tasks/{taskId}/subtasks/{subtaskId}",
-  summary:
-    "Update or toggle a subtask of a task the caller may edit. Fields left out keep their value.",
-} as const satisfies RouteDefinition;
-
-export const SubtaskStatusBodySchema = Schema.Struct({
-  done: Schema.Boolean,
-  expectedVersion: ExpectedVersionSchema,
-});
-
-export type MobileSubtaskStatusBody = typeof SubtaskStatusBodySchema.Type;
-
-export const SubtaskStatusResultSchema = Schema.Struct({
-  done: Schema.Boolean,
-  version: Schema.Number,
-});
-
-export type MobileSubtaskStatus = typeof SubtaskStatusResultSchema.Type;
-
-export const subtaskStatusRoute = {
-  body: SubtaskStatusBodySchema,
-  data: SubtaskStatusResultSchema,
-  method: "post",
-  operationId: "setSubtaskStatus",
-  params: Schema.Struct({ subtaskId: IdSchema, taskId: IdSchema }),
-  path: "/api/v1/workspace/tasks/{taskId}/subtasks/{subtaskId}/status",
-  summary:
-    "Mark a subtask done or not done. Needs the task version the caller last saw; a stale one answers 409.",
-} as const satisfies RouteDefinition;
-
 export const TaskCommentVisibilitySchema = Schema.Literals([
   "public",
   "internal",
@@ -306,82 +221,6 @@ export const taskCommentRoute = {
   path: "/api/v1/workspace/tasks/{taskId}/comments",
   summary:
     "Add a comment to a task. It is internal unless the caller makes a public reply on a client bug.",
-} as const satisfies RouteDefinition;
-
-const TimerNoteSchema = Schema.NullOr(
-  Schema.String.check(Schema.isMaxLength(500))
-);
-
-export const RunningTimerSchema = Schema.Struct({
-  billable: Schema.Boolean,
-  note: TimerNoteSchema,
-  startedAt: Schema.String,
-  taskId: Schema.String,
-  taskReference: Schema.String,
-  taskTitle: Schema.String,
-});
-
-export const TimeEntryViewSchema = Schema.Struct({
-  billable: Schema.Boolean,
-  id: Schema.String,
-  minutes: Schema.Number,
-  note: TimerNoteSchema,
-  taskId: Schema.String,
-  taskReference: Schema.String,
-  taskTitle: Schema.String,
-  userId: Schema.String,
-  userName: Schema.String,
-  workDate: Schema.String,
-});
-
-export type MobileTimeEntryView = typeof TimeEntryViewSchema.Type;
-
-export const StartedTimerSchema = Schema.Struct({
-  stopped: Schema.NullOr(TimeEntryViewSchema),
-  timer: RunningTimerSchema,
-});
-
-export type MobileStartedTimer = typeof StartedTimerSchema.Type;
-
-export const MyTimerSchema = Schema.Struct({
-  timer: Schema.NullOr(RunningTimerSchema),
-});
-
-export type MobileMyTimer = typeof MyTimerSchema.Type;
-
-export const StartTimerBodySchema = Schema.Struct({
-  billable: Schema.Boolean,
-  note: Schema.optional(TimerNoteSchema),
-  taskId: IdSchema,
-});
-
-export type MobileStartTimerBody = typeof StartTimerBodySchema.Type;
-
-export const myTimerRoute = {
-  data: MyTimerSchema,
-  method: "get",
-  operationId: "getMyTimer",
-  path: "/api/v1/workspace/me/timer",
-  summary: "The caller's running timer, or null when no timer is running.",
-} as const satisfies RouteDefinition;
-
-export const startMyTimerRoute = {
-  body: StartTimerBodySchema,
-  data: StartedTimerSchema,
-  method: "post",
-  operationId: "startMyTimer",
-  path: "/api/v1/workspace/me/timer/start",
-  summary:
-    "Start the caller's timer on an open task, saving the timer that was running before.",
-} as const satisfies RouteDefinition;
-
-export const stopMyTimerRoute = {
-  data: TimeEntryViewSchema,
-  method: "post",
-  operationId: "stopMyTimer",
-  path: "/api/v1/workspace/me/timer/stop",
-  summary:
-    "Stop the caller's timer and save its time as an entry. Answers 404 when none is running.",
 } as const satisfies RouteDefinition;
 
 const TaskListItemSchema = Schema.Struct({
