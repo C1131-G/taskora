@@ -13,7 +13,7 @@ import {
   finalizeClientLogoUploadAction,
   removeClientLogoAction,
   requestClientLogoUploadAction,
-} from "@/features/clients/clients-actions";
+} from "@/features/clients/clients-logo-actions";
 import type { VersionSink } from "@/features/clients/components/client-company-forms";
 import { UploadProgressList } from "@/features/files/components/upload-progress-list";
 import { useUploadQueue } from "@/features/files/hooks/use-upload-queue";

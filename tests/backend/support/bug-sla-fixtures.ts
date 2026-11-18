@@ -20,7 +20,7 @@ export const portalQueries =
   await import("../../../features/portal/portal-queries");
 export const bugActions = await import("../../../features/bugs/bugs-actions");
 export const bugClientActions =
-  await import("../../../features/bugs/bugs-actions");
+  await import("../../../features/bugs/bugs-client-actions");
 export const comments =
   await import("../../../features/tasks/actions/tasks-comments");
 export const slaActions =

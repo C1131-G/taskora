@@ -12,7 +12,7 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
-import { reassignClientBugAction } from "@/features/bugs/bugs-actions";
+import { reassignClientBugAction } from "@/features/bugs/bugs-client-actions";
 import {
   AskClientDialog,
   CloseNotABugDialog,
