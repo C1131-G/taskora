@@ -171,8 +171,13 @@ for (const route of ROUTES) {
       await expect(trigger).toBeVisible();
 
       await instant(page, async () => {
-        await trigger.click();
-        await expect(page).toHaveURL((url) => url.pathname === route.path);
+        // A click before the sidebar hydrates does nothing, so retry it.
+        await expect(async () => {
+          await trigger.click();
+          await expect(page).toHaveURL((url) => url.pathname === route.path, {
+            timeout: 3000,
+          });
+        }).toPass({ timeout: 20_000 });
         await expectShell(page, route);
       });
       await expectSettled(page, route);

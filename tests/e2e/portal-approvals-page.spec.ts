@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import { Pool } from "pg";
 
 import { ADMIN_STATE, CLIENT_ONE_STATE } from "./auth-state";
+import { openTaskSection } from "./task-drawer-tabs";
 
 // Needs scripts/seed-e2e-accounts.ts to have run: the Acme company, its client
 // users and the admin account. This spec adds its own shared project, task,
@@ -187,6 +188,7 @@ test.describe("Portal approvals (/portal/approvals)", () => {
     const context = await browser.newContext({ storageState: ADMIN_STATE });
     const page = await context.newPage();
     await page.goto(`/projects/${seeded.projectId}?task=${seeded.taskId}`);
+    await openTaskSection(page, "Client");
     const history = page.getByRole("region", { name: "Client approval" });
     await expect(history).toBeVisible({ timeout: 60_000 });
     await expect(history).toContainText("Changes requested");

@@ -252,7 +252,12 @@ export const TaskCalendarGrid = ({
       </div>
       <div className="cal-filters">
         {projects.length ? (
-          <ul aria-label="Projects" className="calendar-project-legend">
+          <ul
+            aria-label="Projects"
+            className="calendar-project-legend"
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The legend scrolls sideways when projects overflow, so keyboard users must reach it.
+            tabIndex={0}
+          >
             {projects.map((project) => (
               <li className="calendar-project-legend-item" key={project.id}>
                 <span

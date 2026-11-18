@@ -1,8 +1,19 @@
 import { Effect } from "effect";
 
 import { db } from "../src/prisma/db";
+// Fixture dates count from the day the seed runs. A fixed anchor drifted out of
+// the timeline and calendar windows as the weeks passed, so the browser specs
+// that look for these items started failing with no code change.
+const seedDay = new Date();
+
 export const isoDate = (offsetDays: number) => {
-  const date = new Date(Date.UTC(2026, 9, 12 + offsetDays));
+  const date = new Date(
+    Date.UTC(
+      seedDay.getUTCFullYear(),
+      seedDay.getUTCMonth(),
+      seedDay.getUTCDate() + offsetDays
+    )
+  );
   return date.toISOString().slice(0, 10);
 };
 

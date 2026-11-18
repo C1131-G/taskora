@@ -119,6 +119,17 @@
   background: var(--accent);
   color: var(--on-accent);
 }
+/* Four columns leave a label like "Environment and evidence" about 58px on a
+   phone, which pushed the page sideways. Two columns give each step room. */
+@media (max-width: 480px) {
+  .portal-app .portal-wizard-progress {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .portal-app .portal-wizard-progress li > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
 .portal-app .portal-wizard-step {
   min-width: 0;
   padding: 0 4px;
