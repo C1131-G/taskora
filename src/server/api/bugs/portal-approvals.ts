@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
-import type { PortalApprovalList } from "../../../mobile-api/routes-bugs";
-import { portalApprovalRoutes } from "../../../mobile-api/routes-bugs";
+import type { PortalApprovalList } from "../../../mobile-api/routes-portal-approvals";
+import { portalApprovalRoutes } from "../../../mobile-api/routes-portal-approvals";
 import type { ApprovalStatus } from "../../approvals/approval-contracts";
 import { ApprovalDecisionReceiptSchema } from "../../approvals/approval-contracts";
 import { PortalApprovals } from "../../approvals/portal-approvals-service";

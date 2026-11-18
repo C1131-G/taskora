@@ -8,8 +8,9 @@ import { loadCustomFieldColumns } from "../custom-fields/custom-field-export";
 import { TaskPrioritySchema, TaskStatusSchema } from "../work/work-contracts";
 import { databaseError } from "../work/work-internal";
 import { createTaskInTransaction } from "../work/work-task-creation";
-import { formatCsv, parseTaskImport } from "./csv";
-import type { ImportRowError, ImportedTaskRow } from "./csv";
+import { formatCsv } from "./csv";
+import { parseTaskImport } from "./task-import-parse";
+import type { ImportRowError, ImportedTaskRow } from "./task-import-parse";
 
 export const MAX_EXPORT_ROWS = 10_000;
 const EXPORT_HEADER = [

@@ -13,7 +13,7 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
-import { pickClientBugAction } from "@/features/bugs/bugs-actions";
+import { pickClientBugAction } from "@/features/bugs/bugs-client-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 import { isOneOf } from "@/src/lib/type-guards";
 

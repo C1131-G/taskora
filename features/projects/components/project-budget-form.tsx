@@ -26,7 +26,7 @@ import {
   clearProjectBudgetAction,
   saveProjectBudgetAction,
 } from "@/features/projects/projects-actions";
-import type { ProjectBudgetView } from "@/src/server/budgets/project-budgets";
+import type { ProjectBudgetView } from "@/src/server/budgets/budget-support";
 
 const FORM_FIELDS = [
   "budgetMinutes",

@@ -122,7 +122,8 @@ it("gives no cursor when the list fits, and refuses a bad cursor or limit", asyn
 });
 
 it("names the paged list in the contract", async () => {
-  const { portalBugRoutes } = await import("../../src/mobile-api/routes-bugs");
+  const { portalBugRoutes } =
+    await import("../../src/mobile-api/routes-portal-bugs");
 
   expect(portalBugRoutes.page.operationId).toBe("listPortalBugPage");
   expect("list" in portalBugRoutes).toBe(false);

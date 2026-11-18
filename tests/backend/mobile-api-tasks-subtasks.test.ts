@@ -3,7 +3,7 @@ import { afterAll, beforeAll, expect, it } from "bun:test";
 import {
   subtaskAddRoute,
   subtaskChangeRoute,
-} from "../../src/mobile-api/routes-tasks";
+} from "../../src/mobile-api/routes-task-subtasks";
 import {
   authPool,
   personaId,

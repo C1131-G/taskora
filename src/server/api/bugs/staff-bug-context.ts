@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { staffBugContextRoute } from "../../../mobile-api/routes-bugs";
+import { staffBugContextRoute } from "../../../mobile-api/routes-staff-bug-context";
 import { BugHistory } from "../../work/bug-history";
 import { asStaffCaller } from "./caller";
 import type { PathParams } from "./caller";

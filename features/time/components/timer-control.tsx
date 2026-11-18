@@ -19,7 +19,7 @@ import {
   stopTimerAction,
 } from "@/features/time/time-actions";
 import { formatClock } from "@/features/time/time-format";
-import type { RunningTimer } from "@/src/server/time/time-tracking";
+import type { RunningTimer } from "@/src/server/time/time-types";
 
 const MS_PER_SECOND = 1000;
 const NO_CHOICES: readonly TaskChoice[] = [];

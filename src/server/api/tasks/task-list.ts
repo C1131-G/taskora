@@ -1,9 +1,7 @@
 import { Effect } from "effect";
 
-import type {
-  MobileTaskList,
-  TaskStatusSchema,
-} from "../../../mobile-api/routes-tasks";
+import type { MobileTaskList } from "../../../mobile-api/routes-tasks";
+import type { TaskStatusSchema } from "../../../mobile-api/task-statuses";
 import { AuthSession } from "../../auth/session";
 import type { AppError } from "../../core/action-result";
 import { listTaskPage } from "../../work/work-task-list";

@@ -1,6 +1,6 @@
 import type { Effect } from "effect";
 
-import type { PortalBugSummary } from "@api/routes-bugs";
+import type { PortalBugSummary } from "@api/routes-portal-bugs";
 import type { AppFailure } from "@/errors";
 import type { ReportBody } from "@/features/portal/report-form";
 import type { MobileApi } from "@/services/mobile-api";

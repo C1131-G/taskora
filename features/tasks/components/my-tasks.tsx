@@ -6,7 +6,7 @@ import type { CalendarMode } from "@/features/calendar/calendar-params";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";
 import { listAllEmployees } from "@/features/people/people-queries";
 import { listProjects } from "@/features/projects/projects-queries";
-import type { AssignedTask } from "@/features/tasks/components/my-tasks-workspace";
+import type { AssignedTask } from "@/features/tasks/components/my-tasks-types";
 import { MyTasksWorkspace } from "@/features/tasks/components/my-tasks-workspace";
 import { TaskDrawerHost } from "@/features/tasks/components/task-drawer-host";
 import { GlobalTaskViewStoreProvider } from "@/features/tasks/providers/global-task-view-store-provider";

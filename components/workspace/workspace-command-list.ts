@@ -1,0 +1,153 @@
+import type { Viewer, WorkspaceCommand } from "./workspace-command-types";
+
+interface CommandDefinition extends WorkspaceCommand {
+  readonly isAvailable: (viewer: Viewer) => boolean;
+}
+
+const always = () => true;
+const isAdmin = ({ role }: Viewer) => role === "admin";
+
+export const COMMANDS: readonly CommandDefinition[] = [
+  {
+    group: "Actions",
+    id: "create-task",
+    isAvailable: ({ canCreateTask }) => canCreateTask,
+    keys: ["C"],
+    label: "Create task",
+    scope: "global",
+  },
+  {
+    group: "Actions",
+    id: "assign-task",
+    isAvailable: ({ taskDrawer }) => taskDrawer === "editable",
+    keys: ["A"],
+    label: "Assign task",
+    scope: "task",
+  },
+  {
+    group: "Actions",
+    id: "set-status",
+    isAvailable: ({ taskDrawer }) => taskDrawer === "editable",
+    keys: ["S"],
+    label: "Set task status",
+    scope: "task",
+  },
+  {
+    group: "Actions",
+    href: "/projects",
+    id: "new-project",
+    isAvailable: isAdmin,
+    keys: [],
+    label: "Create project",
+    scope: "global",
+  },
+  {
+    group: "Actions",
+    href: "/members",
+    id: "invite-member",
+    isAvailable: isAdmin,
+    keys: [],
+    label: "Invite member",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/",
+    id: "go-home",
+    isAvailable: always,
+    keys: ["G", "H"],
+    label: "Go to Home",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/tasks",
+    id: "go-tasks",
+    isAvailable: always,
+    keys: ["G", "T"],
+    label: "Go to Tasks",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/projects",
+    id: "go-projects",
+    isAvailable: always,
+    keys: ["G", "P"],
+    label: "Go to Projects",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/inbox",
+    id: "go-inbox",
+    isAvailable: always,
+    keys: ["G", "I"],
+    label: "Go to Inbox",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/my-time",
+    id: "go-my-time",
+    isAvailable: always,
+    keys: ["G", "M"],
+    label: "Go to My Time",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/workload",
+    id: "go-workload",
+    isAvailable: always,
+    keys: ["G", "W"],
+    label: "Go to Workload",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/budgets",
+    id: "go-budgets",
+    isAvailable: isAdmin,
+    keys: ["G", "B"],
+    label: "Go to Budgets",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/settings?section=intake",
+    id: "go-intake-forms",
+    isAvailable: isAdmin,
+    keys: [],
+    label: "Go to Intake forms",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/settings/webhooks",
+    id: "go-webhooks",
+    isAvailable: isAdmin,
+    keys: [],
+    label: "Go to Webhooks",
+    scope: "global",
+  },
+  {
+    group: "Navigate",
+    href: "/settings/github",
+    id: "go-github",
+    isAvailable: isAdmin,
+    keys: [],
+    label: "Go to GitHub",
+    scope: "global",
+  },
+  {
+    group: "Help",
+    id: "show-shortcuts",
+    isAvailable: always,
+    keys: ["?"],
+    label: "Keyboard shortcuts",
+    scope: "global",
+  },
+];
+
+// Hides what the viewer cannot do, so neither the palette nor a key offers it.

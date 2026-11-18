@@ -1,4 +1,4 @@
-import { staffBugActionRoutes } from "../../../mobile-api/routes-bugs";
+import { staffBugActionRoutes } from "../../../mobile-api/routes-staff-bug-actions";
 import { staffWorkflowWrite } from "./staff-workflow";
 
 export const pickWorkspaceBug = staffWorkflowWrite(

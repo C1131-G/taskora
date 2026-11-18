@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { Effect } from "effect";
 
 import { authPool } from "../../src/server/auth/database";
-import { parseCsv } from "../../src/server/tasks/csv";
+import { parseCsv } from "../../src/server/tasks/csv-parse";
 import { TaskCsv, TaskCsvLive } from "../../src/server/tasks/task-csv";
 import type { TaskCsvFilters } from "../../src/server/tasks/task-csv";
 

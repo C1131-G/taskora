@@ -4,11 +4,11 @@
 
 import { useId } from "react";
 
+import type { Viewer } from "@/components/workspace/workspace-command-types";
 import {
   getAvailableCommands,
   getPaletteToggleKeys,
 } from "@/components/workspace/workspace-commands";
-import type { Viewer } from "@/components/workspace/workspace-commands";
 import { WorkspaceModal } from "@/components/workspace/workspace-modal";
 
 // Keys read aloud one by one: "G, then, H".

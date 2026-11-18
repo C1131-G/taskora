@@ -15,7 +15,7 @@ import { useMemo } from "react";
 import { SkeletonBone } from "@/components/workspace/skeleton-shapes";
 import { TaskTableSkeleton } from "@/components/workspace/task-table-skeleton";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
-import { GlobalTaskBoardSkeleton } from "@/features/tasks/components/global-task-board";
+import { GlobalTaskBoardSkeleton } from "@/features/tasks/components/global-task-board-skeleton";
 import {
   GlobalTaskFilterBar,
   GlobalTaskFilterBarSkeleton,

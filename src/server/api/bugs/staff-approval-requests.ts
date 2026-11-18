@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { workspaceApprovalRoute } from "../../../mobile-api/routes-bugs";
+import { workspaceApprovalRoute } from "../../../mobile-api/routes-staff-approvals";
 import {
   ApprovalReceiptSchema,
   Approvals,

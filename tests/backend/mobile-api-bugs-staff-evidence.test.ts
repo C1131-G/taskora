@@ -84,7 +84,7 @@ it("lists a bug's evidence for staff with its file, type, size and uploader", as
     },
   ]);
   const { staffBugContextRoute } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-bug-context");
   expect(() =>
     Schema.decodeUnknownSync(staffBugContextRoute.data)(reply.body.data)
   ).not.toThrow();

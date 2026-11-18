@@ -7,14 +7,14 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import type {
+  Viewer,
+  WorkspaceCommand,
+} from "@/components/workspace/workspace-command-types";
 import {
   createShortcutMatcher,
   isPaletteToggle,
   readModalState,
-} from "@/components/workspace/workspace-commands";
-import type {
-  Viewer,
-  WorkspaceCommand,
 } from "@/components/workspace/workspace-commands";
 
 const OPEN_DIALOGS =

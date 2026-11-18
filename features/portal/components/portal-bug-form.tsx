@@ -5,21 +5,19 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal pages reuse the workspace stylesheet classes. */
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 
-import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
-  BehaviorFields,
-  StepsField,
-  SummaryFields,
-} from "@/features/portal/components/portal-bug-fields";
+  PortalBugEditActions,
+  PortalBugEditFields,
+} from "@/features/portal/components/portal-bug-edit-fields";
 import {
   FIELD_ORDER,
   LIMITS,
-  toPayload,
   validate,
+  validateStep,
 } from "@/features/portal/components/portal-bug-form-model";
 import type {
   Errors,
@@ -27,111 +25,23 @@ import type {
   Values,
 } from "@/features/portal/components/portal-bug-form-model";
 import {
-  EnvironmentFields,
-  ImpactField,
-  PageUrlField,
-} from "@/features/portal/components/portal-environment-fields";
+  createBug,
+  editBug,
+} from "@/features/portal/components/portal-bug-submit";
 import {
   PortalReportWizardActions,
   PortalReportWizardNavigation,
   PortalReportWizardStage,
 } from "@/features/portal/components/portal-report-wizard-stage";
 import type { CapturedScreenshot } from "@/features/portal/components/portal-screenshot-capture";
-import {
-  editClientBugAction,
-  submitClientBugAction,
-} from "@/features/portal/portal-bug-actions";
-import {
-  contextServerSnapshot,
-  contextSnapshot,
-  parseContext,
-  subscribeToContext,
-} from "@/features/portal/portal-context-store";
-import {
-  environmentServerSnapshot,
-  environmentSnapshot,
-  parseEnvironment,
-} from "@/features/portal/portal-environment";
-import { recordFailedUploads } from "@/features/portal/portal-failed-uploads";
-import { withReportExtras } from "@/features/portal/portal-report-extras";
-import { uploadPortalFiles } from "@/features/portal/portal-upload";
 
 import {
-  conflictMessage,
   initialValues,
-  noSubscription,
   PORTAL_REPORT_STEPS,
   submitLabel,
 } from "./portal-bug-form-mode";
 import type { Mode } from "./portal-bug-form-mode";
-
-const REQUIRED_REPORT_FIELDS = [
-  ["projectId", "title"],
-  ["steps", "expected", "actual"],
-  ["pageUrl", "impact"],
-] as const satisfies readonly (readonly FieldKey[])[];
-
-const PortalBugEditFields = ({
-  detected,
-  errors,
-  onAddStep,
-  onPatch,
-  onRemoveStep,
-  onStepChange,
-  pending,
-  values,
-}: {
-  readonly detected: ReturnType<typeof parseEnvironment>;
-  readonly errors: Errors;
-  readonly onAddStep: () => void;
-  readonly onPatch: (patch: Partial<Values>) => void;
-  readonly onRemoveStep: (id: string) => void;
-  readonly onStepChange: (id: string, text: string) => void;
-  readonly pending: boolean;
-  readonly values: Values;
-}) => (
-  <>
-    <SummaryFields
-      errors={errors}
-      onPatch={onPatch}
-      pending={pending}
-      values={values}
-    />
-    <StepsField
-      errors={errors}
-      onAdd={onAddStep}
-      onRemove={onRemoveStep}
-      onStepChange={onStepChange}
-      pending={pending}
-      steps={values.steps}
-    />
-    <BehaviorFields
-      errors={errors}
-      onPatch={onPatch}
-      pending={pending}
-      values={values}
-    />
-    <PageUrlField
-      errors={errors}
-      onPatch={onPatch}
-      pending={pending}
-      value={values.pageUrl}
-    />
-    <ImpactField
-      errors={errors}
-      onPatch={onPatch}
-      pending={pending}
-      value={values.impact}
-    />
-    <EnvironmentFields
-      detected={detected}
-      isCreate={false}
-      onPatch={onPatch}
-      pending={pending}
-      values={values}
-    />
-  </>
-);
+import { usePortalReportContext } from "./use-portal-report-context";
 
 // The report form and the edit form share every field. Reporting also takes
 // screenshots, uploaded once the bug exists.
@@ -145,25 +55,12 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
   const [captured, setCaptured] = useState<CapturedScreenshot | null>(null);
   const [sendContext, setSendContext] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
-  const context = parseContext(
-    useSyncExternalStore(
-      subscribeToContext,
-      contextSnapshot,
-      contextServerSnapshot
-    )
-  );
+  const { context, detected } = usePortalReportContext();
   const stepCounter = useRef(values.steps.length);
   const keyRef = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const isCreate = mode.kind === "create";
-  const detected = parseEnvironment(
-    useSyncExternalStore(
-      noSubscription,
-      environmentSnapshot,
-      environmentServerSnapshot
-    )
-  );
   // Moving between steps puts focus on the new step's heading once it renders.
   const goToStep = (step: number) => {
     if (step === activeStep) {
@@ -228,14 +125,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
   };
 
   const continueToNextStep = () => {
-    const allErrors = validate(values, isCreate);
-    const fields = REQUIRED_REPORT_FIELDS[activeStep] ?? [];
-    const stepErrors: Errors = {};
-    for (const field of fields) {
-      if (allErrors[field]) {
-        stepErrors[field] = allErrors[field];
-      }
-    }
+    const stepErrors = validateStep(values, isCreate, activeStep);
     setErrors(stepErrors);
     if (Object.keys(stepErrors).length > 0) {
       toast.error(Object.values(stepErrors).filter(Boolean).join(" "));
@@ -244,59 +134,44 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
     }
     goToStep(Math.min(activeStep + 1, PORTAL_REPORT_STEPS.length - 1));
   };
-
-  const createBug = async (idempotencyKey: string) => {
-    const result = await submitClientBugAction({
-      ...withReportExtras(toPayload(values, detected), {
-        context,
-        screenshotDescription: captured?.description,
-        sendContext,
-      }),
+  const createBugReport = async (idempotencyKey: string) => {
+    const bugId = await createBug({
+      captured,
+      context,
+      detected,
+      files,
       idempotencyKey,
-      projectId: values.projectId,
-      ...(mode.kind === "create" && mode.recurrenceOf
-        ? { recurrenceOfBugId: mode.recurrenceOf.id }
-        : {}),
+      onProgress: setProgress,
+      recurrenceOfBugId:
+        mode.kind === "create" ? mode.recurrenceOf?.id : undefined,
+      sendContext,
+      values,
     });
-    if (!result.ok) {
-      toast.error(result.error.message);
+    if (bugId === null) {
       setPending(false);
       return;
     }
-    const { bugId } = result.data;
-    const toUpload = captured ? [captured.file, ...files] : files;
-    const failures = await uploadPortalFiles(bugId, toUpload, (index, file) =>
-      setProgress(
-        `Uploading file ${index + 1} of ${toUpload.length}: ${file.name}`
-      )
-    );
-    recordFailedUploads(bugId, failures);
     // The report is filed; Back should not return to the finished form.
     router.replace(`/portal/bugs/${bugId}`, {
       transitionTypes: ["nav-forward"],
     });
   };
 
-  const editBug = async (idempotencyKey: string) => {
+  const editBugReport = async (idempotencyKey: string) => {
     if (mode.kind !== "edit") {
       return;
     }
-    const result = await editClientBugAction({
-      ...toPayload(values, detected),
-      bugId: mode.bug.id,
-      expectedVersion: mode.bug.version,
+    const saved = await editBug({
+      bug: mode.bug,
+      detected,
       idempotencyKey,
+      values,
     });
-    if (!result.ok) {
-      toast.error(
-        result.error.code === "CONFLICT"
-          ? conflictMessage
-          : result.error.message
-      );
+    if (saved) {
+      mode.onDone();
+    } else {
       setPending(false);
-      return;
     }
-    mode.onDone();
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -313,7 +188,9 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
       keyRef.current = crypto.randomUUID();
     }
     try {
-      await (isCreate ? createBug(keyRef.current) : editBug(keyRef.current));
+      await (isCreate
+        ? createBugReport(keyRef.current)
+        : editBugReport(keyRef.current));
     } catch {
       toast.error("Something went wrong. Check your connection and try again.");
       setPending(false);
@@ -390,23 +267,11 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
         />
       ) : null}
       {mode.kind === "edit" ? (
-        <div className="portal-form-acts">
-          <WorkspaceButton
-            className="btn btn-primary"
-            disabled={pending}
-            type="submit"
-          >
-            {submitLabel(mode, pending)}
-          </WorkspaceButton>
-          <WorkspaceButton
-            className="btn btn-ghost"
-            disabled={pending}
-            onClick={handleCancel}
-            type="button"
-          >
-            Cancel
-          </WorkspaceButton>
-        </div>
+        <PortalBugEditActions
+          onCancel={handleCancel}
+          pending={pending}
+          submitText={submitLabel(mode, pending)}
+        />
       ) : null}
     </form>
   );

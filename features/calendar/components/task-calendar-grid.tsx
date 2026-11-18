@@ -1,6 +1,6 @@
-/* eslint-disable shadcn/no-inline-styles, shadcn/no-restyle, shadcn/no-unknown-classes */
-
 "use client";
+
+/* eslint-disable shadcn/no-inline-styles, shadcn/no-restyle, shadcn/no-unknown-classes */
 
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -20,48 +20,23 @@ import { canEditTaskRecord } from "@/features/tasks/task-permissions";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { dayKeyIn } from "@/lib/format-date";
 
+import type {
+  CalendarHrefPrefix,
+  CalendarProject,
+} from "./calendar-grid-options";
+import {
+  CALENDAR_PRIORITIES,
+  CALENDAR_SORTS,
+  CALENDAR_STATUSES,
+  NO_CALENDAR_PROJECTS,
+  NO_EMPLOYEES,
+  priorityOrder,
+} from "./calendar-grid-options";
+
 export type {
   CalendarEvent,
   CalendarTask,
 } from "@/features/calendar/components/task-calendar-chips";
-
-const priorityOrder: Record<string, number> = {
-  high: 1,
-  low: 3,
-  medium: 2,
-  none: 4,
-  urgent: 0,
-};
-interface CalendarProject {
-  readonly id: string;
-  readonly name: string;
-  readonly color: string;
-}
-const NO_CALENDAR_PROJECTS: readonly CalendarProject[] = [];
-// Each prefix ends just before the month offset value.
-export type CalendarHrefPrefix =
-  `${"/calendar" | "/my-tasks" | `/projects/${string}`}?${string}`;
-
-const NO_EMPLOYEES: readonly { readonly id: string; readonly name: string }[] =
-  [];
-
-const CALENDAR_STATUSES = [
-  "all",
-  "backlog",
-  "todo",
-  "progress",
-  "review",
-  "done",
-] as const;
-const CALENDAR_PRIORITIES = [
-  "all",
-  "urgent",
-  "high",
-  "medium",
-  "low",
-  "none",
-] as const;
-const CALENDAR_SORTS = ["manual", "dueDate", "name", "priority"] as const;
 
 export const TaskCalendarGrid = ({
   monthOffset,

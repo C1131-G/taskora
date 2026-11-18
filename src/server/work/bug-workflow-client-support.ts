@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { Schema } from "effect";
 
-import { clientParticipantIds } from "../collaboration/create-comment";
+import { clientParticipantIds } from "../collaboration/comment-guards";
 import { UUIDSchema } from "../core/input-schemas";
 import { notifyUsers } from "../notifications/notify-users";
 import type { loadBug } from "./bug-workflow-internal";

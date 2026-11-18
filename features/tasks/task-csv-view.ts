@@ -2,8 +2,8 @@ import {
   GLOBAL_TASK_PRIORITIES,
   GLOBAL_TASK_STATUSES,
 } from "@/features/tasks/types/global-task-view-contracts";
-import type { ImportRowError } from "@/src/server/tasks/csv";
 import type { TaskCsvFilters } from "@/src/server/tasks/task-csv";
+import type { ImportRowError } from "@/src/server/tasks/task-import-parse";
 
 // Client-side helpers for the task CSV export and import controls.
 

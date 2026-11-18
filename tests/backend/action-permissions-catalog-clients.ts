@@ -2,7 +2,7 @@ import { entry } from "./action-permissions-shared";
 import type { ActionEntry } from "./action-permissions-shared";
 import { ids, nextKey } from "./support/action-harness";
 
-const clientLogos = await import("../../features/clients/clients-actions");
+const clientLogos = await import("../../features/clients/clients-logo-actions");
 const clients = await import("../../features/clients/clients-actions");
 const clientQueries = await import("../../features/clients/clients-queries");
 const intake = await import("../../features/intake/intake-actions");

@@ -7,7 +7,7 @@ import {
   periodLabel,
 } from "@/features/projects/budget-format";
 import { formatMinutes } from "@/features/time/time-format";
-import type { ProjectBudgetView } from "@/src/server/budgets/project-budgets";
+import type { ProjectBudgetView } from "@/src/server/budgets/budget-support";
 
 // Spent against the budget as a bar and plain numbers. The level is written
 // out as well as coloured.

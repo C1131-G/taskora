@@ -6,7 +6,7 @@
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceDisclosure } from "@/components/workspace/workspace-disclosure";
 import { ProjectBudgetForm } from "@/features/projects/components/project-budget-form";
-import type { ProjectBudgetView } from "@/src/server/budgets/project-budgets";
+import type { ProjectBudgetView } from "@/src/server/budgets/budget-support";
 
 // The administrator's way in to set, change or remove a budget.
 export const ProjectBudgetEditor = ({

@@ -8,7 +8,7 @@ import type {
   MobileSubtaskResult,
   MobileSubtaskStatus,
   MobileSubtaskStatusBody,
-} from "../../mobile-api/routes-tasks";
+} from "../../mobile-api/routes-task-subtasks";
 import { AppError } from "../core/action-result";
 import { createSubtask } from "./subtask-create-subtask";
 import { mapError } from "./subtask-internal";

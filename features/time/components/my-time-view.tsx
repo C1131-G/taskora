@@ -16,7 +16,7 @@ import {
   weekLabel,
 } from "@/features/time/time-format";
 import { WEEKDAYS } from "@/features/time/weekdays";
-import type { RunningTimer, WeeklyTime } from "@/src/server/time/time-tracking";
+import type { RunningTimer, WeeklyTime } from "@/src/server/time/time-types";
 
 // A full bar is an eight hour day.
 const FULL_DAY_MINUTES = 480;
