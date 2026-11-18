@@ -100,7 +100,12 @@ const WorkloadGrid = async () => {
           Tasks without an estimate are weighted by priority.
         </li>
       </ul>
-      <div className="tbl-wrap">
+      <section
+        aria-label="Workload by week"
+        className="tbl-wrap"
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users need to scroll the wide grid.
+        tabIndex={0}
+      >
         <table className="tbl workload-table">
           <caption className="sr-only">
             Open tasks and estimated hours due per person, by week
@@ -196,7 +201,7 @@ const WorkloadGrid = async () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </section>
     </section>
   );
 };

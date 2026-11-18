@@ -34,9 +34,9 @@ test.describe("Workload (/workload)", () => {
   test("explains what over capacity means", async ({ page }) => {
     await openWorkload(page);
 
-    await expect(
-      page.getByText(/is over capacity when more than \d+ hours/u)
-    ).toBeVisible();
+    const legend = page.getByRole("list", { name: "How to read the grid" });
+    await expect(legend.getByText(/^Over \d+h$/u)).toBeVisible();
+    await expect(legend.getByText("Over 70% of capacity")).toBeVisible();
   });
 
   test("the sidebar links to the page", async ({ page }) => {

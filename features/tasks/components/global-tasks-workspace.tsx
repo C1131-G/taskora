@@ -5,6 +5,7 @@
 import {
   DownloadSimple,
   Kanban,
+  ListBullets,
   Plus,
   Table,
   UploadSimple,
@@ -44,10 +45,18 @@ type GlobalTask = Omit<
   readonly projectName: string;
 };
 
-type TaskView = "list" | "board";
+type TaskView = "list" | "board" | "table";
+
+// The table view owns the column menu, sorting and resizing; it was reachable
+// only as "Table" for the plain list after the redesign, which hid those.
+const TASK_VIEW_LABELS: Readonly<Record<TaskView, string>> = {
+  board: "Board",
+  list: "List",
+  table: "Table",
+};
 
 const toTaskView = (value: string): TaskView =>
-  value === "board" ? "board" : "list";
+  value === "board" || value === "table" ? value : "list";
 
 const taskDescription = (
   status: string,
@@ -79,9 +88,12 @@ const TaskViewSwitch = ({
         size="sm"
         variant={view === taskView ? "default" : "secondary"}
       >
-        {taskView === "list" ? <Table aria-hidden="true" size={15} /> : null}
+        {taskView === "list" ? (
+          <ListBullets aria-hidden="true" size={15} />
+        ) : null}
+        {taskView === "table" ? <Table aria-hidden="true" size={15} /> : null}
         {taskView === "board" ? <Kanban aria-hidden="true" size={15} /> : null}
-        {taskView === "list" ? "Table" : "Board"}
+        {TASK_VIEW_LABELS[taskView]}
       </WorkspaceButton>
     ))}
   </nav>

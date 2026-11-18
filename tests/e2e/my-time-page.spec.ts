@@ -2,6 +2,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import { ADMIN_STATE } from "./auth-state";
+import { openTaskSection } from "./task-drawer-tabs";
 
 const openPopulatedTable = async (page: Page) => {
   await page.goto("/projects");
@@ -24,6 +25,7 @@ const openFirstTaskDrawer = async (page: Page) => {
       .click();
     await expect(page).toHaveURL(/[?&]task=[0-9a-f-]{36}/u, { timeout: 2000 });
   }).toPass();
+  await openTaskSection(page, "Time");
   const timeSection = page.getByRole("region", { name: "Time tracking" });
   await expect(timeSection).toBeVisible({ timeout: 15_000 });
   return { href, timeSection };
@@ -56,9 +58,7 @@ test.describe("My time (/my-time)", () => {
 
   test("manual time logged in a task drawer shows in the total, on My time, and can be deleted", async () => {
     const { timeSection } = await openFirstTaskDrawer(page);
-    await timeSection
-      .getByRole("button", { name: "Log time manually" })
-      .click();
+    await timeSection.getByRole("button", { name: "Add time entry" }).click();
     await timeSection.getByLabel("Time", { exact: true }).fill("1h 30m");
     await timeSection.getByLabel("Note").fill("E2E time entry");
     await timeSection.getByRole("button", { name: "Log time" }).click();
@@ -87,10 +87,15 @@ test.describe("My time (/my-time)", () => {
     await page.goto("/my-time");
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("button", { name: "Log time" })).toBeVisible();
-    await page.getByLabel("Time", { exact: true }).fill("soon");
+    const duration = page.getByLabel("Time", { exact: true });
+    await duration.fill("soon");
     await page.getByRole("button", { name: "Log time" }).click();
+    // The field carries the reason for screen readers; a toast shows it.
+    const reason = "Enter a time like 1h 30m, 1:30 or 45.";
+    await expect(duration).toHaveAttribute("aria-invalid", "true");
+    await expect(duration).toHaveAccessibleDescription(reason);
     await expect(
-      page.getByText("Enter a time like 1h 30m, 1:30 or 45.")
+      page.locator("[data-sonner-toast]", { hasText: reason })
     ).toBeVisible();
   });
 

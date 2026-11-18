@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 import { ADMIN_STATE, CLIENT_ONE_STATE } from "./auth-state";
+import { fillPortalReport } from "./portal-report-helpers";
 
 // A client reports a bug with a captured, annotated screenshot and the
 // browser's technical details; staff then read the details as plain text.
@@ -44,20 +45,14 @@ const removeScreenShare = () => {
   });
 };
 
-const fillReport = async (page: Page, title: string) => {
-  await page.goto("/portal/new");
-  await page
-    .getByRole("combobox", { name: "Project" })
-    .selectOption({ label: "Acme Web App" });
-  await page.getByLabel("Title").fill(title);
-  await page.getByLabel("Expected behavior").fill("The page loads.");
-  await page.getByLabel("Actual behavior").fill("The page shows an error.");
-  await page
-    .getByRole("textbox", { name: "Step 1" })
-    .fill("Open the dashboard");
-  await page.getByLabel("Page URL").fill("https://acme.example/dashboard");
-  await page.getByRole("radio", { name: /High/u }).check();
-};
+const fillReport = (page: Page, title: string) =>
+  fillPortalReport(page, {
+    actual: "The page shows an error.",
+    expected: "The page loads.",
+    firstStep: "Open the dashboard",
+    pageUrl: "https://acme.example/dashboard",
+    title,
+  });
 
 const submitReport = async (page: Page): Promise<string> => {
   await page.getByRole("button", { name: /^(?:submit|send|report)/iu }).click();

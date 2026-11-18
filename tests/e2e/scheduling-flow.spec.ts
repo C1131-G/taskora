@@ -88,7 +88,9 @@ test.describe("scheduling", () => {
     const sourceAdd = await sourceCell
       .getByRole("button", { name: /^Add task on /u })
       .getAttribute("aria-label");
-    const targetCell = page.locator(".cday:not(:has(.cal-chip))").first();
+    const targetCell = page
+      .locator(".cday:not(.out):not(:has(.cal-chip)):has(.calendar-add-task)")
+      .first();
     const targetAdd = await targetCell
       .getByRole("button", { name: /^Add task on /u })
       .getAttribute("aria-label");
@@ -117,10 +119,13 @@ test.describe("scheduling", () => {
 
   test("the calendar Move control opens a date form that will not submit the same day", async () => {
     await openPopulatedCalendar(page);
-    const moveControl = page
-      .getByRole("button", { name: /^Move .+ to another day$/u })
-      .first();
-    await expect(moveControl).toBeVisible({ timeout: 15_000 });
+    const chip = page.locator(".cal-chip:has(.cal-chip-move)").first();
+    const moveControl = chip.getByRole("button", {
+      name: /^Move .+ to another day$/u,
+    });
+    await expect(moveControl).toBeAttached({ timeout: 15_000 });
+    // The control only takes pointer events while its chip is hovered.
+    await chip.hover();
     await moveControl.click();
     const submit = page.getByRole("button", { exact: true, name: "Move task" });
     await expect(submit).toBeVisible();

@@ -22,7 +22,7 @@ export const GLOBAL_TASK_GROUPS = [
   "priority",
   "none",
 ] as const;
-export const GLOBAL_TASK_VIEWS = ["list", "board"] as const;
+export const GLOBAL_TASK_VIEWS = ["list", "table", "board"] as const;
 export const MY_TASK_VIEWS = ["list", "calendar"] as const;
 export const CALENDAR_MODES = ["month", "week"] as const;
 

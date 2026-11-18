@@ -42,15 +42,18 @@ test.describe("inbox and notifications as employee", () => {
     ).toBe(true);
     await expect(assigned).toBeVisible();
 
-    await page.getByRole("tab", { name: /^Comments/u }).click();
+    const kinds = page.getByRole("navigation", {
+      name: "Filter inbox by type",
+    });
+    await kinds.getByRole("button", { name: /^Comments/u }).click();
     await expect(commented).toBeVisible();
     await expect(page.getByText("assigned you a task")).toHaveCount(0);
 
-    await page.getByRole("tab", { name: /^Assignments/u }).click();
+    await kinds.getByRole("button", { name: /^Assignments/u }).click();
     await expect(assigned).toBeVisible();
     await expect(page.getByText("commented on a task")).toHaveCount(0);
 
-    await page.getByRole("tab", { name: /^Mentions/u }).click();
+    await kinds.getByRole("button", { name: /^Mentions/u }).click();
     await expect(page.getByText("mentioned you").first()).toBeVisible();
     await expect(page.getByText("assigned you a task")).toHaveCount(0);
   });

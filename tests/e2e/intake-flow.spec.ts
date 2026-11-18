@@ -27,9 +27,11 @@ const readFormPath = async (page: Page): Promise<string> => {
 
 const notAvailable = async (page: Page, path: string) => {
   await page.goto(path);
+  // The not-found page reports itself in a toast beside a way home.
   await expect(
-    page.getByRole("heading", { name: "Page not found" })
+    page.locator("[data-sonner-toast]", { hasText: "Page not found." })
   ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Go to home" })).toBeVisible();
 };
 
 test.describe("Intake (public form to triage)", () => {

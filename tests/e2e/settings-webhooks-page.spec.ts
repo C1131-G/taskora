@@ -44,7 +44,10 @@ test.describe("Webhooks (/settings/webhooks)", () => {
     test("a Slack endpoint must use a Slack host", async ({ page }) => {
       await openWebhooks(page);
       await page.getByLabel("Name", { exact: true }).first().fill("Not Slack");
-      await page.getByLabel("Type").selectOption("slack");
+      await page.getByRole("combobox", { name: "Type" }).click();
+      await page
+        .getByRole("option", { name: "Slack incoming webhook" })
+        .click();
       await page
         .getByLabel("Slack webhook URL")
         .fill("https://example.com/services/T000/B000/XXXX");

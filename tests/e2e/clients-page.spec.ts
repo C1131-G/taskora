@@ -100,7 +100,9 @@ test.describe("Clients (/clients)", () => {
       test("sees it in the portal header", async ({ page }) => {
         await page.goto("/portal");
         await expect(
-          page.getByRole("banner").getByRole("img", { name: "Acme logo" })
+          page
+            .getByRole("complementary", { name: "Client portal sidebar" })
+            .getByRole("img", { name: "Acme logo" })
         ).toBeVisible();
       });
     });
