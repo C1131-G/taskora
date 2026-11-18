@@ -175,3 +175,11 @@
     --tw-exit-translate-y: 0;
   }
 }
+
+/* Sonner's light rich colours measure 4.3:1 for error text and under 4.5:1 for
+   warnings, which fails WCAG AA when a toast is on screen. Darker text on the
+   same tint passes. */
+html [data-sonner-toaster][data-sonner-theme="light"] {
+  --error-text: #b00020;
+  --warning-text: #8a4b00;
+}
