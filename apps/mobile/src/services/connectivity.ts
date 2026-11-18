@@ -1,4 +1,5 @@
-import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
+import type { Stream } from "effect";
+import { Context, Effect, Layer, SubscriptionRef } from "effect";
 
 /**
  * Reports whether the device has network access. The live layer follows

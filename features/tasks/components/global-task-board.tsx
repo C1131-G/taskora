@@ -68,18 +68,20 @@ export const GlobalTaskBoard = ({
 
   // React has no onAnimationCancel. A card hidden mid-highlight fires
   // animationcancel instead of animationend, so clear it here or it replays.
-  useEffect(() => {
+  useEffect(function listenForCancelledDropAnimation() {
     const board = boardRef.current;
     if (!board) {
       return;
     }
-    const clear = (event: AnimationEvent) => {
+    const clearDropped = (event: AnimationEvent) => {
       if (event.animationName === "gt-dropped") {
         setDroppedId(null);
       }
     };
-    board.addEventListener("animationcancel", clear);
-    return () => board.removeEventListener("animationcancel", clear);
+    board.addEventListener("animationcancel", clearDropped);
+    return function stopListeningForCancelledDropAnimation() {
+      board.removeEventListener("animationcancel", clearDropped);
+    };
   }, []);
   const [pending, startTransition] = useTransition();
   // A dropped card sits in its new column at once; a refused move falls back.

@@ -377,11 +377,11 @@ export const IntakeSubmissionsLive = Layer.effect(
           catch: databaseError,
           try: () => validateWebFields(input),
         });
-        const attachment = input.attachment
+        const upload = input.attachment;
+        const attachment = upload
           ? yield* Effect.try({
               catch: databaseError,
-              try: () =>
-                validateAttachment(input.attachment as IntakeAttachment),
+              try: () => validateAttachment(upload),
             })
           : null;
         const senderHash = hashSenderAddress(input.clientIp ?? UNKNOWN_SENDER);

@@ -20,11 +20,11 @@ export const useUploadQueue = (
   const mounted = useRef(true);
   const uploads = useSelector(store, (state) => state.uploads);
 
-  useEffect(() => {
+  useEffect(function trackMountForUploads() {
     const activeEntries = entries;
     const activeState = mounted;
     mounted.current = true;
-    return () => {
+    return function abortUploadsOnUnmount() {
       activeState.current = false;
       for (const entry of activeEntries.current.values()) {
         entry.controller.abort();

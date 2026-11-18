@@ -26,11 +26,14 @@ export const unstable_settings = { screenErrorBoundary: ErrorBoundary };
 
 const FontLoader = () => {
   const showError = useErrorToast();
-  useEffect(() => {
-    void appRuntime().runPromiseExit(Effect.catchEager(loadAppFonts, () =>
-      Effect.sync(() => showError("Could not load the app fonts. Using the system font.")),
-    ));
-  }, [showError]);
+  useEffect(
+    function loadFontsIntoNativeRegistry() {
+      void appRuntime().runPromiseExit(Effect.catchEager(loadAppFonts, () =>
+        Effect.sync(() => showError("Could not load the app fonts. Using the system font.")),
+      ));
+    },
+    [showError],
+  );
   return null;
 };
 

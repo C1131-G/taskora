@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useEffectEvent, useId } from "react";
 import { toast } from "sonner";
 
 // Error toasts on screen. A new one replaces the previous so that several
@@ -29,12 +29,12 @@ const ErrorToast = ({
   const onAction = action?.onClick;
   const baseId = useId();
   const toastId = `${baseId}-${resetKey ?? ""}`;
-  const onActionRef = useRef(onAction);
-  useEffect(() => {
-    onActionRef.current = onAction;
-  }, [onAction]);
-  useEffect(() => {
-    if (message) {
+  const runAction = useEffectEvent(() => onAction?.());
+  useEffect(
+    function showErrorToast() {
+      if (!message) {
+        return;
+      }
       for (const other of activeErrorToasts) {
         if (other !== toastId) {
           toast.dismiss(other);
@@ -46,23 +46,18 @@ const ErrorToast = ({
         id: toastId,
         ...(actionLabel
           ? {
-              action: {
-                label: actionLabel,
-                onClick: () => onActionRef.current?.(),
-              },
+              action: { label: actionLabel, onClick: () => runAction() },
               duration: Infinity,
             }
           : {}),
       });
-    } else {
-      toast.dismiss(toastId);
-      activeErrorToasts.delete(toastId);
-    }
-    return () => {
-      toast.dismiss(toastId);
-      activeErrorToasts.delete(toastId);
-    };
-  }, [message, actionLabel, toastId]);
+      return function dismissErrorToast() {
+        toast.dismiss(toastId);
+        activeErrorToasts.delete(toastId);
+      };
+    },
+    [message, actionLabel, toastId]
+  );
   return null;
 };
 

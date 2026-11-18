@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { SqlQueryError } from "@prisma/orm-family-sql/errors";
 import { Context, Effect, Layer } from "effect";
 
+import { isRecord } from "@/src/lib/type-guards";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
@@ -92,10 +93,7 @@ const receive = async (
   if (request.event === "ping") {
     return { status: "pong" };
   }
-  const action =
-    typeof payload === "object" && payload !== null
-      ? (payload as Record<string, unknown>)["action"]
-      : undefined;
+  const action = isRecord(payload) ? payload["action"] : undefined;
   if (request.event !== "pull_request" || !isHandledAction(action)) {
     return { status: "ignored" };
   }

@@ -58,29 +58,32 @@ const PortalPushControl = ({ publicKey }: { readonly publicKey: string }) => {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    if (capability !== "ok") {
-      return;
-    }
-    let cancelled = false;
-    const check = async () => {
-      try {
-        const registration = await navigator.serviceWorker.register("/sw.js");
-        const existing = await registration.pushManager.getSubscription();
-        if (!cancelled) {
-          setSubscribed(existing !== null);
-        }
-      } catch {
-        if (!cancelled) {
-          toast.error("Push notifications could not be initialized.");
-        }
+  useEffect(
+    function readPushSubscription() {
+      if (capability !== "ok") {
+        return;
       }
-    };
-    void check();
-    return () => {
-      cancelled = true;
-    };
-  }, [capability]);
+      let cancelled = false;
+      const check = async () => {
+        try {
+          const registration = await navigator.serviceWorker.register("/sw.js");
+          const existing = await registration.pushManager.getSubscription();
+          if (!cancelled) {
+            setSubscribed(existing !== null);
+          }
+        } catch {
+          if (!cancelled) {
+            toast.error("Push notifications could not be initialized.");
+          }
+        }
+      };
+      void check();
+      return function ignoreLateSubscriptionRead() {
+        cancelled = true;
+      };
+    },
+    [capability]
+  );
 
   const enable = async () => {
     const permission = await Notification.requestPermission();

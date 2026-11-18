@@ -18,12 +18,11 @@ export const auditEventLabels = {
 
 export type AuditEventType = keyof typeof auditEventLabels;
 
-export const auditEventTypes = Object.keys(
-  auditEventLabels
-) as AuditEventType[];
-
 export const isAuditEventType = (value: string): value is AuditEventType =>
   Object.hasOwn(auditEventLabels, value);
+
+export const auditEventTypes: readonly AuditEventType[] =
+  Object.keys(auditEventLabels).filter(isAuditEventType);
 
 export const auditEventLabel = (type: string): string =>
   isAuditEventType(type) ? auditEventLabels[type] : type.replaceAll("_", " ");

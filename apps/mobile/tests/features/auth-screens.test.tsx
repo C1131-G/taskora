@@ -3,8 +3,8 @@ import { Effect } from "effect";
 
 import ChangePasswordRoute from "@/app/(auth)/change-password";
 import { ChangePasswordScreen } from "@/features/auth/change-password-screen";
-import { SessionGateContext } from "@/features/auth/session-gate";
 import { LoginScreen, validateCredentials } from "@/features/auth/login-screen";
+import { SessionGateContext } from "@/features/auth/session-gate";
 import { ValidationFailed, type AppFailure } from "@/errors";
 import type { SessionState } from "@/services/session";
 import type { SessionService } from "@/services/session";
@@ -122,6 +122,30 @@ it("changes the password and calls onDone", async () => {
         },
       })}
     />,
+  );
+
+  await user.type(screen.getByLabelText("Current password"), "old-pass");
+  await user.type(screen.getByLabelText("New password"), "brand-new-pass");
+  await user.type(screen.getByLabelText("Repeat new password"), "brand-new-pass");
+  await user.press(screen.getByRole("button", { name: "Save new password" }));
+
+  await waitFor(() => expect(changed).toEqual(["old-pass", "done"]));
+});
+
+it("changes the password with the gate's session when no session prop is given", async () => {
+  const changed: string[] = [];
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <SessionGateContext.Provider
+      value={stubSession({
+        changeOwnPassword: (input) => {
+          changed.push(input.currentPassword);
+          return Effect.void;
+        },
+      })}
+    >
+      <ChangePasswordScreen onDone={() => changed.push("done")} />
+    </SessionGateContext.Provider>,
   );
 
   await user.type(screen.getByLabelText("Current password"), "old-pass");

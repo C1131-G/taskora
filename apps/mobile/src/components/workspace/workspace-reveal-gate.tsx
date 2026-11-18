@@ -70,7 +70,7 @@ export const WorkspaceRevealGate = ({ children }: WorkspaceRevealGateProps) => {
   const reducedMotion = usePrefersReducedMotion();
   const [opacity] = useState(() => new Animated.Value(reducedMotion ? 1 : 0));
 
-  useEffect(() => {
+  useEffect(function fadeInContent() {
     if (reducedMotion) {
       opacity.setValue(1);
       return;
@@ -82,7 +82,9 @@ export const WorkspaceRevealGate = ({ children }: WorkspaceRevealGateProps) => {
       useNativeDriver: true,
     });
     animation.start();
-    return () => animation.stop();
+    return function stopContentFade() {
+      animation.stop();
+    };
   }, [reducedMotion, opacity]);
 
   return <Animated.View style={{ opacity }}>{children}</Animated.View>;

@@ -31,9 +31,14 @@ export const WorkspaceErrorState = ({ failure, onRetry }: WorkspaceErrorStatePro
   const showError = useErrorToast();
   const message = failureMessage(failure);
 
-  useEffect(() => {
-    showError(message);
-  }, [message, showError]);
+  // The failure arrives as query data, not from a handler, so the toast is
+  // shown when this state renders with a new message.
+  useEffect(
+    function showFailureToast() {
+      showError(message);
+    },
+    [message, showError],
+  );
 
   return onRetry === undefined ? null : (
         <WorkspaceButton onPress={onRetry} size="sm" variant="secondary">

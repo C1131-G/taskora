@@ -28,6 +28,7 @@ import {
   listProjectTaskPages,
 } from "@/features/tasks/tasks-queries";
 import { getPersonalPreferences } from "@/features/user/user-queries";
+import { isOneOf } from "@/src/lib/type-guards";
 import { currentUtcMonthRange } from "@/src/lib/utc-date-range";
 import { getPageSession } from "@/src/server/auth/page-session";
 import { getCompanyToday } from "@/src/server/work/work-company-today";
@@ -72,8 +73,7 @@ const TASK_LIST_VIEWS = [
   "timeline",
 ] as const;
 
-const needsTaskList = (view: string) =>
-  (TASK_LIST_VIEWS as readonly string[]).includes(view);
+const needsTaskList = (view: string) => isOneOf(TASK_LIST_VIEWS, view);
 
 const getCalendarRange = (
   view: string,

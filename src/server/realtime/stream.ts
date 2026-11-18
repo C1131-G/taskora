@@ -35,9 +35,9 @@ export const createRealtimeStream = (
   const epoch = randomUUID();
   let sequence = 0;
   let ended = false;
-  let unsubscribe: (() => void) | null = null;
-  let stopPing: (() => void) | null = null;
-  let controller: ReadableStreamDefaultController<Uint8Array> | null = null;
+  let unsubscribe: (() => void) | undefined;
+  let stopPing: (() => void) | undefined;
+  let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
 
   const teardown = (): void => {
     if (ended) {
@@ -45,9 +45,9 @@ export const createRealtimeStream = (
     }
     ended = true;
     stopPing?.();
-    stopPing = null;
+    stopPing = undefined;
     unsubscribe?.();
-    unsubscribe = null;
+    unsubscribe = undefined;
     options.signal.removeEventListener("abort", teardown);
     try {
       controller?.close();

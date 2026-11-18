@@ -5,7 +5,7 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal classes are authored in apps/web/app/workspace-styles/portal.css. */
 
 import { FilePdf, FileVideo, UploadSimple, X } from "@phosphor-icons/react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import type { DragEvent } from "react";
 import { toast } from "sonner";
 
@@ -17,23 +17,31 @@ import {
 } from "@/features/portal/portal-upload-rules";
 
 const FilePreview = ({ file }: { readonly file: File }) => {
-  const [url, setUrl] = useState<string>();
-  const isImage = file.type.startsWith("image/");
-  useEffect(() => {
-    if (!isImage) {
-      return;
-    }
-    const objectUrl = URL.createObjectURL(file);
-    // An object URL is a browser resource, so it is created and released here.
-    // oxlint-disable-next-line react/set-state-in-effect
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file, isImage]);
+  // The object URL lives exactly as long as the image element that shows it.
+  const attachPreview = useCallback(
+    function attachObjectUrl(image: HTMLImageElement | null) {
+      if (!image) {
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      image.src = objectUrl;
+      return function revokeObjectUrl() {
+        URL.revokeObjectURL(objectUrl);
+      };
+    },
+    [file]
+  );
 
-  if (isImage && url) {
+  if (file.type.startsWith("image/")) {
     return (
       // oxlint-disable-next-line next/no-img-element, react-doctor/nextjs-no-img-element -- A local blob preview cannot go through the image optimizer.
-      <img alt="" className="portal-thumb" height={64} src={url} width={64} />
+      <img
+        alt=""
+        className="portal-thumb"
+        height={64}
+        ref={attachPreview}
+        width={64}
+      />
     );
   }
   return (

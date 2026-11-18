@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Cause, Effect, Exit, Layer, Option, SubscriptionRef } from "effect";
+import { Effect, Layer, SubscriptionRef } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
@@ -270,16 +270,39 @@ it.effect("changes the password and surfaces the server field error", () =>
 
     yield* session.changeOwnPassword({ currentPassword: "old-pass", newPassword: "new-pass" });
 
-    const exit = yield* Effect.exit(
+    const error = yield* Effect.flip(
       session.changeOwnPassword({ currentPassword: "wrong", newPassword: "new-pass" }),
     );
 
-    expect(exit._tag).toBe("Failure");
-    const failure = Exit.isFailure(exit) ? Cause.findErrorOption(exit.cause) : Option.none();
-    expect(
-      Option.isSome(failure) && failure.value._tag === "ValidationFailed"
-        ? failure.value.fieldErrors["currentPassword"]
-        : undefined,
-    ).toBe("Wrong current password");
+    expect(error._tag).toBe("ValidationFailed");
+    expect("fieldErrors" in error && error.fieldErrors).toEqual({
+      currentPassword: "Wrong current password",
+    });
   }).pipe(Effect.provide(sessionLayer(null))),
+);
+
+it.effect("reports an unreadable refusal as unavailable, not as a field error", () =>
+  Effect.gen(function* () {
+    const session = yield* Effect.service(Session);
+    yield* session.signIn({ email: "c@taskora.test", password: "secret" });
+
+    const error = yield* Effect.flip(
+      session.changeOwnPassword({ currentPassword: "wrong", newPassword: "new-pass" }),
+    );
+
+    expect(error._tag).toBe("Unavailable");
+  }).pipe(
+    Effect.provide(
+      Layer.provide(
+        makeSessionLayer({
+          baseUrl: "https://unit.test",
+          fetchImpl: ((input: Request | string | URL, init?: RequestInit) =>
+            String(input).endsWith("/api/v1/me/password")
+              ? Promise.resolve(new Response("<html>bad gateway</html>", { status: 502 }))
+              : fetchImpl(input, init)) as typeof fetch,
+        }),
+        storageLayer(null),
+      ),
+    ),
+  ),
 );

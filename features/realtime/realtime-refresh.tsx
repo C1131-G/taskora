@@ -26,36 +26,39 @@ const browserClock = {
 export const RealtimeRefresh = () => {
   const router = useRouter();
 
-  useEffect(() => {
-    const controller = createRealtimeController({
-      clock: browserClock,
-      createSource: () => new EventSource(EVENTS_URL),
-      debounceMs: DEBOUNCE_MS,
-      isHidden: () => document.visibilityState === "hidden",
-      maxWaitMs: MAX_WAIT_MS,
-      onVisibilityChange: (listener) => {
-        document.addEventListener("visibilitychange", listener);
-        return () => {
-          document.removeEventListener("visibilitychange", listener);
-        };
-      },
-      pollMs: POLL_MS,
-      reconnectMs: RECONNECT_MS,
-      refresh: () => {
-        if (document.visibilityState === "hidden") {
-          return;
-        }
-        startTransition(() => {
-          router.refresh();
-        });
-        announceRealtimeRefresh();
-      },
-    });
-    controller.start();
-    return () => {
-      controller.dispose();
-    };
-  }, [router]);
+  useEffect(
+    function connectToServerEvents() {
+      const controller = createRealtimeController({
+        clock: browserClock,
+        createSource: () => new EventSource(EVENTS_URL),
+        debounceMs: DEBOUNCE_MS,
+        isHidden: () => document.visibilityState === "hidden",
+        maxWaitMs: MAX_WAIT_MS,
+        onVisibilityChange: (listener) => {
+          document.addEventListener("visibilitychange", listener);
+          return () => {
+            document.removeEventListener("visibilitychange", listener);
+          };
+        },
+        pollMs: POLL_MS,
+        reconnectMs: RECONNECT_MS,
+        refresh: () => {
+          if (document.visibilityState === "hidden") {
+            return;
+          }
+          startTransition(() => {
+            router.refresh();
+          });
+          announceRealtimeRefresh();
+        },
+      });
+      controller.start();
+      return function disconnectFromServerEvents() {
+        controller.dispose();
+      };
+    },
+    [router]
+  );
 
   return null;
 };

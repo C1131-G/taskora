@@ -2,6 +2,10 @@ import { Schema } from "effect";
 
 export type HttpMethod = "get" | "post" | "patch" | "delete";
 
+// A route's schemas need no services, so the client and server can encode and
+// decode with them directly.
+export type RouteSchema = Schema.Codec<unknown, unknown, never, never>;
+
 // One entry per route file under apps/web/app/api/v1. The OpenAPI document and the
 // typed client are both read from the route list, and a test fails when a
 // route file and its entry drift apart.
@@ -12,13 +16,13 @@ export interface RouteDefinition {
   readonly path: string;
   readonly summary: string;
   // Shape of `data` in a successful response.
-  readonly data: Schema.Constraint;
+  readonly data: RouteSchema;
   // The `{name}` segments of the path, each decoded from text.
-  readonly params?: Schema.Constraint;
+  readonly params?: RouteSchema;
   // Query-string fields, each decoded from text.
-  readonly query?: Schema.Constraint;
+  readonly query?: RouteSchema;
   // The JSON request body of a write.
-  readonly body?: Schema.Constraint;
+  readonly body?: RouteSchema;
   // A write is safe to retry by default and needs an `Idempotency-Key`. A write
   // that hands out a signed URL or a credential must never be stored for
   // replay, so it declares `"none"` and neither asks for nor documents a key.

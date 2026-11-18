@@ -34,7 +34,12 @@ const withKey = <Fields extends Schema.Struct.Fields>(fields: Fields) =>
 // Automation changes are admin-only and idempotent on their key, like every
 // other mutation; success refreshes the page's server data.
 const runRuleAction = async <
-  InputSchema extends Schema.Codec<unknown, unknown, never, never>,
+  InputSchema extends Schema.Codec<
+    { readonly idempotencyKey: string },
+    unknown,
+    never,
+    never
+  >,
   ResultSchema extends Schema.Codec<unknown, unknown, never, never>,
 >(
   input: unknown,
@@ -55,9 +60,7 @@ const runRuleAction = async <
         const administrator = yield* requireAdmin(yield* requestHeadersOrFail);
         const service = yield* AutomationManagement;
         const idempotency = yield* Idempotency;
-        const { idempotencyKey, ...ruleInput } = validated as {
-          readonly idempotencyKey: string;
-        } & Omit<InputSchema["Type"], "idempotencyKey">;
+        const { idempotencyKey, ...ruleInput } = validated;
         return yield* idempotency.run({
           actorId: administrator.id,
           execute: () => execute(service, administrator.id, ruleInput),

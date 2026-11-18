@@ -58,7 +58,12 @@ const withKey = <Fields extends Schema.Struct.Fields>(
 // Company mutations are admin-only, idempotent on their key, and guarded by
 // the company's optimistic version.
 const runCompanyAction = async <
-  InputSchema extends Schema.Codec<unknown, unknown, never, never>,
+  InputSchema extends Schema.Codec<
+    { readonly idempotencyKey: string },
+    unknown,
+    never,
+    never
+  >,
 >(
   input: unknown,
   schema: InputSchema,
@@ -78,9 +83,7 @@ const runCompanyAction = async <
         const administrator = yield* requireAdmin(requestHeaders);
         const service = yield* ClientCompanyManagement;
         const idempotency = yield* Idempotency;
-        const { idempotencyKey, ...companyInput } = validated as {
-          readonly idempotencyKey: string;
-        } & Omit<InputSchema["Type"], "idempotencyKey">;
+        const { idempotencyKey, ...companyInput } = validated;
         return yield* idempotency.run({
           actorId: administrator.id,
           execute: () =>
@@ -247,7 +250,12 @@ export async function unlockUserAction(input: unknown) {
 // Logo changes are admin-only and idempotent on their key; the company's
 // optimistic version guards finalize and remove.
 const runLogoAction = async <
-  InputSchema extends Schema.Codec<unknown, unknown, never, never>,
+  InputSchema extends Schema.Codec<
+    { readonly idempotencyKey: string },
+    unknown,
+    never,
+    never
+  >,
   OutputSchema extends Schema.Codec<unknown, unknown, never, never>,
 >(
   input: unknown,
@@ -268,9 +276,7 @@ const runLogoAction = async <
         const administrator = yield* requireAdmin(yield* requestHeadersOrFail);
         const service = yield* ClientLogos;
         const idempotency = yield* Idempotency;
-        const { idempotencyKey, ...logoInput } = validated as {
-          readonly idempotencyKey: string;
-        } & Omit<InputSchema["Type"], "idempotencyKey">;
+        const { idempotencyKey, ...logoInput } = validated;
         return yield* idempotency.run({
           actorId: administrator.id,
           execute: () => execute(service, administrator.id, logoInput),

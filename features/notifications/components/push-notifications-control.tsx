@@ -61,38 +61,41 @@ type EnableStatus = "idle" | "pending" | "enabled";
 const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
   const [available, setAvailable] = useState(false);
   const [status, setStatus] = useState<EnableStatus>("idle");
-  useEffect(() => {
-    if (
-      !publicKey ||
-      !("serviceWorker" in navigator) ||
-      !("PushManager" in window) ||
-      !("Notification" in window) ||
-      Notification.permission === "denied"
-    ) {
-      return;
-    }
-
-    // Only the workspace shell mounts this, after WorkspaceFrame has gated the
-    // session, so no client-side session check is needed.
-    let cancelled = false;
-    const registerServiceWorker = async () => {
-      try {
-        await navigator.serviceWorker.register("/sw.js");
-        if (!cancelled) {
-          setAvailable(true);
-        }
-      } catch {
-        if (!cancelled) {
-          toast.error("Push notifications could not be initialized.");
-        }
+  useEffect(
+    function registerPushServiceWorker() {
+      if (
+        !publicKey ||
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window) ||
+        !("Notification" in window) ||
+        Notification.permission === "denied"
+      ) {
+        return;
       }
-    };
-    void registerServiceWorker();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [publicKey]);
+      // Only the workspace shell mounts this, after WorkspaceFrame has gated the
+      // session, so no client-side session check is needed.
+      let cancelled = false;
+      const registerServiceWorker = async () => {
+        try {
+          await navigator.serviceWorker.register("/sw.js");
+          if (!cancelled) {
+            setAvailable(true);
+          }
+        } catch {
+          if (!cancelled) {
+            toast.error("Push notifications could not be initialized.");
+          }
+        }
+      };
+      void registerServiceWorker();
+
+      return function ignoreLateRegistration() {
+        cancelled = true;
+      };
+    },
+    [publicKey]
+  );
 
   const enableNotifications = async () => {
     if (!publicKey || status === "pending") {

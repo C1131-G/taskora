@@ -14,7 +14,7 @@ import { Effect, Fiber, Stream } from "effect";
 export const OfflineBanner = () => {
   const showError = useErrorToast();
 
-  useEffect(() => {
+  useEffect(function watchConnectivity() {
     const runtime = appRuntime();
     let wasOnline = true;
     const wiring = Effect.flatMap(Effect.service(Connectivity), (connectivity) =>
@@ -31,7 +31,7 @@ export const OfflineBanner = () => {
       ),
     );
     const fiber = runtime.runFork(wiring);
-    return () => {
+    return function stopWatchingConnectivity() {
       void runtime.runFork(Fiber.interrupt(fiber));
     };
   }, [showError]);

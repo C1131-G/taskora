@@ -334,8 +334,12 @@ export const outcomeBadge = (
     case "failed": {
       return { label: "Failed", tone: "red" };
     }
-    default: {
+    case "skipped": {
       return { label: "Skipped", tone: "gray" };
+    }
+    default: {
+      const _exhaustive: never = outcome;
+      return _exhaustive;
     }
   }
 };

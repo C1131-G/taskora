@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/theme/theme-provider";
@@ -12,12 +12,11 @@ export interface WorkspaceFieldProps {
 }
 
 const cloneChildWithLabel = (child: ReactNode, label: string): ReactNode => {
-  if (!isValidElement(child)) {
+  if (!isValidElement<{ accessibilityLabel?: string }>(child)) {
     return child;
   }
-  const props = child.props as { readonly accessibilityLabel?: string };
-  return cloneElement(child as ReactElement<{ accessibilityLabel?: string }>, {
-    accessibilityLabel: props.accessibilityLabel ?? label,
+  return cloneElement(child, {
+    accessibilityLabel: child.props.accessibilityLabel ?? label,
   });
 };
 

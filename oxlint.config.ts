@@ -54,6 +54,9 @@ export default defineConfig({
         properties: "never",
       },
     ],
+    // Effects pass named setup and cleanup functions so stack traces and
+    // reviews show what each effect synchronizes with.
+    "prefer-arrow-callback": ["error", { allowNamedFunctions: true }],
   },
   settings: jsPluginSettings,
 });

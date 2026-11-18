@@ -2,7 +2,7 @@
 
 import { CalendarBlank } from "@phosphor-icons/react";
 import { format, isValid, parseISO } from "date-fns";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFormReset } from "@/components/workspace/use-form-reset";
 import { cn } from "@/lib/utils";
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) =>
@@ -74,19 +75,11 @@ const WorkspaceDateTimePicker = ({
     ? DEFAULT_MINUTE_OPTIONS
     : [...DEFAULT_MINUTE_OPTIONS, minute].toSorted();
 
-  useEffect(() => {
-    const form = formInput.current?.form;
-    if (!form) {
-      return;
-    }
-    const reset = () => {
-      const next = parseLocalDateTime(defaultValue);
-      setDate(next.date);
-      setTime(next.time);
-    };
-    form.addEventListener("reset", reset);
-    return () => form.removeEventListener("reset", reset);
-  }, [defaultValue]);
+  useFormReset(formInput, () => {
+    const next = parseLocalDateTime(defaultValue);
+    setDate(next.date);
+    setTime(next.time);
+  });
 
   return (
     <>

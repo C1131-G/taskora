@@ -1,5 +1,6 @@
 import { Effect, Layer, Schema } from "effect";
 
+import { isOneOf } from "@/src/lib/type-guards";
 import { db } from "@/src/prisma/db";
 
 import {
@@ -116,6 +117,8 @@ const clientWaitJobs = {
   [NEEDS_INFO_AUTOCLOSE_JOB]: autoCloseNeedsInfo,
   [NEEDS_INFO_REMINDER_JOB]: remindNeedsInfo,
 } as const;
+const isClientWaitJob = (kind: string): kind is keyof typeof clientWaitJobs =>
+  isOneOf(Object.keys(clientWaitJobs), kind);
 const UnpickedReminderPayloadSchema = Schema.Struct({
   bugId: Schema.String.check(Schema.isUUID()),
 });
@@ -210,8 +213,8 @@ export const JobHandlersLive = Layer.effect(
             )
           );
         }
-        if (kind in clientWaitJobs) {
-          const run = clientWaitJobs[kind as keyof typeof clientWaitJobs];
+        if (isClientWaitJob(kind)) {
+          const run = clientWaitJobs[kind];
           return Effect.try({
             catch: () =>
               new AppError({

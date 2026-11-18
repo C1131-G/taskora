@@ -49,29 +49,37 @@ export const GlobalTaskViewStoreProvider = ({
     globalTaskViewActions
   );
 
-  useEffect(() => {
-    const incoming = readGlobalTaskSearchRaw(
-      new URLSearchParams(searchParams.toString())
-    );
-    if (!isSameGlobalTaskSearch(incoming, globalTaskViewStore.state.search)) {
-      globalTaskViewStore.actions.replaceSearch(incoming);
-    }
-  }, [globalTaskViewStore, searchParams]);
-
-  useEffect(() => {
-    const subscription = globalTaskViewStore.subscribe(({ search }) => {
-      const current = new URLSearchParams(window.location.search);
-      const next = writeGlobalTaskSearch(current, search).toString();
-      if (next !== current.toString()) {
-        window.history.replaceState(
-          window.history.state,
-          "",
-          `${window.location.pathname}${next ? `?${next}` : ""}`
-        );
+  useEffect(
+    function applyUrlToStore() {
+      const incoming = readGlobalTaskSearchRaw(
+        new URLSearchParams(searchParams.toString())
+      );
+      if (!isSameGlobalTaskSearch(incoming, globalTaskViewStore.state.search)) {
+        globalTaskViewStore.actions.replaceSearch(incoming);
       }
-    });
-    return () => subscription.unsubscribe();
-  }, [globalTaskViewStore]);
+    },
+    [globalTaskViewStore, searchParams]
+  );
+
+  useEffect(
+    function mirrorStoreToUrl() {
+      const subscription = globalTaskViewStore.subscribe(({ search }) => {
+        const current = new URLSearchParams(window.location.search);
+        const next = writeGlobalTaskSearch(current, search).toString();
+        if (next !== current.toString()) {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${window.location.pathname}${next ? `?${next}` : ""}`
+          );
+        }
+      });
+      return function stopMirroringStoreToUrl() {
+        subscription.unsubscribe();
+      };
+    },
+    [globalTaskViewStore]
+  );
 
   const columnWidths = useSelector(
     globalTaskViewStore,

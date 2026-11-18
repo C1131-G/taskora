@@ -6,7 +6,7 @@ import { toast } from "sonner";
 // Native constraints still prevent submission, while their messages use the
 // same error presentation as server-side validation.
 export const ClientErrorToasts = () => {
-  useEffect(() => {
+  useEffect(function reportBrowserErrorsAsToasts() {
     let firstInvalid: HTMLElement | null = null;
     let focusTimer: number | undefined;
     const reportInvalid = (event: Event) => {
@@ -44,7 +44,7 @@ export const ClientErrorToasts = () => {
     };
     document.addEventListener("invalid", reportInvalid, true);
     window.addEventListener("unhandledrejection", reportUnhandledRejection);
-    return () => {
+    return function stopReportingBrowserErrors() {
       document.removeEventListener("invalid", reportInvalid, true);
       window.removeEventListener(
         "unhandledrejection",

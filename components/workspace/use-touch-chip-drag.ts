@@ -54,9 +54,13 @@ export const useTouchChipDrag = ({
     setDragging(false);
   };
 
-  useEffect(() => {
+  // The scroll blocker is added from a pointer handler; unmounting mid-drag must
+  // still remove it.
+  useEffect(function releaseScrollBlockOnUnmount() {
     const touchMoveListener = blockScroll.current;
-    return () => window.removeEventListener("touchmove", touchMoveListener);
+    return function removeScrollBlock() {
+      window.removeEventListener("touchmove", touchMoveListener);
+    };
   }, []);
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {

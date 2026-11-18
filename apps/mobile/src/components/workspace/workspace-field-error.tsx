@@ -20,8 +20,13 @@ export const WorkspaceFieldError = ({ failure, field }: WorkspaceFieldErrorProps
       : field === undefined
       ? (Object.values(fieldErrors)[0] ?? null)
       : (fieldErrors[field] ?? null);
-  useEffect(() => {
-    if (message !== null) showError(message);
-  }, [message, showError]);
+  // Field errors arrive with a mutation result the caller renders, so the toast
+  // is shown when this renders with a new message.
+  useEffect(
+    function showFieldErrorToast() {
+      if (message !== null) showError(message);
+    },
+    [message, showError],
+  );
   return null;
 };

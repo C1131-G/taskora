@@ -10,6 +10,7 @@ import {
   readBoundedBytes,
   runIntake,
 } from "@/src/server/intake/intake-http";
+import { isRecord } from "@/src/lib/type-guards";
 
 // A mail gateway posts one normalised message per request. The shared secret
 // never travels: each request carries a timestamp and an HMAC-SHA256 over
@@ -36,11 +37,10 @@ const badRequest = (): Response =>
 
 // Gateways name the header either way; accept both spellings.
 const withMessageId = (value: unknown): unknown => {
-  if (typeof value !== "object" || value === null) {
+  if (!isRecord(value)) {
     return value;
   }
-  const record = value as Record<string, unknown>;
-  return { ...record, messageId: record["messageId"] ?? record["message-id"] };
+  return { ...value, messageId: value["messageId"] ?? value["message-id"] };
 };
 
 // eslint-disable-next-line func-style -- Next route handler remains a named export.

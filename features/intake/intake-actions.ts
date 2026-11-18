@@ -28,7 +28,12 @@ const withKey = <Fields extends Schema.Struct.Fields>(
 
 // Intake form changes are admin-only and idempotent on their key.
 const runFormAction = async <
-  InputSchema extends Schema.Codec<unknown, unknown, never, never>,
+  InputSchema extends Schema.Codec<
+    { readonly idempotencyKey: string },
+    unknown,
+    never,
+    never
+  >,
 >(
   input: unknown,
   schema: InputSchema,
@@ -47,9 +52,7 @@ const runFormAction = async <
         const administrator = yield* requireAdmin(yield* requestHeadersOrFail);
         const service = yield* IntakeFormManagement;
         const idempotency = yield* Idempotency;
-        const { idempotencyKey, ...formInput } = validated as {
-          readonly idempotencyKey: string;
-        } & Omit<InputSchema["Type"], "idempotencyKey">;
+        const { idempotencyKey, ...formInput } = validated;
         return yield* idempotency.run({
           actorId: administrator.id,
           execute: () => execute(service, administrator.id, formInput),

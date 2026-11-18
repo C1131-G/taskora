@@ -1,5 +1,6 @@
 import { screen, userEvent } from "@testing-library/react-native";
-import { Text } from "react-native";
+import { useState } from "react";
+import { Pressable, Text } from "react-native";
 
 import {
   WorkspaceConfirmDialog,
@@ -23,6 +24,32 @@ it("shows the modal content when visible and hides it otherwise", async () => {
   expect(screen.getByRole("header", { name: "Edit task" })).toBeTruthy();
   expect(screen.getByText("Visible body")).toBeTruthy();
   expect(screen.queryByText("Hidden body")).toBeNull();
+});
+
+// The dialog mounts during the render that makes it visible, then animates in.
+const ModalOpener = () => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <>
+      <Pressable accessibilityRole="button" onPress={() => setVisible(true)}>
+        <Text>Open</Text>
+      </Pressable>
+      <WorkspaceModal onClose={() => setVisible(false)} title="Opened later" visible={visible}>
+        <Text>Opened body</Text>
+      </WorkspaceModal>
+    </>
+  );
+};
+
+it("mounts a modal that starts hidden once it becomes visible", async () => {
+  const user = userEvent.setup();
+  await renderWithTheme(<ModalOpener />);
+  expect(screen.queryByText("Opened body")).toBeNull();
+
+  await user.press(screen.getByRole("button", { name: "Open" }));
+
+  expect(screen.getByRole("header", { name: "Opened later" })).toBeTruthy();
+  expect(screen.getByText("Opened body")).toBeTruthy();
 });
 
 it("closes the modal from the overlay press", async () => {

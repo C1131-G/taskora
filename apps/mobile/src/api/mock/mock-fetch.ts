@@ -1,4 +1,5 @@
-import { Effect, Layer, Schema } from "effect";
+import type { Layer } from "effect";
+import { Effect, Schema } from "effect";
 
 import { clientRoutes } from "@/api/routes-for-client";
 import type { RouteDefinition } from "@api/route-definition";
@@ -58,7 +59,7 @@ export const registerFixtures = (
             }
           : {
               data: yield* Effect.orDie(
-          Schema.encodeUnknownEffect(route.data as unknown as Schema.Codec<unknown, unknown, never, never>)(
+          Schema.encodeUnknownEffect(route.data)(
             fixture.data ?? {},
           ),
         ),

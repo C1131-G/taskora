@@ -37,22 +37,22 @@ interface ControllerOptions {
 export const createRealtimeController = (options: ControllerOptions) => {
   const { clock } = options;
   let state: RealtimeState = initialRealtimeState;
-  let source: EventSourceLike | null = null;
-  let pollTimer: number | null = null;
-  let reconnectTimer: number | null = null;
-  let stopWatchingVisibility: (() => void) | null = null;
+  let source: EventSourceLike | undefined;
+  let pollTimer: number | undefined;
+  let reconnectTimer: number | undefined;
+  let stopWatchingVisibility: (() => void) | undefined;
   let disposed = false;
 
-  const clearTimer = (id: number | null): null => {
-    if (id !== null) {
+  const clearTimer = (id: number | undefined): undefined => {
+    if (id !== undefined) {
       clock.clearTimer(id);
     }
-    return null;
+    return undefined;
   };
 
   const closeSource = (): void => {
     source?.close();
-    source = null;
+    source = undefined;
   };
 
   // The steps trigger one another, so they live on one object.
@@ -87,7 +87,7 @@ export const createRealtimeController = (options: ControllerOptions) => {
         if (current.readyState === EVENT_SOURCE_CLOSED && !reconnectTimer) {
           closeSource();
           reconnectTimer = clock.setTimer(() => {
-            reconnectTimer = null;
+            reconnectTimer = undefined;
             if (!disposed && state.connection === "disconnected") {
               steps.connect();
             }
@@ -118,7 +118,7 @@ export const createRealtimeController = (options: ControllerOptions) => {
         return;
       }
       steps.dispatch({ type: "visible" });
-      if (state.connection === "connecting" && source === null) {
+      if (state.connection === "connecting" && source === undefined) {
         steps.connect();
       }
     },
@@ -135,9 +135,9 @@ export const createRealtimeController = (options: ControllerOptions) => {
       }
       if (!shouldPoll(state.connection)) {
         pollTimer = clearTimer(pollTimer);
-      } else if (pollTimer === null) {
+      } else if (pollTimer === undefined) {
         pollTimer = clock.setTimer(() => {
-          pollTimer = null;
+          pollTimer = undefined;
           steps.dispatch({ type: "resync" });
         }, options.pollMs);
       }
@@ -152,7 +152,7 @@ export const createRealtimeController = (options: ControllerOptions) => {
       pollTimer = clearTimer(pollTimer);
       reconnectTimer = clearTimer(reconnectTimer);
       stopWatchingVisibility?.();
-      stopWatchingVisibility = null;
+      stopWatchingVisibility = undefined;
     },
     start: (): void => {
       stopWatchingVisibility = options.onVisibilityChange(

@@ -42,9 +42,12 @@ const ClientCompanyLogo = ({
   const fileInput = useRef<HTMLInputElement>(null);
   // The upload finishes after renders that may carry a newer version.
   const latestVersion = useRef(version);
-  useEffect(() => {
-    latestVersion.current = version;
-  }, [version]);
+  useEffect(
+    function trackLatestVersion() {
+      latestVersion.current = version;
+    },
+    [version]
+  );
   const queue = useUploadQueue();
   const uploading = queue.uploads.some(
     (upload) => upload.status === "uploading" || upload.status === "finalizing"

@@ -56,22 +56,25 @@ export const useScreenshotMarks = (
 
   // The canvas is an external drawing surface, so it is repainted here.
   // oxlint-disable-next-line react-doctor/no-event-handler -- Synchronises state with a canvas, not an event handler.
-  useEffect(() => {
-    const context = canvasRef.current?.getContext("2d");
-    if (!context) {
-      return;
-    }
-    context.drawImage(base, 0, 0);
-    for (const mark of marks) {
-      drawAnnotation(context, mark);
-    }
-    if (draft) {
-      drawAnnotation(context, draft);
-    }
-    if (cursor) {
-      drawCursor(context, cursor);
-    }
-  }, [base, canvasRef, cursor, draft, marks]);
+  useEffect(
+    function paintMarksOnCanvas() {
+      const context = canvasRef.current?.getContext("2d");
+      if (!context) {
+        return;
+      }
+      context.drawImage(base, 0, 0);
+      for (const mark of marks) {
+        drawAnnotation(context, mark);
+      }
+      if (draft) {
+        drawAnnotation(context, draft);
+      }
+      if (cursor) {
+        drawCursor(context, cursor);
+      }
+    },
+    [base, canvasRef, cursor, draft, marks]
+  );
 
   const commit = (annotation: Annotation) => {
     const next = addAnnotation(marks, annotation);

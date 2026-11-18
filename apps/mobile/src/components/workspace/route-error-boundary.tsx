@@ -9,9 +9,13 @@ import { WorkspaceButton } from "@/components/workspace/workspace-button";
 
 const RouteFailure = ({ retry }: Pick<ErrorBoundaryProps, "retry">) => {
   const showError = useErrorToast();
-  useEffect(() => {
-    showError("Something went wrong. Please try again.");
-  }, [showError]);
+  // A render error has no handler to report from; the boundary mounting is the event.
+  useEffect(
+    function announceRouteFailure() {
+      showError("Something went wrong. Please try again.");
+    },
+    [showError],
+  );
   return (
     <View style={{ alignItems: "center", flex: 1, justifyContent: "center" }}>
       <WorkspaceButton onPress={() => void Effect.runPromise(Effect.catchEager(

@@ -1,5 +1,4 @@
 import { pendingRoutes } from "./pending-routes/index";
-import type { RouteDefinition } from "@api/route-definition";
 import { mobileRoutes } from "@api/routes";
 
 /**
@@ -10,5 +9,5 @@ import { mobileRoutes } from "@api/routes";
  */
 export const clientRoutes = [
   ...mobileRoutes,
-  ...(pendingRoutes as unknown as readonly RouteDefinition[]),
+  ...pendingRoutes,
 ];

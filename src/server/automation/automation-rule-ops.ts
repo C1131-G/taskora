@@ -128,8 +128,15 @@ const assertReferences = (
         }
         break;
       }
-      default: {
+      // Statuses, priorities and comment text reference nothing that can go missing.
+      case "set_status":
+      case "set_priority":
+      case "post_comment": {
         break;
+      }
+      default: {
+        const _exhaustive: never = action;
+        return _exhaustive;
       }
     }
   }

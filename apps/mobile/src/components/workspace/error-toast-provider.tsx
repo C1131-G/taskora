@@ -23,11 +23,16 @@ export const ErrorToastProvider = ({ children, renderViewport = true }: { readon
   const dismiss = useCallback(() => setMessages((current) => current.slice(1)), []);
   const message = messages[0];
 
-  useEffect(() => {
-    if (message === undefined) return;
-    const timer = setTimeout(dismiss, 6000);
-    return () => clearTimeout(timer);
-  }, [message, dismiss]);
+  useEffect(
+    function scheduleToastDismiss() {
+      if (message === undefined) return;
+      const timer = setTimeout(dismiss, 6000);
+      return function cancelToastDismiss() {
+        clearTimeout(timer);
+      };
+    },
+    [message, dismiss],
+  );
 
   return (
     <ErrorToastContext.Provider value={showError}>

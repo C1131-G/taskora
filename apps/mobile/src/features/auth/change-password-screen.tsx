@@ -1,5 +1,5 @@
 import { Cause, Effect, Exit, Option } from "effect";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 
@@ -12,6 +12,8 @@ import { WorkspaceTextInput } from "@/components/workspace/workspace-text-input"
 import { type AppFailure } from "@/errors";
 import type { SessionService } from "@/services/session";
 
+import { useGateSession } from "./session-gate";
+
 const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure | undefined =>
   exit === undefined || Exit.isSuccess(exit)
     ? undefined
@@ -20,6 +22,12 @@ const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure
 // The server's rule (password-management.ts); a shorter one is refused there.
 const MIN_PASSWORD_LENGTH = 12;
 
+interface PasswordChange {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+  readonly service: SessionService;
+}
+
 export interface ChangePasswordScreenProps {
   readonly onDone: () => void;
   readonly session?: SessionService | null;
@@ -27,7 +35,8 @@ export interface ChangePasswordScreenProps {
 
 /** The forced (or voluntary) password change; the session stays signed in. */
 export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePasswordScreenProps) => {
-  const session = sessionProp ?? null;
+  const gateSession = useGateSession();
+  const session = sessionProp ?? gateSession;
   const showError = useErrorToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -35,14 +44,13 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const change = useMutation({
-    mutationFn: (input: { currentPassword: string; newPassword: string }) =>
-      session === null
-        ? Promise.reject(new Error("No session"))
-        : Effect.runPromiseExit(session.changeOwnPassword(input)),
+    mutationFn: ({ service, ...input }: PasswordChange) =>
+      Effect.runPromiseExit(service.changeOwnPassword(input)),
     onSuccess: (result) => {
       const failure = failureOf(result);
       if (failure !== undefined) showError(failureMessage(failure));
       else if (Exit.isFailure(result)) showError("Could not change your password. Please try again.");
+      else onDone();
     },
     onError: () => showError("Could not change your password. Please try again."),
   });
@@ -63,15 +71,8 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
     if (Object.keys(errors).length > 0 || session === null) {
       return;
     }
-    change.mutate({ currentPassword, newPassword });
+    change.mutate({ currentPassword, newPassword, service: session });
   };
-
-  const succeeded = change.data !== undefined && Exit.isSuccess(change.data);
-  useEffect(() => {
-    if (succeeded) {
-      onDone();
-    }
-  }, [succeeded, onDone]);
 
   return (
     <WorkspaceScreen title="Change password">
