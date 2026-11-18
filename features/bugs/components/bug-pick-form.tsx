@@ -15,25 +15,29 @@ import {
 } from "@/components/workspace/workspace-select";
 import { pickClientBugAction } from "@/features/bugs/bugs-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
+import { isOneOf } from "@/src/lib/type-guards";
 
-type PickSeverity = "blocker" | "critical" | "major" | "minor" | "trivial";
-type PickPriority = "urgent" | "high" | "medium" | "low" | "none";
-
-const SEVERITIES: readonly (readonly [PickSeverity, string])[] = [
+const SEVERITIES = [
   ["blocker", "Blocker"],
   ["critical", "Critical"],
   ["major", "Major"],
   ["minor", "Minor"],
   ["trivial", "Trivial"],
-];
+] as const;
 
-const PRIORITIES: readonly (readonly [PickPriority, string])[] = [
+const PRIORITIES = [
   ["urgent", "Urgent"],
   ["high", "High"],
   ["medium", "Medium"],
   ["low", "Low"],
   ["none", "None"],
-];
+] as const;
+
+type PickSeverity = (typeof SEVERITIES)[number][0];
+type PickPriority = (typeof PRIORITIES)[number][0];
+
+const SEVERITY_VALUES = SEVERITIES.map(([value]) => value);
+const PRIORITY_VALUES = PRIORITIES.map(([value]) => value);
 
 // Picking makes the viewer the sole assignee and triages the bug in one step.
 export const BugPickForm = ({
@@ -82,7 +86,11 @@ export const BugPickForm = ({
         <div className="bug-form-field">
           <Label htmlFor={`${id}-severity`}>Severity</Label>
           <WorkspaceSelect
-            onValueChange={(value) => setSeverity(value as PickSeverity)}
+            onValueChange={(value) => {
+              if (isOneOf(SEVERITY_VALUES, value)) {
+                setSeverity(value);
+              }
+            }}
             value={severity}
             id={`${id}-severity`}
           >
@@ -96,7 +104,11 @@ export const BugPickForm = ({
         <div className="bug-form-field">
           <Label htmlFor={`${id}-priority`}>Priority</Label>
           <WorkspaceSelect
-            onValueChange={(value) => setPriority(value as PickPriority)}
+            onValueChange={(value) => {
+              if (isOneOf(PRIORITY_VALUES, value)) {
+                setPriority(value);
+              }
+            }}
             value={priority}
             id={`${id}-priority`}
           >

@@ -95,8 +95,8 @@ const SlaSettingsForm = ({
       return;
     }
     const parsed = readSlaTargets(drafts, dayMinutes);
-    if (!parsed.targets) {
-      setError(parsed.message ?? "Check the SLA targets.");
+    if ("message" in parsed) {
+      setError(parsed.message);
       return;
     }
     const { targets } = parsed;

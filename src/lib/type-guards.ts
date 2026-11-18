@@ -7,6 +7,13 @@ export const isRecord = (
 ): value is Readonly<Record<string, unknown>> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+/** An object whose every value is a string, such as field errors. */
+export const isStringRecord = (
+  value: unknown
+): value is Readonly<Record<string, string>> =>
+  isRecord(value) &&
+  Object.values(value).every((entry) => typeof entry === "string");
+
 /** Whether a value is one of a fixed list of literals. */
 export const isOneOf = <const Value extends string>(
   values: readonly Value[],

@@ -9,14 +9,14 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
+import { isOneOf } from "@/src/lib/type-guards";
 
-import { FIELDS, IMPACTS, WEEKDAYS } from "./sla-settings-drafts";
+import { FIELDS, IMPACTS, UNITS, WEEKDAYS } from "./sla-settings-drafts";
 import type {
   Drafts,
   ImpactKey,
   TargetDraft,
   TargetField,
-  Unit,
 } from "./sla-settings-drafts";
 
 export const DaysFieldset = ({
@@ -116,9 +116,11 @@ export const TargetsFieldset = ({
                         className="input"
                         disabled={pending}
                         id={`${base}-unit`}
-                        onValueChange={(next) =>
-                          onChange(impact, field, { unit: next as Unit })
-                        }
+                        onValueChange={(next) => {
+                          if (isOneOf(UNITS, next)) {
+                            onChange(impact, field, { unit: next });
+                          }
+                        }}
                         value={draft.unit}
                       >
                         <WorkspaceSelectItem value="minutes">
