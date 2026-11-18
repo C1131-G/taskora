@@ -113,7 +113,7 @@ jobs:
           --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
       DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_backend_${{ matrix.shard }}?sslmode=disable
-      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_test_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_${{ matrix.shard }}_test?sslmode=disable
       TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -135,7 +135,7 @@ jobs:
       - name: Initialize isolated database
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_backend_${{ matrix.shard }}
-          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_test_${{ matrix.shard }}
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_${{ matrix.shard }}_test
           bun run db:init
           DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
       - name: Run backend tests (shard ${{ matrix.shard }}/4)
@@ -174,7 +174,7 @@ jobs:
           --health-cmd "pg_isready -U taskora -d taskora_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
       DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_${{ matrix.shard }}?sslmode=disable
-      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_test_${{ matrix.shard }}?sslmode=disable
+      TEST_DATABASE_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci_e2e_${{ matrix.shard }}_test?sslmode=disable
       TEST_DATABASE_ADMIN_URL: postgresql://taskora:local-dev-password@localhost:5433/taskora_ci?sslmode=disable
       S3_BUCKET: taskora-private-${{ matrix.shard }}
       VAPID_PUBLIC_KEY: BNtY7A-WEvx4jLtUWxVc0Tjt8O-Jh1HfU8Iji8YBRMCVdZBe_TCwmfTtUD4X1LTf3K9-ZXElC9Yand2_n4JH9v8
@@ -201,7 +201,7 @@ jobs:
       - name: Initialize isolated database
         run: |
           PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_${{ matrix.shard }}
-          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_test_${{ matrix.shard }}
+          PGPASSWORD=local-dev-password createdb -h localhost -p 5433 -U taskora taskora_ci_e2e_${{ matrix.shard }}_test
           bun run db:init
           DATABASE_URL="$TEST_DATABASE_URL" bun run db:init
           bun run db:verify
