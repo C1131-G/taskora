@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import type { Viewer } from "../../components/workspace/workspace-command-types";
 import {
   createShortcutMatcher,
   getAvailableCommands,
@@ -10,7 +11,6 @@ import {
 import type {
   ShortcutContext,
   ShortcutKeyEvent,
-  Viewer,
 } from "../../components/workspace/workspace-commands";
 
 const admin: Viewer = {

@@ -48,14 +48,14 @@ import {
   useIsMac,
   useWorkspaceShortcuts,
 } from "@/components/workspace/use-workspace-shortcuts";
-import {
-  getAvailableCommands,
-  getPaletteToggleKeys,
-} from "@/components/workspace/workspace-commands";
 import type {
   CommandId,
   Viewer,
   WorkspaceCommand,
+} from "@/components/workspace/workspace-command-types";
+import {
+  getAvailableCommands,
+  getPaletteToggleKeys,
 } from "@/components/workspace/workspace-commands";
 import { getNavigationTransitionType } from "@/components/workspace/workspace-navigation-data";
 import {

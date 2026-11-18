@@ -13,7 +13,8 @@ import {
   listProjects,
   responseTimes,
 } from "./portal-bug-lists";
-import { getBug, listBugPage, listBugs } from "./portal-bug-reads";
+import { listBugPage } from "./portal-bug-page";
+import { getBug, listBugs } from "./portal-bug-reads";
 import { editBug, submitBug, withdrawBug } from "./portal-bug-submission";
 import { PortalBugs } from "./portal-contracts";
 

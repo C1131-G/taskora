@@ -1,11 +1,8 @@
 import { expect, it } from "bun:test";
 
-import {
-  escapeCsvCell,
-  formatCsv,
-  parseCsv,
-  parseTaskImport,
-} from "../../src/server/tasks/csv";
+import { escapeCsvCell, formatCsv } from "../../src/server/tasks/csv";
+import { parseCsv } from "../../src/server/tasks/csv-parse";
+import { parseTaskImport } from "../../src/server/tasks/task-import-parse";
 
 it("neutralises spreadsheet formulas by prefixing risky leading characters", () => {
   expect(escapeCsvCell("=SUM(A1:A2)")).toBe("'=SUM(A1:A2)");
