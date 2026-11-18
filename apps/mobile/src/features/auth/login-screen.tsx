@@ -46,20 +46,27 @@ const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure
     ? undefined
     : Option.getOrUndefined(Cause.findErrorOption(exit.cause));
 
+interface SignInRequest {
+  readonly credentials: Credentials;
+  readonly service: SessionService;
+}
+
 export interface LoginScreenProps {
   readonly session?: SessionService;
 }
 
 /** The sign-in screen; the route gate reacts to the session it mutates. */
 export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
-  const session = sessionProp ?? useSession();
+  const contextSession = useSession();
+  const session = sessionProp ?? contextSession;
   const showError = useErrorToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const signIn = useMutation({
-    mutationFn: (input: Credentials) => Effect.runPromiseExit(session!.signIn(input)),
+    mutationFn: ({ service, credentials }: SignInRequest) =>
+      Effect.runPromiseExit(service.signIn(credentials)),
     onSuccess: (result) => {
       const failure = failureOf(result);
       if (failure !== undefined) showError(failureMessage(failure));
@@ -76,7 +83,10 @@ export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
       return;
     }
     setFieldErrors({});
-    signIn.mutate(validated.values);
+    if (session === null) {
+      return;
+    }
+    signIn.mutate({ credentials: validated.values, service: session });
   };
 
   return (
