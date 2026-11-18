@@ -10,7 +10,10 @@ import {
   ProjectBudgetViewSchema,
   ProjectIdInputSchema,
 } from "@/src/server/budgets/budget-contracts";
-import { ProjectBudgets, ProjectBudgetsLive } from "@/src/server/budgets/project-budgets";
+import {
+  ProjectBudgets,
+  ProjectBudgetsLive,
+} from "@/src/server/budgets/project-budgets";
 import { requestHeadersOrFail } from "@/src/server/core/request-headers";
 import { runServerAction } from "@/src/server/core/server-action";
 import {
