@@ -7,10 +7,7 @@ import {
   BudgetInputFieldsSchema,
   ProjectBudgetViewSchema,
 } from "@/src/server/budgets/budget-contracts";
-import {
-  ProjectBudgets,
-  ProjectBudgetsLive,
-} from "@/src/server/budgets/project-budgets";
+import { ProjectBudgets, ProjectBudgetsLive } from "@/src/server/budgets/project-budgets";
 import { requireAdmin } from "@/src/server/core/admin-action";
 import {
   DoneResultSchema,

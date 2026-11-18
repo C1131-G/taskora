@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 import { db } from "@/src/prisma/db";
 
-import { evaluateBudgetAlerts } from "../budgets/project-budgets";
+import { evaluateBudgetAlerts } from "../budgets/budget-alerts";
 import { AppError } from "../core/action-result";
 import { CalendarDateSchema, UUIDSchema } from "../core/input-schemas";
 import { isUniqueConstraintViolation } from "../core/prisma-errors";
