@@ -15,7 +15,6 @@ import {
 } from "./auth-state";
 import { fillPortalReport } from "./portal-report-helpers";
 import { settleAnimations } from "./settle-animations";
-import { openTaskSection } from "./task-drawer-tabs";
 
 // The plan's walkthrough, end to end: first sign-in, a report with a
 // screenshot, the pick race, an internal note, a needs-info round trip, a
@@ -176,19 +175,17 @@ test.describe("handler A", () => {
 
     // Comments live in the bug's workflow drawer, opened from the bug list.
     await page.goto("/bugs");
-    // A click before the page hydrates does nothing, so retry until the drawer opens.
+    // A click before the page hydrates does nothing, so retry until the dialog opens.
+    const comment = page.getByLabel("Write a comment");
     await expect(async () => {
       await page
         .locator("article")
         .filter({ hasText: BUG_TITLE })
         .getByRole("button", { name: "Open workflow" })
         .click();
-      await expect(
-        page.getByRole("tablist", { name: "Task sections" })
-      ).toBeVisible({ timeout: 3000 });
+      await expect(comment).toBeVisible({ timeout: 3000 });
     }).toPass({ timeout: 30_000 });
-    await openTaskSection(page, "Comments");
-    await page.getByLabel("Add a comment").fill(INTERNAL_NOTE);
+    await comment.fill(INTERNAL_NOTE);
     await expect(
       page.getByRole("radio", { name: "Internal note" })
     ).toBeChecked();
