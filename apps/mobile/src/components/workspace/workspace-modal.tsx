@@ -29,12 +29,12 @@ export const WorkspaceModal = ({ children, onClose, title, visible }: WorkspaceM
   // 0 is hidden, 1 is open; opacity, scale and offset all derive from it.
   const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
 
-  useEffect(() => {
-    if (visible && !rendered) {
-      // Mount first; the animation starts once the dialog exists.
-      setRendered(true);
-      return;
-    }
+  // Mount first, during render; the animation starts once the dialog exists.
+  if (visible && !rendered) {
+    setRendered(true);
+  }
+
+  useEffect(function animateModalVisibility() {
     if (!rendered) {
       return;
     }
@@ -49,7 +49,9 @@ export const WorkspaceModal = ({ children, onClose, title, visible }: WorkspaceM
         setRendered(false);
       }
     });
-    return () => animation.stop();
+    return function stopModalAnimation() {
+      animation.stop();
+    };
   }, [visible, rendered, progress]);
 
   // Reduced motion keeps only the opacity cross-fade.

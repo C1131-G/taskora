@@ -23,7 +23,7 @@ const useCaretRotation = (open: boolean) => {
   const reducedMotion = usePrefersReducedMotion();
   const [progress] = useState(() => new Animated.Value(open ? 1 : 0));
 
-  useEffect(() => {
+  useEffect(function rotateCaret() {
     if (reducedMotion) {
       progress.setValue(open ? 1 : 0);
       return;
@@ -35,7 +35,9 @@ const useCaretRotation = (open: boolean) => {
       useNativeDriver: true,
     });
     animation.start();
-    return () => animation.stop();
+    return function stopCaretRotation() {
+      animation.stop();
+    };
   }, [open, progress, reducedMotion]);
 
   return useMemo(

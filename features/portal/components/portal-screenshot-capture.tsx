@@ -6,7 +6,7 @@
 
 import { Camera } from "@phosphor-icons/react";
 import {
-  useEffect,
+  useCallback,
   useState,
   useSyncExternalStore,
   useTransition,
@@ -32,25 +32,29 @@ const supportSnapshot = (): Support =>
 const supportServerSnapshot = (): Support => "unknown";
 
 const Thumb = ({ captured }: { readonly captured: CapturedScreenshot }) => {
-  const [url, setUrl] = useState<string>();
-  useEffect(() => {
-    const objectUrl = URL.createObjectURL(captured.file);
-    // An object URL is a browser resource, so it is created and released here.
-    // oxlint-disable-next-line react/set-state-in-effect
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [captured.file]);
-  return url ? (
+  // The object URL lives exactly as long as the image element that shows it.
+  const attachPreview = useCallback(
+    function attachObjectUrl(image: HTMLImageElement | null) {
+      if (!image) {
+        return;
+      }
+      const objectUrl = URL.createObjectURL(captured.file);
+      image.src = objectUrl;
+      return function revokeObjectUrl() {
+        URL.revokeObjectURL(objectUrl);
+      };
+    },
+    [captured.file]
+  );
+  return (
     // oxlint-disable-next-line next/no-img-element, react-doctor/nextjs-no-img-element -- A local blob preview cannot go through the image optimizer.
     <img
       alt={captured.description || "Screenshot to attach"}
       className="portal-thumb"
       height={64}
-      src={url}
+      ref={attachPreview}
       width={64}
     />
-  ) : (
-    <span aria-hidden="true" className="portal-thumb portal-thumb-icon" />
   );
 };
 

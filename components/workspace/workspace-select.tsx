@@ -1,6 +1,6 @@
 "use client";
 
-import { isValidElement, useEffect, useRef, useState } from "react";
+import { isValidElement, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFormReset } from "@/components/workspace/use-form-reset";
 
 const EMPTY_VALUE = "__taskora_empty_select_value__";
 
@@ -92,15 +93,7 @@ const WorkspaceSelect = ({
   );
   const formInput = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const form = formInput.current?.form;
-    if (!form) {
-      return;
-    }
-    const reset = () => setSelectedValue(initialValue || EMPTY_VALUE);
-    form.addEventListener("reset", reset);
-    return () => form.removeEventListener("reset", reset);
-  }, [initialValue]);
+  useFormReset(formInput, () => setSelectedValue(initialValue || EMPTY_VALUE));
 
   const currentValue =
     value === undefined ? selectedValue : value || EMPTY_VALUE;

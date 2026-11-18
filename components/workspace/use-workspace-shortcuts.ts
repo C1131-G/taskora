@@ -91,9 +91,11 @@ export const useWorkspaceShortcuts = ({
     }
   });
 
-  useEffect(() => {
+  useEffect(function listenForShortcuts() {
     const listener = (event: KeyboardEvent) => handleKeyDown(event);
     window.addEventListener("keydown", listener);
-    return () => window.removeEventListener("keydown", listener);
+    return function stopListeningForShortcuts() {
+      window.removeEventListener("keydown", listener);
+    };
   }, []);
 };

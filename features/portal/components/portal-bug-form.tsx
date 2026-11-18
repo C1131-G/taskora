@@ -5,7 +5,7 @@
 /* eslint-disable shadcn/no-unknown-classes -- Portal pages reuse the workspace stylesheet classes. */
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -156,7 +156,6 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
   const keyRef = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
-  const previousStepRef = useRef(activeStep);
   const isCreate = mode.kind === "create";
   const detected = parseEnvironment(
     useSyncExternalStore(
@@ -165,12 +164,16 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
       environmentServerSnapshot
     )
   );
-  useEffect(() => {
-    if (activeStep !== previousStepRef.current) {
-      stepHeadingRef.current?.focus();
-      previousStepRef.current = activeStep;
+  // Moving between steps puts focus on the new step's heading once it renders.
+  const goToStep = (step: number) => {
+    if (step === activeStep) {
+      return;
     }
-  }, [activeStep]);
+    setActiveStep(step);
+    requestAnimationFrame(() => {
+      stepHeadingRef.current?.focus();
+    });
+  };
 
   // Changing anything starts a new attempt, so an old idempotency key is never
   // reused with different input.
@@ -239,9 +242,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
       focusFirstError(stepErrors);
       return;
     }
-    setActiveStep((current) =>
-      Math.min(current + 1, PORTAL_REPORT_STEPS.length - 1)
-    );
+    goToStep(Math.min(activeStep + 1, PORTAL_REPORT_STEPS.length - 1));
   };
 
   const createBug = async (idempotencyKey: string) => {
@@ -382,7 +383,7 @@ const PortalBugForm = ({ mode }: { readonly mode: Mode }) => {
       {isCreate ? (
         <PortalReportWizardActions
           activeStep={activeStep}
-          onBack={() => setActiveStep((current) => Math.max(current - 1, 0))}
+          onBack={() => goToStep(Math.max(activeStep - 1, 0))}
           onContinue={continueToNextStep}
           pending={pending}
           submitText={submitLabel(mode, pending)}

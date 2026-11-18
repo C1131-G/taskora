@@ -36,11 +36,12 @@ const useToastMotion = (message: string, visible: boolean) => {
     setShownMessage(message);
   }
 
-  useEffect(() => {
-    if (visible && !rendered) {
-      setRendered(true);
-      return;
-    }
+  // Mount first, during render; the animation starts once the toast exists.
+  if (visible && !rendered) {
+    setRendered(true);
+  }
+
+  useEffect(function animateToastVisibility() {
     if (!rendered) {
       return;
     }
@@ -55,10 +56,12 @@ const useToastMotion = (message: string, visible: boolean) => {
         setRendered(false);
       }
     });
-    return () => animation.stop();
+    return function stopToastAnimation() {
+      animation.stop();
+    };
   }, [visible, rendered, progress]);
 
-  useEffect(() => {
+  useEffect(function fadeInSwappedMessage() {
     textOpacity.setValue(0);
     const animation = Animated.timing(textOpacity, {
       duration: SWAP_DURATION,
@@ -67,7 +70,9 @@ const useToastMotion = (message: string, visible: boolean) => {
       useNativeDriver: true,
     });
     animation.start();
-    return () => animation.stop();
+    return function stopMessageFade() {
+      animation.stop();
+    };
   }, [shownMessage, textOpacity]);
 
   return { progress, rendered, shownMessage, textOpacity };
