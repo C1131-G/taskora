@@ -13,7 +13,7 @@ import { getTaskBundleAction } from "@/features/tasks/tasks-actions";
 import type { TaskApprovals } from "@/src/server/approvals/approval-contracts";
 import type { TaskCustomFields } from "@/src/server/custom-fields/custom-field-contracts";
 import type { LinkedPull } from "@/src/server/github/github-contracts";
-import type { RunningTimer, TaskTime } from "@/src/server/time/time-tracking";
+import type { RunningTimer, TaskTime } from "@/src/server/time/time-types";
 
 const linkedPullsOf = (bundle: TaskBundle | null): readonly LinkedPull[] =>
   bundle?.pulls.ok ? bundle.pulls.data : [];
