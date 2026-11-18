@@ -70,9 +70,10 @@
 .workspace-app .stat-done .v {
   color: var(--st-done);
 }
+/* The badge pair: --st-done on its own tint fails AA contrast at chip size. */
 .workspace-app .stat-done .stat-chip {
-  background: color-mix(in srgb, var(--st-done) 16%, transparent);
-  color: var(--st-done);
+  background: var(--green-soft);
+  color: var(--green);
 }
 .workspace-app .stat-overdue .stat-chip {
   background: var(--surface-3);

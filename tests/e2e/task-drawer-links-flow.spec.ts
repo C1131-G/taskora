@@ -93,15 +93,16 @@ test.describe("task drawer links", () => {
   test("a favorite task title opens its task in the project drawer", async ({
     page,
   }) => {
-    await page.goto("/tasks?view=list");
+    await page.goto("/tasks?view=table");
     await page.waitForLoadState("networkidle");
-    const targetRow = page.locator(".trow").first();
+    const targetRow = page.locator("tr:has(a.trunc)").first();
     expect(await targetRow.count(), "No tasks are available").toBeGreaterThan(
       0
     );
     const taskLink = targetRow.locator("a.trunc");
     const taskText = await taskLink.textContent();
-    const taskTitle = taskText?.trim() ?? "";
+    // The row prefixes the title with its key (UIP-1); other pages show the bare title.
+    const taskTitle = (taskText ?? "").trim().replace(/^[A-Z]+-\d+\s+/u, "");
     const taskHref = await taskLink.getAttribute("href");
     if (!taskHref) {
       throw new Error("Task row title is missing its project link");
@@ -141,10 +142,10 @@ test.describe("task drawer links", () => {
     } finally {
       // Leave this task's favorite state as it was found.
       if (!wasFavorite) {
-        await page.goto("/tasks?view=list");
+        await page.goto("/tasks?view=table");
         await page.waitForLoadState("networkidle");
         const originalRow = page
-          .locator(`.trow:has(a.trunc[href^="${projectPath}?view="])`)
+          .locator(`tr:has(a.trunc[href^="${projectPath}?view="])`)
           .filter({ hasText: taskTitle })
           .first();
         const originalRemove = originalRow.getByRole("button", {

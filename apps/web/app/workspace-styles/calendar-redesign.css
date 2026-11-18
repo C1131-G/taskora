@@ -330,9 +330,8 @@
   height: 28px;
   width: 28px;
 }
-.workspace-app .cday.out .dn {
-  opacity: 0.5;
-}
+/* Days outside the month keep --text-3 from calendar.css: fading them with
+   opacity dropped the number below AA contrast. The sunken cell marks them. */
 .workspace-app .cal-h div {
   font-size: var(--fs-xs);
   letter-spacing: 0.06em;

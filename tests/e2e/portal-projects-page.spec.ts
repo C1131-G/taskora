@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import { Pool } from "pg";
 
 import { ADMIN_STATE, CLIENT_ONE_STATE } from "./auth-state";
+import { openTaskSection } from "./task-drawer-tabs";
 
 // Needs scripts/seed-e2e-accounts.ts to have run: the Acme company, its client
 // users and the admin account. This spec adds its own project to Acme.
@@ -121,8 +122,9 @@ test.describe("Portal projects (/portal/projects)", () => {
     ).toBeVisible();
     await expect(page.getByText(PROJECT_NAME)).toHaveCount(0);
     await page.goto(`/portal/projects/${seeded.projectId}`);
+    // Not-found pages report themselves in a toast.
     await expect(
-      page.getByRole("heading", { name: "Project not found" })
+      page.locator("[data-sonner-toast]", { hasText: "Project not found." })
     ).toBeVisible();
     await context.close();
   });
@@ -148,10 +150,15 @@ test.describe("Portal projects (/portal/projects)", () => {
     await page.goto(
       `/projects/${seeded.projectId}?task=${seeded.sharedTaskId}`
     );
-    const showTask = page.getByRole("checkbox", { name: "Show to client" });
-    await expect(showTask).toBeVisible({ timeout: 60_000 });
+    await openTaskSection(page, "Client");
+    const visibility = page.getByRole("radiogroup", {
+      name: "Who can see this task?",
+    });
+    const showTask = visibility.getByRole("radio", { name: "Team and client" });
+    await expect(visibility).toBeVisible({ timeout: 60_000 });
     await expect(async () => {
-      await showTask.click();
+      // The radio itself is visually hidden; its label is what people click.
+      await visibility.getByText("Team and client").click();
       await expect(showTask).toBeChecked({ timeout: 2000 });
     }).toPass({ timeout: 60_000 });
     await expect(showTask).toBeEnabled({ timeout: 30_000 });
@@ -202,8 +209,9 @@ test.describe("Portal projects (/portal/projects)", () => {
 
     const { context, page } = await clientPage(browser);
     await page.goto(`/portal/projects/${seeded.projectId}`);
+    // Not-found pages report themselves in a toast.
     await expect(
-      page.getByRole("heading", { name: "Project not found" })
+      page.locator("[data-sonner-toast]", { hasText: "Project not found." })
     ).toBeVisible();
     await context.close();
   });

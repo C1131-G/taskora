@@ -13,6 +13,7 @@ import {
   HANDLER_TWO_STATE,
   PORTAL_ACCOUNTS,
 } from "./auth-state";
+import { fillPortalReport } from "./portal-report-helpers";
 import { settleAnimations } from "./settle-animations";
 
 // The plan's walkthrough, end to end: first sign-in, a report with a
@@ -120,18 +121,13 @@ test.describe("a new client user", () => {
       .click();
     await page.waitForURL(/\/portal$/u);
 
-    await page.goto("/portal/new");
-    await page
-      .getByRole("combobox", { name: "Project" })
-      .selectOption({ label: "Acme Web App" });
-    await page.getByLabel("Title").fill(BUG_TITLE);
-    await page.getByLabel("Expected behavior").fill("A CSV file downloads.");
-    await page.getByLabel("Actual behavior").fill("The page shows an error.");
-    await page
-      .getByRole("textbox", { name: "Step 1" })
-      .fill("Open the Invoices page");
-    await page.getByLabel("Page URL").fill("https://acme.example/invoices");
-    await page.getByRole("radio", { name: /High/u }).check();
+    await fillPortalReport(page, {
+      actual: "The page shows an error.",
+      expected: "A CSV file downloads.",
+      firstStep: "Open the Invoices page",
+      pageUrl: "https://acme.example/invoices",
+      title: BUG_TITLE,
+    });
     await page.getByLabel("Attach files").setInputFiles({
       buffer: SCREENSHOT,
       mimeType: "image/png",
