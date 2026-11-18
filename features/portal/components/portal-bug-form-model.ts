@@ -148,3 +148,25 @@ export const toPayload = (
   reproductionSteps: nonEmptySteps(values.steps),
   title: values.title.trim(),
 });
+
+// The wizard's steps each ask for their own required fields.
+const REQUIRED_REPORT_FIELDS = [
+  ["projectId", "title"],
+  ["steps", "expected", "actual"],
+  ["pageUrl", "impact"],
+] as const satisfies readonly (readonly FieldKey[])[];
+
+export const validateStep = (
+  values: Values,
+  isCreate: boolean,
+  step: number
+): Errors => {
+  const allErrors = validate(values, isCreate);
+  const stepErrors: Errors = {};
+  for (const field of REQUIRED_REPORT_FIELDS[step] ?? []) {
+    if (allErrors[field]) {
+      stepErrors[field] = allErrors[field];
+    }
+  }
+  return stepErrors;
+};
