@@ -25,25 +25,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  WorkspaceSelect,
-  WorkspaceSelectItem,
-} from "@/components/workspace/workspace-select";
 import { reportBugAction } from "@/features/bugs/bugs-actions";
+import { BugReproductionFields } from "@/features/bugs/components/bug-report-fields";
+import { bugReportInput } from "@/features/bugs/components/bug-report-input";
 import {
-  BugEnvironmentFields,
-  BugReproductionFields,
-} from "@/features/bugs/components/bug-report-fields";
+  BugLocationFields,
+  BugSummaryFields,
+} from "@/features/bugs/components/bug-report-step-fields";
+import type { BugProjectOption } from "@/features/bugs/components/bug-report-step-fields";
 import { SimilarBugResults } from "@/features/bugs/components/bug-similar-results";
 import { useBugSimilarSearch } from "@/features/bugs/hooks/use-bug-similar-search";
-
-interface BugProjectOption {
-  readonly id: string;
-  readonly key: string;
-  readonly name: string;
-}
 
 const STEPS = [
   {
@@ -95,29 +86,15 @@ export const BugReportDialog = ({
 
   const submit = async (formData: FormData) => {
     setBusy(true);
-    const reproductionSteps = String(formData.get("reproductionSteps") ?? "")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
     try {
-      const result = await reportBugAction({
-        actualBehavior: String(formData.get("actualBehavior") ?? ""),
-        appVersion: String(formData.get("appVersion") ?? "") || null,
-        browser: String(formData.get("browser") ?? "") || null,
-        component: String(formData.get("component") ?? ""),
-        description: String(formData.get("description") ?? "") || null,
-        device: String(formData.get("device") ?? "") || null,
-        discoverySource,
-        environment,
-        expectedBehavior: String(formData.get("expectedBehavior") ?? ""),
-        idempotencyKey: crypto.randomUUID(),
-        os: String(formData.get("os") ?? "") || null,
-        projectId,
-        reproductionSteps,
-        route: String(formData.get("route") ?? ""),
-        severity,
-        title: String(formData.get("title") ?? ""),
-      });
+      const result = await reportBugAction(
+        bugReportInput(formData, {
+          discoverySource,
+          environment,
+          projectId,
+          severity,
+        })
+      );
       if (result.ok === false) {
         toast.error(result.error.message);
       } else {
@@ -195,82 +172,15 @@ export const BugReportDialog = ({
               stepRefs.current[0] = node;
             }}
           >
-            <div className="bug-form-field bug-form-wide">
-              <Label htmlFor="bug-title">Title</Label>
-              <Input
-                autoFocus
-                id="bug-title"
-                maxLength={300}
-                name="title"
-                placeholder="A short summary of the problem"
-                required
-              />
-            </div>
-            <div className="bug-form-field">
-              <Label htmlFor="bug-project">Project</Label>
-              <WorkspaceSelect
-                onValueChange={setProjectId}
-                value={projectId}
-                ariaLabel="Project"
-                id="bug-project"
-                displayValue={projectId ? undefined : "Choose a project"}
-              >
-                {projects.map((project) => (
-                  <WorkspaceSelectItem key={project.id} value={project.id}>
-                    {project.key} · {project.name}
-                  </WorkspaceSelectItem>
-                ))}
-              </WorkspaceSelect>
-            </div>
-            <div className="bug-form-field">
-              <Label htmlFor="bug-severity">Severity</Label>
-              <WorkspaceSelect
-                onValueChange={setSeverity}
-                value={severity}
-                ariaLabel="Severity"
-                id="bug-severity"
-              >
-                <WorkspaceSelectItem value="blocker">
-                  Blocker
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="critical">
-                  Critical
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="major">Major</WorkspaceSelectItem>
-                <WorkspaceSelectItem value="minor">Minor</WorkspaceSelectItem>
-                <WorkspaceSelectItem value="trivial">
-                  Trivial
-                </WorkspaceSelectItem>
-              </WorkspaceSelect>
-            </div>
-            <div className="bug-form-field bug-form-wide">
-              <Label htmlFor="bug-source">Found by</Label>
-              <WorkspaceSelect
-                onValueChange={setDiscoverySource}
-                value={discoverySource}
-                ariaLabel="Found by"
-                id="bug-source"
-              >
-                <WorkspaceSelectItem value="employee_report">
-                  Employee report
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="internal_qa">
-                  Internal QA
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="customer_report">
-                  Customer report
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="support">
-                  Support
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="automated_test">
-                  Automated test
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="monitoring">
-                  Monitoring
-                </WorkspaceSelectItem>
-              </WorkspaceSelect>
-            </div>
+            <BugSummaryFields
+              discoverySource={discoverySource}
+              onDiscoverySourceChange={setDiscoverySource}
+              onProjectChange={setProjectId}
+              onSeverityChange={setSeverity}
+              projectId={projectId}
+              projects={projects}
+              severity={severity}
+            />
           </section>
           <section
             className="bug-form-grid bug-step-panel"
@@ -279,47 +189,10 @@ export const BugReportDialog = ({
               stepRefs.current[1] = node;
             }}
           >
-            <div className="bug-form-field">
-              <Label htmlFor="bug-component">Page or component</Label>
-              <Input
-                id="bug-component"
-                maxLength={500}
-                name="component"
-                required
-              />
-            </div>
-            <div className="bug-form-field">
-              <Label htmlFor="bug-route">URL or route</Label>
-              <Input
-                id="bug-route"
-                maxLength={500}
-                name="route"
-                placeholder="/projects/…"
-                required
-              />
-            </div>
-            <div className="bug-form-field bug-form-wide">
-              <Label htmlFor="bug-environment">Environment</Label>
-              <WorkspaceSelect
-                onValueChange={setEnvironment}
-                value={environment}
-                ariaLabel="Environment"
-                id="bug-environment"
-              >
-                <WorkspaceSelectItem value="production">
-                  Production
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="staging">
-                  Staging
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="development">
-                  Development
-                </WorkspaceSelectItem>
-                <WorkspaceSelectItem value="test">Test</WorkspaceSelectItem>
-                <WorkspaceSelectItem value="other">Other</WorkspaceSelectItem>
-              </WorkspaceSelect>
-            </div>
-            <BugEnvironmentFields />
+            <BugLocationFields
+              environment={environment}
+              onEnvironmentChange={setEnvironment}
+            />
           </section>
           <section
             className="bug-form-grid bug-step-panel"

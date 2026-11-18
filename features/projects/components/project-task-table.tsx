@@ -4,7 +4,6 @@
 
 import { Fragment, useEffect, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -16,9 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCustomFieldValue } from "@/features/custom-fields/custom-field-format";
-import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
-import { TaskManageControls } from "@/features/tasks/components/task-manage-controls";
-import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
+import { ProjectTaskCell } from "@/features/projects/components/project-task-cells";
+import type { ProjectTaskTableItem } from "@/features/projects/components/project-task-cells";
 import { TaskTableHeaderCell } from "@/features/tasks/components/task-table-header-cell";
 import type {
   TaskTableColumn,
@@ -36,44 +34,8 @@ import type {
   ProjectCustomFieldTable,
 } from "@/src/server/custom-fields/custom-field-contracts";
 import type { LabelSummary } from "@/src/server/tasks/label-management";
-import type { ProjectTaskListItem } from "@/src/server/work/work-contracts";
-
-type ProjectTaskTableItem = Pick<
-  ProjectTaskListItem,
-  | "assignees"
-  | "assigneeIds"
-  | "createdById"
-  | "description"
-  | "dependencyIds"
-  | "dueDate"
-  | "estimate"
-  | "id"
-  | "labelIds"
-  | "priority"
-  | "projectId"
-  | "projectTaskNumber"
-  | "recurrence"
-  | "startDate"
-  | "status"
-  | "title"
-  | "version"
->;
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-  year: "numeric",
-});
 
 const getUtcDateKey = (): string => new Date().toISOString().slice(0, 10);
-
-const formatDate = (date: string | null): string => {
-  if (!date) {
-    return "—";
-  }
-  return DATE_FORMATTER.format(new Date(`${date}T12:00:00Z`));
-};
 
 const isBuiltInColumn = (
   column: TaskTableColumnDef
@@ -134,7 +96,6 @@ export const ProjectTaskTable = ({
   readonly selectedTaskIds: ReadonlySet<string>;
   readonly tasks: readonly ProjectTaskTableItem[];
 }) => {
-  const drawer = useTaskDrawer();
   const [todayKey, setTodayKey] = useState(getUtcDateKey);
   // Rescheduled after each rollover so a table left open for days stays current.
   useEffect(function scheduleUtcDayRollover() {
@@ -190,115 +151,6 @@ export const ProjectTaskTable = ({
     return field
       ? formatCustomFieldValue(field.type, customValues[task.id]?.[field.id])
       : "—";
-  };
-
-  const renderCell = (
-    column: TaskTableColumn,
-    task: ProjectTaskTableItem,
-    editable: boolean
-  ) => {
-    switch (column.id) {
-      case "task": {
-        return (
-          <div className="mtt-task-inner">
-            <button
-              className="mtt-title"
-              onClick={() => drawer?.openTask(task.id)}
-              onFocus={() => drawer?.prefetchTask(task.id)}
-              onPointerEnter={() => drawer?.prefetchTask(task.id)}
-              title={`Open ${task.title}`}
-              type="button"
-            >
-              {task.title}
-            </button>
-            <span className="mono mtt-key">
-              {projectKey}-{task.projectTaskNumber}
-            </span>
-          </div>
-        );
-      }
-      case "status": {
-        return editable ? (
-          <TaskStatusSelect
-            status={task.status}
-            taskId={task.id}
-            version={task.version}
-          />
-        ) : (
-          <span className={`pstatus ${task.status}`}>{task.status}</span>
-        );
-      }
-      case "priority": {
-        return (
-          <span className={`mtt-priority prio-${task.priority}`}>
-            {task.priority}
-          </span>
-        );
-      }
-      case "assignees": {
-        return task.assignees.length
-          ? task.assignees.map((assignee) => assignee.name).join(", ")
-          : "Unassigned";
-      }
-      case "start": {
-        return formatDate(task.startDate);
-      }
-      case "due": {
-        const overdue =
-          task.status !== "done" &&
-          task.dueDate !== null &&
-          task.dueDate < todayKey;
-        return (
-          <span className={`mtt-due${overdue ? " is-overdue" : ""}`}>
-            {formatDate(task.dueDate)}
-          </span>
-        );
-      }
-      case "estimate": {
-        return task.estimate ?? "—";
-      }
-      case "labels": {
-        const taskLabels = task.labelIds.flatMap((id) => {
-          const label = labelsById.get(id);
-          return label ? [label] : [];
-        });
-        return (
-          <span className="project-task-labels">
-            {taskLabels.length
-              ? taskLabels.map((label) => (
-                  <Badge
-                    key={label.id}
-                    style={{ borderColor: label.color, color: label.color }}
-                    variant="outline"
-                  >
-                    {label.name}
-                  </Badge>
-                ))
-              : "—"}
-          </span>
-        );
-      }
-      case "dependencies": {
-        return task.dependencyIds.length
-          ? `${task.dependencyIds.length} task${task.dependencyIds.length === 1 ? "" : "s"}`
-          : "—";
-      }
-      case "actions": {
-        return (
-          <TaskManageControls
-            canEdit={editable}
-            currentUserId={currentUserId}
-            employees={employees}
-            isAdmin={isAdmin}
-            task={task}
-          />
-        );
-      }
-      default: {
-        const _exhaustive: never = column;
-        return _exhaustive;
-      }
-    }
   };
 
   return (
@@ -366,9 +218,21 @@ export const ProjectTaskTable = ({
                       data-label={column.label}
                       key={column.id}
                     >
-                      {isBuiltInColumn(column)
-                        ? renderCell(column, task, editable)
-                        : renderCustomCell(column, task)}
+                      {isBuiltInColumn(column) ? (
+                        <ProjectTaskCell
+                          column={column}
+                          currentUserId={currentUserId}
+                          editable={editable}
+                          employees={employees}
+                          isAdmin={isAdmin}
+                          labelsById={labelsById}
+                          projectKey={projectKey}
+                          task={task}
+                          todayKey={todayKey}
+                        />
+                      ) : (
+                        renderCustomCell(column, task)
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
