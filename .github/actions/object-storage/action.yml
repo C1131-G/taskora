@@ -1,8 +1,6 @@
 name: Object storage
 description: >-
-  Starts MinIO on localhost:9000 with one bucket. MinIO ships its security
-  release as source only, so the binaries are built once per Dockerfile
-  change and then restored from the cache instead of rebuilt in every job.
+  Starts MinIO on localhost:9000 with one bucket. MinIO ships its security release as source only, so the binaries are built once per Dockerfile change and then restored from the cache instead of rebuilt in every job.
 inputs:
   bucket:
     description: Bucket to create.
