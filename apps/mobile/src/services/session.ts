@@ -18,6 +18,17 @@ const TOKEN_KEY = "session-token";
 
 const TokenCodec = Schema.String;
 
+
+// The server explains a refused password change as `{ error: { message } }`.
+const PasswordRejectionSchema = Schema.fromJsonString(
+  Schema.Struct({ error: Schema.Struct({ message: Schema.String }) }),
+);
+
+const rejectionMessage = (text: string): string => {
+  const rejection = Schema.decodeUnknownOption(PasswordRejectionSchema)(text);
+  return rejection._tag === "Some" ? rejection.value.error.message : "Change rejected";
+};
+
 export type SessionState =
   | { readonly kind: "anonymous" }
   | { readonly kind: "authenticated"; readonly token: string; readonly me: MobileMe };
@@ -184,23 +195,10 @@ export const makeSession = (deps: SessionDeps) =>
                   if (outcome.ok) {
                     return Effect.void;
                   }
-                  return Effect.flatMap(
-                    Effect.exit(
-                      Effect.try({
-                        catch: () => null,
-                        try: () => JSON.parse(outcome.text) as { error?: { message?: string } } | null,
-                      }),
-                    ),
-                    (exit) =>
-                      Effect.fail(
-                        new ValidationFailed({
-                          fieldErrors: {
-                            currentPassword: Exit.isSuccess(exit)
-                              ? (exit.value?.error?.message ?? "Change rejected")
-                              : "Change rejected",
-                          },
-                        }),
-                      ),
+                  return Effect.fail(
+                    new ValidationFailed({
+                      fieldErrors: { currentPassword: rejectionMessage(outcome.text) },
+                    }),
                   );
                 },
               )

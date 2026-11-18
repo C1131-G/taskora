@@ -28,7 +28,7 @@ export const makePushStub = (): Layer.Layer<Push> =>
   Layer.effect(
     Push,
     Effect.sync(() => {
-      const calls = { registered: [] as string[], unregistered: [] as string[] };
+      const calls: { registered: string[]; unregistered: string[] } = { registered: [], unregistered: [] };
       return Push.of({
         register: (endpoint) =>
           Effect.sync(() => {
