@@ -5,16 +5,18 @@ import { Suspense } from "react";
 
 import { WorkspaceRevealGate } from "@/components/workspace/workspace-reveal-gate";
 import {
-  WorkspaceBottomChrome,
   WorkspaceBottomChromeFallback,
-  WorkspaceSidebar,
   WorkspaceSidebarFallback,
-  WorkspaceTopbarActions,
   WorkspaceTopbarActionsFallback,
-  WorkspaceTopbarMenu,
   WorkspaceTopbarMenuFallback,
-  WorkspaceTopbarTitle,
   WorkspaceTopbarTitleFallback,
+} from "@/components/workspace/workspace-shell-fallbacks";
+import {
+  WorkspaceBottomChrome,
+  WorkspaceSidebar,
+  WorkspaceTopbarActions,
+  WorkspaceTopbarMenu,
+  WorkspaceTopbarTitle,
 } from "@/components/workspace/workspace-shell-sections";
 import { WorkspaceUndoProvider } from "@/components/workspace/workspace-undo";
 import { PushNotificationsControl } from "@/features/notifications/components/push-notifications-control";

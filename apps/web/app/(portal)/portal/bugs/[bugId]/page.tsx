@@ -5,12 +5,12 @@ import type { Metadata } from "next";
 import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
+import { PortalResponseNotice } from "@/features/portal/components/portal-bug-sections";
+import { PortalBugView } from "@/features/portal/components/portal-bug-view";
 import {
-  PortalBugView,
   PortalBugViewSkeleton,
-  PortalResponseNotice,
   PortalResponseNoticeSkeleton,
-} from "@/features/portal/components/portal-bug-view";
+} from "@/features/portal/components/portal-bug-view-skeletons";
 import { portalBugMetadata } from "@/features/portal/portal-bug-metadata";
 
 export const generateMetadata = async ({

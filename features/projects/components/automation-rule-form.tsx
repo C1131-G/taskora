@@ -23,11 +23,11 @@ import {
   emptyConditionDraft,
 } from "@/features/projects/automation-form";
 import type { RuleDraft } from "@/features/projects/automation-form";
+import type { Option } from "@/features/projects/components/automation-option-helpers";
 import {
   ActionRow,
   ConditionRow,
 } from "@/features/projects/components/automation-rule-fields";
-import type { Option } from "@/features/projects/components/automation-rule-fields";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 import {
   MAX_ACTIONS_PER_RULE,

@@ -4,11 +4,9 @@
 
 import { useState } from "react";
 
+import type { CalendarHrefPrefix } from "@/features/calendar/components/calendar-grid-options";
 import { TaskCalendarGrid } from "@/features/calendar/components/task-calendar-grid";
-import type {
-  CalendarHrefPrefix,
-  CalendarTask,
-} from "@/features/calendar/components/task-calendar-grid";
+import type { CalendarTask } from "@/features/calendar/components/task-calendar-grid";
 import { QuickTaskForm } from "@/features/tasks/components/quick-task-form";
 
 interface ProjectOption {

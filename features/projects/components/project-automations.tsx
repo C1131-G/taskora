@@ -23,7 +23,7 @@ import {
   emptyRuleDraft,
   ruleToDraft,
 } from "@/features/projects/automation-form";
-import type { Option } from "@/features/projects/components/automation-rule-fields";
+import type { Option } from "@/features/projects/components/automation-option-helpers";
 import { AutomationRuleForm } from "@/features/projects/components/automation-rule-form";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 import { MAX_RULES_PER_PROJECT } from "@/src/server/automation/automation-contracts";

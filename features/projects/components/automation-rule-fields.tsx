@@ -1,17 +1,14 @@
-/* eslint-disable shadcn/no-restyle */
-/* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
-
 "use client";
+
+/* eslint-disable shadcn/no-restyle */
+
+/* eslint-disable shadcn/no-unknown-classes -- Workspace classes are defined in apps/web/app/workspace-styles. */
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import {
   WorkspaceInput,
   WorkspaceTextarea,
 } from "@/components/workspace/workspace-controls";
-import {
-  WorkspaceSelect,
-  WorkspaceSelectItem,
-} from "@/components/workspace/workspace-select";
 import { ACTION_TYPE_LABELS } from "@/features/projects/automation-form";
 import type {
   ActionDraft,
@@ -21,93 +18,16 @@ import {
   CONDITION_FIELD_LABELS,
   PRIORITY_LABELS,
   STATUS_LABELS,
-  TASK_TYPE_LABELS,
 } from "@/features/projects/automation-labels";
 import {
   ACTION_TYPES,
   CONDITION_FIELDS,
 } from "@/src/server/automation/automation-model";
-import type {
-  ActionType,
-  ConditionField,
-} from "@/src/server/automation/automation-model";
+import type { ActionType } from "@/src/server/automation/automation-model";
 
-export interface Option {
-  readonly id: string;
-  readonly label: string;
-}
-
-const entriesOf = (labels: Readonly<Record<string, string>>): Option[] =>
-  Object.entries(labels).map(([id, label]) => ({ id, label }));
-
-const optionsFor = (
-  field: ConditionField,
-  people: readonly Option[],
-  labels: readonly Option[]
-): readonly Option[] => {
-  switch (field) {
-    case "status": {
-      return entriesOf(STATUS_LABELS);
-    }
-    case "priority": {
-      return entriesOf(PRIORITY_LABELS);
-    }
-    case "taskType": {
-      return entriesOf(TASK_TYPE_LABELS);
-    }
-    case "assignee": {
-      return people;
-    }
-    case "label": {
-      return labels;
-    }
-    default: {
-      const unhandled: never = field;
-      return unhandled;
-    }
-  }
-};
-
-const displayProps = (
-  options: readonly Option[],
-  value: string,
-  placeholder: string | undefined
-): { readonly displayValue?: string } => {
-  const label =
-    options.find((option) => option.id === value)?.label ?? placeholder;
-  return label === undefined ? {} : { displayValue: label };
-};
-
-const OptionSelect = ({
-  ariaLabel,
-  disabled,
-  onChange,
-  options,
-  placeholder,
-  value,
-}: {
-  readonly ariaLabel: string;
-  readonly disabled: boolean;
-  readonly onChange: (value: string) => void;
-  readonly options: readonly Option[];
-  readonly placeholder?: string;
-  readonly value: string;
-}) => (
-  <WorkspaceSelect
-    ariaLabel={ariaLabel}
-    className="input"
-    disabled={disabled}
-    {...displayProps(options, value, placeholder)}
-    onValueChange={onChange}
-    value={value}
-  >
-    {options.map((option) => (
-      <WorkspaceSelectItem key={option.id} value={option.id}>
-        {option.label}
-      </WorkspaceSelectItem>
-    ))}
-  </WorkspaceSelect>
-);
+import type { Option } from "./automation-option-helpers";
+import { entriesOf, optionsFor } from "./automation-option-helpers";
+import { OptionSelect } from "./automation-option-select";
 
 export const ConditionRow = ({
   condition,

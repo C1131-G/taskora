@@ -22,24 +22,15 @@ import type {
 import type { TaskSpan } from "@/features/tasks/task-dates";
 import { dayDiff } from "@/features/tasks/task-dates";
 
-const DAY_MS = 86_400_000;
-const ROW_HEIGHT = TIMELINE_ROW_HEIGHT;
-const MONTH_FORMATTER = new Intl.DateTimeFormat("en", {
-  month: "long",
-  timeZone: "UTC",
-  year: "numeric",
-});
-const WEEK_DAY_FORMATTER = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
-const DAY_FORMATTER = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  timeZone: "UTC",
-});
+import {
+  ARROW_MARKERS,
+  DAY_FORMATTER,
+  DAY_MS,
+  MONTH_FORMATTER,
+  WEEK_DAY_FORMATTER,
+} from "./timeline-chart-format";
 
-const ARROW_MARKERS = ["base", "active", "conflict"] as const;
+const ROW_HEIGHT = TIMELINE_ROW_HEIGHT;
 
 export const WorkspaceTimelineChart = ({
   allTasks,
