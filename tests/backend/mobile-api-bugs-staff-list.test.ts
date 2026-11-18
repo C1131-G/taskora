@@ -90,7 +90,7 @@ it("refuses clients and unauthenticated callers", async () => {
 it("answers in exactly the shape the route list declares", async () => {
   await submit("client", "List: shape");
   const { staffBugListRoute } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-bug-list");
 
   const reply = await listAs("admin");
 

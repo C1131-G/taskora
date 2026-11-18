@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import {
   StaffBugComment,
   staffBugCommentRoute,
-} from "../../../mobile-api/routes-bugs";
+} from "../../../mobile-api/routes-staff-bug-list";
 import { Idempotency } from "../../core/idempotency";
 import { addBugComment } from "../../work/bug-staff-comments";
 import { asStaffCaller } from "./caller";

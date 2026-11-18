@@ -177,7 +177,8 @@ it("asks for an Idempotency-Key on every write", async () => {
 
 it("answers in exactly the shapes the route list declares", async () => {
   const { Schema } = await import("effect");
-  const { portalBugRoutes } = await import("../../src/mobile-api/routes-bugs");
+  const { portalBugRoutes } =
+    await import("../../src/mobile-api/routes-portal-bugs");
   const mine = await submit("client", "Shape check");
   const { GET } = await detailRoute();
   const list = await listRoute();

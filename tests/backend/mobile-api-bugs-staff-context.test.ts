@@ -190,7 +190,7 @@ it("answers in exactly the shape the route list declares", async () => {
   const bugId = await submit("Context shape check");
   const { GET } = await detailRoute();
   const { staffBugContextRoute } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-bug-context");
 
   const clientReply = await send(GET, "GET", "admin", { params: { bugId } });
   const internalReport = await reportInternalBug();

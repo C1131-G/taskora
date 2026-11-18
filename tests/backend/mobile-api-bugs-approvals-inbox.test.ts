@@ -123,7 +123,7 @@ it("refuses employees, clients and signed-out callers", async () => {
 it("answers in exactly the shape the route list declares", async () => {
   const { GET } = await inboxRoute();
   const { staffBugApprovalInboxRoute } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-approvals");
 
   const reply = await send(GET, "GET", "admin");
 

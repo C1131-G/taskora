@@ -220,7 +220,7 @@ it("refuses a second pending request and replays the same key", async () => {
 it("answers the request in the shape the route list declares", async () => {
   const { POST } = await approvalsRoute();
   const { workspaceApprovalRoute } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-approvals");
 
   const reply = await send(POST, "POST", "owner", { body: requestBody() });
 

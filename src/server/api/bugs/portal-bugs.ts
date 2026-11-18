@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import {
   portalBugActionRoutes,
   portalBugRoutes,
-} from "../../../mobile-api/routes-bugs";
+} from "../../../mobile-api/routes-portal-bugs";
 import { Idempotency } from "../../core/idempotency";
 import {
   PortalBugs,

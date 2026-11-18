@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
 import type { RouteDefinition } from "./route-definition";
-import { WorkflowReceipt } from "./routes-bugs";
+import { WorkflowReceipt } from "./routes-staff-bug-context";
 
 // Attachments: signed uploads, finalization, previews and downloads.
 // Owned by one branch, so adding routes here never conflicts with the others.

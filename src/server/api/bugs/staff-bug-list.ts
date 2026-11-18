@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { staffBugListRoute } from "../../../mobile-api/routes-bugs";
+import { staffBugListRoute } from "../../../mobile-api/routes-staff-bug-list";
 import { listStaffBugs } from "../../work/bug-staff-list";
 import { asStaffCaller } from "./caller";
 

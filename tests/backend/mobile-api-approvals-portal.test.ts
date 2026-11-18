@@ -477,7 +477,7 @@ it("answers the reads and the decision in the shapes the route list declares", a
   });
   await attachFile(requestId);
   const { portalApprovalRoutes } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-portal-approvals");
   const { GET } = await listRoute();
   const { GET: GET_ONE } = await detailRoute();
   const { POST } = await decideRoute();

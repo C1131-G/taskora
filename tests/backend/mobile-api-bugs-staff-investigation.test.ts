@@ -423,7 +423,7 @@ it("answers each write in the shape the route list declares", async () => {
   const bugId = await triagedBug("Investigation shape check");
   const { POST } = await fixAttemptRoute();
   const { staffBugActionRoutes } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-bug-actions");
 
   const attemptReply = await send(POST, "POST", "admin", {
     body: attemptBody(await versionOf(bugId)),

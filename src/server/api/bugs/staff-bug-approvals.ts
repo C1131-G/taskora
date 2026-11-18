@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { staffBugApprovalInboxRoute } from "../../../mobile-api/routes-bugs";
+import { staffBugApprovalInboxRoute } from "../../../mobile-api/routes-staff-approvals";
 import { BugApprovalInbox } from "../../work/bug-approval-inbox";
 import { pageOf } from "../paging";
 import { asStaffCaller } from "./caller";

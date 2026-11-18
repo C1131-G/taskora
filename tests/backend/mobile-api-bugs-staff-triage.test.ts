@@ -369,7 +369,7 @@ it("answers each write in the shape the route list declares", async () => {
   const version = await versionOf(bugId);
   const { POST } = await triageRoute();
   const { staffBugActionRoutes } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-bug-actions");
 
   const reply = await send(POST, "POST", "admin", {
     body: triageBody(version),

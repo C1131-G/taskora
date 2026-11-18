@@ -502,7 +502,7 @@ it("answers each write in the shape the route list declares", async () => {
   const prepared = await verifiedBug("Approval shape check");
   const { POST } = await approvalRoute();
   const { staffBugActionRoutes } =
-    await import("../../src/mobile-api/routes-bugs");
+    await import("../../src/mobile-api/routes-staff-bug-actions");
 
   const submitted = await send(POST, "POST", "owner", {
     body: {
