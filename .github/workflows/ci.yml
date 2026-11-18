@@ -152,7 +152,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        include:
+          - shard: 0
+            playwright_shard: 1
+          - shard: 1
+            playwright_shard: 2
+          - shard: 2
+            playwright_shard: 3
+          - shard: 3
+            playwright_shard: 4
     services:
       postgres:
         image: postgres:18-alpine
@@ -235,7 +243,7 @@ jobs:
         run: bun run build
         env:
           EXPOSE_TESTING_API: "1"
-      - name: Run production server and browser checks (shard ${{ matrix.shard + 1 }}/4)
+      - name: Run production server and browser checks (shard ${{ matrix.playwright_shard }}/4)
         run: |
           EXPOSE_TESTING_API=1 bun run start --port 3000 > /tmp/taskora-next.log 2>&1 &
           for attempt in $(seq 1 60); do
@@ -246,7 +254,7 @@ jobs:
           # Auth states must all exist in this shard before spec sharding,
           # otherwise a spec can be split from the setup that creates its state.
           bunx playwright test --project=setup
-          bunx playwright test --project=chromium --workers=1 --shard=${{ matrix.shard + 1 }}/4 --no-deps
+          bunx playwright test --project=chromium --workers=1 --shard=${{ matrix.playwright_shard }}/4 --no-deps
 
   # Checks the app's code only. CI never builds, signs or publishes an APK.
   mobile:
