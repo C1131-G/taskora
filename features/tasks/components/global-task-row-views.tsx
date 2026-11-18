@@ -1,7 +1,8 @@
-/* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
-/* eslint-disable shadcn/no-restyle */
-
 "use client";
+
+/* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
+
+/* eslint-disable shadcn/no-restyle */
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -16,10 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FavoriteToggle } from "@/features/discovery/components/favorite-toggle";
 import { useTaskDrawer } from "@/features/tasks/components/task-drawer";
-import { TaskManageControls } from "@/features/tasks/components/task-manage-controls";
-import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { TaskTableHeaderCell } from "@/features/tasks/components/task-table-header-cell";
 import type {
   TaskTableColumnDef,
@@ -33,62 +31,9 @@ import type {
   GlobalTask,
   GlobalTaskViewProps,
 } from "@/features/tasks/types/global-task-row-contracts";
-import type { EmployeeDirectoryEntry } from "@/src/server/people/user-contracts";
 
-const canEditTask = (
-  task: GlobalTask,
-  userId: string | null,
-  isAdmin: boolean
-): boolean =>
-  isAdmin ||
-  task.createdById === userId ||
-  task.assigneeIds.includes(userId ?? "");
-
-const TaskStatus = ({
-  task,
-  canEdit,
-}: {
-  readonly task: GlobalTask;
-  readonly canEdit: boolean;
-}) =>
-  canEdit ? (
-    <TaskStatusSelect
-      status={task.status}
-      taskId={task.id}
-      version={task.version}
-    />
-  ) : (
-    <span className={`pstatus ${task.status}`}>{task.status}</span>
-  );
-
-const TaskActions = ({
-  task,
-  favoriteTaskIds,
-  employees,
-  userId,
-  isAdmin,
-}: {
-  readonly task: GlobalTask;
-  readonly favoriteTaskIds: ReadonlySet<string>;
-  readonly employees: readonly EmployeeDirectoryEntry[];
-  readonly userId: string | null;
-  readonly isAdmin: boolean;
-}) => (
-  <div className="c-meta row">
-    <FavoriteToggle
-      id={task.id}
-      initialFavorite={favoriteTaskIds.has(task.id)}
-      kind="task"
-    />
-    <TaskManageControls
-      canEdit={canEditTask(task, userId, isAdmin)}
-      currentUserId={userId}
-      employees={employees}
-      isAdmin={isAdmin}
-      task={task}
-    />
-  </div>
-);
+import { canEditTask } from "./global-task-access";
+import { TaskActions, TaskStatus } from "./global-task-cells";
 
 const renderGlobalCell = (
   columnId: (typeof GLOBAL_TASK_COLUMNS)[number]["id"],

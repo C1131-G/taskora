@@ -21,10 +21,8 @@ import {
 } from "@/components/workspace/skeleton-shapes";
 import { SkeletonRegion } from "@/components/workspace/skelter-surface";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
-import {
-  MembersDirectory,
-  RolePermissions,
-} from "@/features/people/components/members-directory";
+import { MembersDirectory } from "@/features/people/components/members-directory";
+import { RolePermissions } from "@/features/people/components/members-directory-parts";
 import { EmployeeCreateForm } from "@/features/people/components/people-admin-forms";
 import type { MembersSectionName } from "@/features/people/members-section-param";
 import {
