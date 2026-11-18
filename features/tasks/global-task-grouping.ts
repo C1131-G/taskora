@@ -1,3 +1,6 @@
+import { taskStatusLabel } from "@/src/mobile-api/task-statuses";
+import { isOverdue } from "@/src/server/work/work-overdue";
+
 import { GLOBAL_TASK_STATUSES } from "./types/global-task-view-contracts";
 import type {
   GlobalTaskGroup,
@@ -13,14 +16,6 @@ export const GLOBAL_TASK_PRIORITY_ORDER: Readonly<Record<string, number>> = {
   medium: 2,
   none: 4,
   urgent: 0,
-};
-
-const STATUS_LABELS: Readonly<Record<string, string>> = {
-  backlog: "Backlog",
-  done: "Done",
-  progress: "In Progress",
-  review: "Review",
-  todo: "To Do",
 };
 
 export const filterGlobalTasks = <Task extends GlobalTaskLike>(
@@ -43,10 +38,7 @@ export const filterGlobalTasks = <Task extends GlobalTaskLike>(
     ) {
       return false;
     }
-    if (
-      search.overdue &&
-      (task.status === "done" || !task.dueDate || task.dueDate >= today)
-    ) {
+    if (search.overdue && !isOverdue(task, today)) {
       return false;
     }
     return true;
@@ -109,7 +101,7 @@ export const groupGlobalTasks = <Task extends GlobalTaskLike>(
   });
   return keys.map((key) => ({
     key,
-    label: group === "status" ? (STATUS_LABELS[key] ?? key) : key,
+    label: group === "status" ? taskStatusLabel(key) : key,
     tasks: grouped.get(key) ?? [],
   }));
 };
@@ -148,7 +140,7 @@ export const groupTasksByDueDate = <
       id = "completed";
     } else if (task.dueDate === null) {
       id = "no-date";
-    } else if (task.dueDate < today) {
+    } else if (isOverdue(task, today)) {
       id = "overdue";
     } else if (task.dueDate === today) {
       id = "today";

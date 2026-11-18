@@ -1,9 +1,11 @@
 import { Effect, pipe, Record as EffectRecord } from "effect";
 
 import { authPool } from "../auth/database";
+import { OVERDUE_LOOKBACK_DAYS } from "../automation/automation-overdue";
 import { AppError } from "../core/action-result";
 import { parseRetentionEnv } from "../core/env";
 import { logger } from "../core/logger";
+import { reconcileOrphanedDeliveries } from "../webhooks/webhook-reconcile";
 
 // Audit events (`audit_event`) are deliberately NOT purged here. They are the
 // security and compliance record of who did what; removing or archiving them
@@ -38,14 +40,31 @@ export const DEFAULT_RETENTION_POLICY: RetentionPolicy = {
   webhookDeliveryDays: 30,
 };
 
+// The run log is the overdue sweep's idempotency record, so it must outlive
+// the sweep's look-back window or an overdue task would trigger again.
+export const MIN_AUTOMATION_RUN_DAYS = OVERDUE_LOOKBACK_DAYS + 1;
+
+const automationRunDaysFrom = (configured: number | undefined): number => {
+  const days = configured ?? DEFAULT_RETENTION_POLICY.automationRunDays;
+  if (days >= MIN_AUTOMATION_RUN_DAYS) {
+    return days;
+  }
+  logger.warn(
+    "RETENTION_AUTOMATION_RUN_DAYS is below the minimum; using the minimum.",
+    {
+      configured: days,
+      minimum: MIN_AUTOMATION_RUN_DAYS,
+    }
+  );
+  return MIN_AUTOMATION_RUN_DAYS;
+};
+
 export const retentionPolicyFromEnv = (
   source: Readonly<Record<string, string | undefined>> = process.env
 ): RetentionPolicy => {
   const env = parseRetentionEnv(source);
   return {
-    automationRunDays:
-      env.RETENTION_AUTOMATION_RUN_DAYS ??
-      DEFAULT_RETENTION_POLICY.automationRunDays,
+    automationRunDays: automationRunDaysFrom(env.RETENTION_AUTOMATION_RUN_DAYS),
     completedJobDays:
       env.RETENTION_COMPLETED_JOB_DAYS ??
       DEFAULT_RETENTION_POLICY.completedJobDays,
@@ -220,5 +239,24 @@ export const purgeExpiredData = (
       concurrency: 1,
     });
     logger.info("Expired data purged.", { purged: report });
+    // After the purge, so a delivery closed here is still listed until the
+    // next run.
+    const orphanedDeliveries = yield* Effect.tryPromise({
+      catch: (error) => {
+        logger.error("Orphaned webhook deliveries could not be closed.", {
+          error,
+        });
+        return new AppError({
+          code: "UNAVAILABLE",
+          message: "Expired data could not be purged.",
+        });
+      },
+      try: () => reconcileOrphanedDeliveries(options.now),
+    });
+    if (orphanedDeliveries > 0) {
+      logger.warn("Closed webhook deliveries whose job is gone.", {
+        orphanedDeliveries,
+      });
+    }
     return report;
   });

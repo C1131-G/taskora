@@ -14,6 +14,7 @@ import { WorkspaceListGroup, WorkspaceListRow } from "@/components/workspace/wor
 import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { TaskStatusTrigger } from "@/features/tasks/task-status-sheet";
+import { TASK_STATUS_ORDER, taskStatusLabel } from "@api/task-statuses";
 import {
   changeTask,
   setSubtaskStatus,
@@ -26,13 +27,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
 
-const STATUS_FILTERS: readonly (TaskStatus | "all")[] = [
-  "all",
-  "todo",
-  "progress",
-  "review",
-  "done",
-];
+const STATUS_FILTERS: readonly (TaskStatus | "all")[] = ["all", ...TASK_STATUS_ORDER];
 
 export interface TaskRowModel {
   readonly dueAt: string | null;
@@ -78,7 +73,7 @@ const MyTasksContent = ({ onOpenTask, tasks }: MyTasksContentProps) => {
           >
             <WorkspaceChip
               color={status === "all" ? "gray" : "green"}
-              label={status === "all" ? "All" : status}
+              label={status === "all" ? "All" : taskStatusLabel(status)}
               selected={filter === status}
             />
           </Pressable>

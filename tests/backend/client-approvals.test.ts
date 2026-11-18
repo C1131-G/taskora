@@ -670,7 +670,8 @@ it("shows staff the history with who decided and when", async () => {
       taskId: fixture.sharedTaskId,
     })
   );
-  expect(view.companies.map(({ id: companyId }) => companyId)).toContain(
+  // An approved company cannot be asked again, so it is not offered.
+  expect(view.companies.map(({ id: companyId }) => companyId)).not.toContain(
     ids.clientCompanyId
   );
   expect(view.requests[0]).toMatchObject({

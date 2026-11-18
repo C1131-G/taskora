@@ -11,7 +11,7 @@ const stubTokenSource = (token: string | null): Layer.Layer<TokenSource> =>
     TokenSource,
     TokenSource.of({
       currentToken: Effect.succeed(token),
-      onUnauthenticated: Effect.sync(() => {
+      onUnauthenticated: () => Effect.sync(() => {
         stubState.unauthenticatedCalls += 1;
       }),
     }),

@@ -45,6 +45,10 @@ export const realtimeReducer = (
   if (action.type === "refreshed") {
     return { ...state, refreshPending: false };
   }
+  if (state.connection === "closed" && action.type === "resync") {
+    // A closed stream stays closed, but its fallback poll still refreshes.
+    return { ...state, refreshPending: true };
+  }
   if (state.connection === "paused" || state.connection === "closed") {
     return state;
   }

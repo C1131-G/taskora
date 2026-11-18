@@ -19,6 +19,7 @@ import {
 } from "@/features/bugs/components/bug-client-dialogs";
 import { BugPickForm } from "@/features/bugs/components/bug-pick-form";
 import { useToastTransition } from "@/hooks/use-toast-transition";
+import { COMPLETED_BUG_STATUSES } from "@/src/server/work/bug-status-edges";
 
 import { formatBugDate } from "../bug-workflow-ui-shared";
 import type { BugHistory } from "../bug-workflow-ui-shared";
@@ -28,7 +29,6 @@ import {
   SlaFacts,
 } from "./bug-client-facts";
 import {
-  CLOSED_STATUSES,
   IMPACT_LABELS,
   RESOLUTION_TEXT,
   waitingText,
@@ -201,11 +201,14 @@ export const BugClientSection = ({
   const picked = bug.pickedById !== null;
   const waiting = waitingText(bug.status, report);
   const resolutionText =
-    CLOSED_STATUSES.has(bug.status) && report.resolution
+    COMPLETED_BUG_STATUSES.has(bug.status) && report.resolution
       ? (RESOLUTION_TEXT[report.resolution] ?? report.resolution)
       : null;
   const canReassign =
-    isAdmin && !history.archived && picked && !CLOSED_STATUSES.has(bug.status);
+    isAdmin &&
+    !history.archived &&
+    picked &&
+    !COMPLETED_BUG_STATUSES.has(bug.status);
   return (
     <section
       aria-labelledby="bug-client-heading"

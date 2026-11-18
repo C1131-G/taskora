@@ -19,9 +19,48 @@ const decodeApplicationServerKey = (encoded: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
+// Subscribes this browser and registers it; reports whether push is now on.
+const subscribeAndRegister = async (publicKey: string): Promise<boolean> => {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      toast.error("Allow notifications in your browser to enable them here.");
+      return false;
+    }
+    const registration = await navigator.serviceWorker.ready;
+    // This subscription is intentionally persistent so push survives component unmounts.
+    // oxlint-disable-next-line react-doctor/effect-needs-cleanup
+    const subscription = await registration.pushManager.subscribe({
+      applicationServerKey: decodeApplicationServerKey(publicKey),
+      userVisibleOnly: true,
+    });
+    const { keys } = subscription.toJSON();
+    if (!keys?.auth || !keys.p256dh) {
+      toast.error("Your browser returned an invalid push subscription.");
+      return false;
+    }
+    const result = await registerPushSubscriptionAction({
+      endpoint: subscription.endpoint,
+      idempotencyKey: crypto.randomUUID(),
+      keys: { auth: keys.auth, p256dh: keys.p256dh },
+      userAgent: navigator.userAgent,
+    });
+    if (!result.ok) {
+      toast.error(result.error.message);
+    }
+    return result.ok;
+  } catch {
+    toast.error("Notifications could not be enabled. Try again later.");
+    return false;
+  }
+};
+
+// One request at a time; once enabled the button goes away.
+type EnableStatus = "idle" | "pending" | "enabled";
+
 const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
   const [available, setAvailable] = useState(false);
-  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<EnableStatus>("idle");
   useEffect(() => {
     if (
       !publicKey ||
@@ -56,41 +95,12 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
   }, [publicKey]);
 
   const enableNotifications = async () => {
-    if (!publicKey) {
+    if (!publicKey || status !== "idle") {
       return;
     }
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        toast.error("Allow notifications in your browser to enable them here.");
-        return;
-      }
-      const registration = await navigator.serviceWorker.ready;
-      // This subscription is intentionally persistent so push survives component unmounts.
-      // oxlint-disable-next-line react-doctor/effect-needs-cleanup
-      const subscription = await registration.pushManager.subscribe({
-        applicationServerKey: decodeApplicationServerKey(publicKey),
-        userVisibleOnly: true,
-      });
-      const { keys } = subscription.toJSON();
-      if (!keys?.auth || !keys.p256dh) {
-        toast.error("Your browser returned an invalid push subscription.");
-        return;
-      }
-      const result = await registerPushSubscriptionAction({
-        endpoint: subscription.endpoint,
-        idempotencyKey: crypto.randomUUID(),
-        keys: { auth: keys.auth, p256dh: keys.p256dh },
-        userAgent: navigator.userAgent,
-      });
-      if (result.ok) {
-        setMessage("Notifications are enabled.");
-      } else {
-        toast.error(result.error.message);
-      }
-    } catch {
-      toast.error("Notifications could not be enabled. Try again later.");
-    }
+    setStatus("pending");
+    const enabled = await subscribeAndRegister(publicKey);
+    setStatus(enabled ? "enabled" : "idle");
   };
 
   if (!available) {
@@ -100,16 +110,20 @@ const PushNotificationsControl = ({ publicKey }: { publicKey: string }) => {
   return (
     <aside className="fixed right-4 bottom-4 z-50 flex max-w-sm flex-col items-end gap-2">
       <output aria-live="polite" className="text-sm">
-        {message}
+        {status === "enabled" ? "Notifications are enabled." : ""}
       </output>
-      <Button
-        variant="outline"
-        className="rounded-md border bg-background px-4 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2"
-        onClick={enableNotifications}
-        type="button"
-      >
-        Enable notifications
-      </Button>
+      {status === "enabled" ? null : (
+        <Button
+          aria-busy={status === "pending"}
+          variant="outline"
+          className="rounded-md border bg-background px-4 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          disabled={status === "pending"}
+          onClick={enableNotifications}
+          type="button"
+        >
+          Enable notifications
+        </Button>
+      )}
     </aside>
   );
 };

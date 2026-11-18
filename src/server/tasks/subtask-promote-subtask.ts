@@ -34,12 +34,19 @@ export const promoteSubtask = (
             message: "The subtask was not found.",
           });
         }
+        // oxlint-disable-next-line react-doctor/async-defer-await -- Who may edit is checked before the subtask state is revealed.
         const parent = await requireEditableTask(
           transaction,
           actorId,
           subtask.taskId,
           expectedTaskVersion
         );
+        if (subtask.isCompleted) {
+          throw new AppError({
+            code: "CONFLICT",
+            message: "Completed subtasks cannot be promoted. Reopen it first.",
+          });
+        }
         await validateAssignee(transaction, subtask.assigneeId);
         const [projectTaskNumber, tasks] = await Promise.all([
           allocateTaskNumber(transaction, parent.projectId),

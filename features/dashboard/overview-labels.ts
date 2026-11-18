@@ -1,10 +1,6 @@
-const taskStatuses = [
-  ["backlog", "Backlog"],
-  ["todo", "To Do"],
-  ["progress", "In Progress"],
-  ["review", "Review"],
-  ["done", "Done"],
-] as const;
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
+
+const taskStatuses = TASK_STATUSES.map(({ id, label }) => [id, label] as const);
 const projectStatusLabels = {
   active: "In Progress",
   complete: "Completed",

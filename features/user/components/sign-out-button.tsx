@@ -5,6 +5,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { removePushSubscriptionAction } from "@/features/notifications/notifications-actions";
+import { releasePushForThisDevice } from "@/features/notifications/release-push";
 import { authClient } from "@/src/client/auth-client";
 
 const SignOutButton = () => {
@@ -14,6 +16,7 @@ const SignOutButton = () => {
   const signOut = async () => {
     setPending(true);
     try {
+      await releasePushForThisDevice(removePushSubscriptionAction);
       const result = await authClient.signOut();
       if (result.error) {
         toast.error("Sign-out failed. Try again.");

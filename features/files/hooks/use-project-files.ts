@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +19,8 @@ import { uploadRunner } from "@/features/files/project-upload-runner";
 import type { ProjectFile } from "@/features/files/types/project-file-types";
 import type { TaskFile } from "@/features/tasks/task-details-panel-data";
 import { useToastTransition } from "@/hooks/use-toast-transition";
+
+const COPY_POLL_MS = 4000;
 
 // The file list of one project or task, with its uploads, file actions, rename and undo.
 export const useProjectFiles = ({
@@ -52,10 +54,18 @@ export const useProjectFiles = ({
   const [renamingFile, setRenamingFile] = useState<ProjectFile | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
+  // Each reload gets a number, and only the newest one may write the list, so a
+  // slow earlier reload never replaces the list a later one already showed.
+  const latestReload = useRef(0);
   const reloadFiles = async () => {
+    latestReload.current += 1;
+    const reload = latestReload.current;
     const result = taskId
       ? await listTaskFilesAction({ taskId })
       : await listProjectFilesAction({ projectId });
+    if (reload !== latestReload.current) {
+      return true;
+    }
     if (result.ok) {
       if (controlledFiles && setControlledFiles) {
         setControlledFiles(result.data);
@@ -65,6 +75,24 @@ export const useProjectFiles = ({
     }
     return result.ok;
   };
+
+  // A duplicate is copied by a background job, so the list is polled until no
+  // copy is pending any more.
+  const hasPendingCopy = files.some((file) => file.copyState === "pending");
+  const pollPendingCopies = useEffectEvent(async () => {
+    try {
+      await reloadFiles();
+    } catch {
+      // The next poll tries again.
+    }
+  });
+  useEffect(() => {
+    if (!hasPendingCopy) {
+      return;
+    }
+    const timer = window.setInterval(pollPendingCopies, COPY_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [hasPendingCopy]);
 
   // Each file settles on its own, so the list refreshes as uploads finish.
   const queue = useUploadQueue(async () => {

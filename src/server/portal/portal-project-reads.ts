@@ -3,6 +3,7 @@ import type { Effect } from "effect";
 
 import { AppError } from "../core/action-result";
 import type { Transaction } from "../work/work-internal";
+import { loadSharedProjects as loadCompanySharedProjects } from "./client-visibility";
 import { run } from "./portal-bug-access";
 import type { PortalActor } from "./portal-contracts";
 import type {
@@ -11,35 +12,17 @@ import type {
 } from "./portal-project-contracts";
 
 // A project reaches a client only when it is assigned to the client's company
-// (and not taken off it) AND an administrator marked it shared. Either alone
-// is not enough, and an archived project is never shown.
+// AND shared; see client-visibility.ts.
 const loadSharedProjects = async (
   transaction: Transaction,
   actor: PortalActor,
   onlyProjectId?: string
 ) => {
-  const links = await transaction.orm.public.ClientCompanyProject.where({
-    companyId: actor.clientCompanyId,
-    removedAt: null,
-  })
-    .select("projectId")
-    .all();
-  const assigned: string[] = [];
-  for (const { projectId } of links) {
-    if (onlyProjectId === undefined || projectId === onlyProjectId) {
-      assigned.push(projectId);
-    }
-  }
-  if (assigned.length === 0) {
-    return [];
-  }
-  const projects = await transaction.orm.public.Project.where((project) =>
-    and(
-      project.id.in(assigned),
-      project.clientVisible.eq(true),
-      project.archivedAt.isNull()
-    )
-  ).all();
+  const projects = await loadCompanySharedProjects(
+    transaction,
+    actor.clientCompanyId,
+    onlyProjectId
+  );
   return projects.toSorted((first, second) =>
     first.name.localeCompare(second.name)
   );

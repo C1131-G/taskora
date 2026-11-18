@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import type { db } from "@/src/prisma/db";
+import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
 import { CalendarDateSchema } from "../core/input-schemas";
@@ -47,6 +47,36 @@ export const assertOrdinaryTask = (task: { readonly type: string }): void => {
     });
   }
 };
+
+/** A task is read only when it or its project is archived. */
+export const isArchivedWork = (
+  task: { readonly archivedAt: Date | null },
+  project: { readonly archivedAt: Date | null }
+): boolean => task.archivedAt !== null || project.archivedAt !== null;
+
+/**
+ * Projects that are not archived. Archiving a project leaves its tasks
+ * untouched, so task readers restrict to these ids.
+ */
+export const listActiveProjectIds = async (): Promise<string[]> => {
+  const projects = await db.orm.public.Project.where({ archivedAt: null })
+    .select("id")
+    .all();
+  return projects.map(({ id }) => id);
+};
+
+/**
+ * The one rule for a task's status and completion time: a task is done exactly
+ * when it has a completedAt. Keeps the first completion time while it stays done.
+ */
+export const taskStatusFields = <Status extends string>(
+  status: Status,
+  previousCompletedAt: Date | null,
+  now: Date
+): { readonly completedAt: Date | null; readonly status: Status } => ({
+  completedAt: status === "done" ? (previousCompletedAt ?? now) : null,
+  status,
+});
 
 export const validateInput = (input: CreateTaskInput): CreateTaskInput => {
   const title = input.title.trim();

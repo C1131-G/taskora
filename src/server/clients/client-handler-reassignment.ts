@@ -2,13 +2,10 @@ import { and } from "@prisma/orm-postgres/orm-client";
 
 import { activeAdminIds, notifyUsers } from "../notifications/notify-users";
 import type { DbTransaction } from "../people/user-internal";
+import { COMPLETED_BUG_STATUSES } from "../work/bug-status-edges";
 
 // Client bugs past these statuses no longer need anyone working on them.
-export const closedClientBugStatuses = [
-  "closed",
-  "duplicate",
-  "withdrawn",
-] as const;
+const closedClientBugStatuses = [...COMPLETED_BUG_STATUSES];
 
 // Names the departing handler on each task: the first listed employee who
 // was assigned to it.
@@ -66,21 +63,34 @@ export const flagHandlerBugsForReassignment = async (
     and(
       bug.taskId.in(taskIds),
       bug.clientCompanyId.isNotNull(),
-      bug.status.notIn([...closedClientBugStatuses]),
+      bug.status.notIn(closedClientBugStatuses),
       bug.needsReassignment.eq(false)
     )
   )
     .select("id", "taskId", "projectId", "clientCompanyId")
     .all();
-  const flagged = bugs.filter(
+  const candidates = bugs.filter(
     (bug) => input.companyId === null || bug.clientCompanyId === input.companyId
+  );
+  // The read above can be stale: each flag repeats its conditions so a bug
+  // that closed or was flagged in the meantime is left alone.
+  const flagResults = await Promise.all(
+    candidates.map((candidate) =>
+      transaction.orm.public.BugReport.where((bug) =>
+        and(
+          bug.id.eq(candidate.id),
+          bug.status.notIn(closedClientBugStatuses),
+          bug.needsReassignment.eq(false)
+        )
+      ).updateAndCount({ needsReassignment: true, updatedAt: input.now })
+    )
+  );
+  const flagged = candidates.filter(
+    (_bug, index) => (flagResults[index] ?? 0) > 0
   );
   if (flagged.length === 0) {
     return 0;
   }
-  await transaction.orm.public.BugReport.where((bug) =>
-    bug.id.in(flagged.map(({ id }) => id))
-  ).updateAll({ needsReassignment: true, updatedAt: input.now });
   const [names, admins] = await Promise.all([
     departingNameByTask(transaction, input.employeeIds, assignments),
     activeAdminIds(transaction),

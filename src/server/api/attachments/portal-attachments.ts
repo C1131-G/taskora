@@ -50,8 +50,9 @@ export const requestPortalUpload = (request: Request, params: PathParams) =>
       })
   );
 
-// Finalizing and linking the file to the bug are one write, as on the web, so
-// a retry never leaves a file that no bug shows.
+// Finalizing and linking the file to the bug are two separate writes, as on
+// the web. Finalizing the same upload intent again returns the same file, so
+// a retry with the same intent links a file whose first link was refused.
 export const finalizePortalUpload = (request: Request, params: PathParams) =>
   asPortalAttachmentCaller(
     finalizePortalUploadRoute,

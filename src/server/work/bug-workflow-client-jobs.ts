@@ -21,7 +21,8 @@ const stillWaiting = (
 // Loads the bug once and decides from that same row, so the version that guards
 // the update is the version the decision was made on. A client who answers
 // while the job runs either makes this answer false, or makes the guarded
-// update fail instead of being overwritten.
+// update fail instead of being overwritten. An archived bug is hidden from the
+// client and read only, so its reminders and auto-close stop as well.
 const loadIfStillWaiting = async (
   transaction: Transaction,
   bugId: string,
@@ -36,7 +37,10 @@ const loadIfStillWaiting = async (
     return null;
   }
   const loaded = await loadBug(transaction, bugId);
-  return stillWaiting(loaded.bug, status, since, sinceField) ? loaded : null;
+  const archived = loaded.task.archivedAt || loaded.project.archivedAt;
+  return !archived && stillWaiting(loaded.bug, status, since, sinceField)
+    ? loaded
+    : null;
 };
 
 export const remindNeedsInfo = async (

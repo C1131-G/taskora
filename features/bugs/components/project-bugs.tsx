@@ -1,11 +1,10 @@
 /* eslint-disable shadcn/no-restyle, shadcn/no-unknown-classes -- Project bug view uses reference workspace styles in apps/web/app/workspace-styles. */
 
 import type { BugListItemSchema } from "@/src/server/work/bug-management";
+import { COMPLETED_BUG_STATUSES } from "@/src/server/work/bug-status-edges";
 
 import { BugList } from "./bug-list";
 import { BugReportDialog } from "./bug-report-dialog";
-
-const DONE_STATUSES = new Set(["closed", "duplicate", "withdrawn", "released"]);
 
 export const ProjectBugs = ({
   bugs,
@@ -18,7 +17,9 @@ export const ProjectBugs = ({
     readonly name: string;
   };
 }) => {
-  const open = bugs.filter((entry) => !DONE_STATUSES.has(entry.bug.status));
+  const open = bugs.filter(
+    (entry) => !COMPLETED_BUG_STATUSES.has(entry.bug.status)
+  );
   const stats = [
     { label: "Total", value: bugs.length },
     { label: "Open", value: open.length },

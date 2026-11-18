@@ -3,6 +3,7 @@ import { Schema } from "effect";
 import { notifyUsers } from "../notifications/notify-users";
 import type { BugReassignInput } from "./bug-contracts";
 import { BugReassignInputSchema } from "./bug-contracts";
+import { COMPLETED_BUG_STATUSES } from "./bug-status-edges";
 import {
   decodeBugWorkflowStatus,
   conflict,
@@ -13,7 +14,7 @@ import {
   writeActivity,
 } from "./bug-workflow-internal";
 import type { BugWorkflowReceipt } from "./bug-workflow-internal";
-import { CLOSED_STATUSES, bugKey } from "./bug-workflow-pick";
+import { bugKey } from "./bug-workflow-pick";
 import type { Transaction } from "./work-internal";
 
 // Only an admin moves a picked client bug to someone else, and that someone
@@ -36,7 +37,7 @@ export const reassignClientBug = async (
     forbidden("Assign an unpicked client bug from the triage form.");
   }
   if (
-    CLOSED_STATUSES.has(bug.status) ||
+    COMPLETED_BUG_STATUSES.has(bug.status) ||
     task.archivedAt ||
     project.archivedAt
   ) {

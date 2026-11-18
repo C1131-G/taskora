@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 
+import type { PortalApprovalList } from "../../../mobile-api/routes-bugs";
 import { portalApprovalRoutes } from "../../../mobile-api/routes-bugs";
 import type { ApprovalStatus } from "../../approvals/approval-contracts";
 import { ApprovalDecisionReceiptSchema } from "../../approvals/approval-contracts";
@@ -9,15 +10,27 @@ import { pageOf } from "../paging";
 import { asPortalCaller } from "./caller";
 import type { PathParams } from "./caller";
 
-// The app speaks "rejected" where the domain records "changes_requested".
-const toListStatus = (
-  status: ApprovalStatus
-): "pending" | "approved" | "rejected" => {
-  if (status === "approved") {
-    return "approved";
+type ListStatus = (typeof PortalApprovalList.Type)["items"][number]["status"];
+
+// The app speaks "rejected" where the domain records "changes_requested". A
+// cancelled request has no list status: it is gone from the client's side.
+const toListStatus = (status: ApprovalStatus): ListStatus | undefined => {
+  switch (status) {
+    case "pending":
+    case "approved": {
+      return status;
+    }
+    case "changes_requested": {
+      return "rejected";
+    }
+    case "cancelled": {
+      return undefined;
+    }
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
   }
-  // A cancelled request never reaches the client list.
-  return status === "pending" ? "pending" : "rejected";
 };
 
 export const listPortalApprovals = (request: Request) =>
@@ -27,13 +40,20 @@ export const listPortalApprovals = (request: Request) =>
       const requests = yield* approvals.list(actor);
       const page = yield* pageOf(requests, ({ id }) => id, input.query);
       return {
-        items: page.items.map((approval) => ({
-          id: approval.id,
-          projectName: approval.projectName,
-          requestedBy: approval.requestedByName,
-          status: toListStatus(approval.status),
-          title: approval.subjectTitle,
-        })),
+        items: page.items.flatMap((approval) => {
+          const status = toListStatus(approval.status);
+          return status
+            ? [
+                {
+                  id: approval.id,
+                  projectName: approval.projectName,
+                  requestedBy: approval.requestedByName,
+                  status,
+                  title: approval.subjectTitle,
+                },
+              ]
+            : [];
+        }),
         nextCursor: page.nextCursor,
       };
     })

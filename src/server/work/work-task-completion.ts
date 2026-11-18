@@ -11,7 +11,12 @@ import {
   decodeTaskPriority,
   decodeTaskStatus,
 } from "./work-contracts";
-import { assertOrdinaryTask, databaseError } from "./work-internal";
+import {
+  assertOrdinaryTask,
+  databaseError,
+  isArchivedWork,
+  taskStatusFields,
+} from "./work-internal";
 import { requireTaskAdmin } from "./work-task-admin";
 
 export const undoTaskCompletion = (
@@ -52,10 +57,10 @@ export const undoTaskCompletion = (
             message: "The completion undo request is invalid.",
           });
         }
-        const originalTask = await transaction.orm.public.Task.where({
-          id: undo.entityId,
-        })
-          .select("type")
+        const originalTask = await transaction.orm.public.Task.include(
+          "project"
+        )
+          .where({ id: undo.entityId })
           .first();
         if (!originalTask) {
           throw new AppError({
@@ -64,13 +69,18 @@ export const undoTaskCompletion = (
           });
         }
         assertOrdinaryTask(originalTask);
+        if (isArchivedWork(originalTask, originalTask.project)) {
+          throw new AppError({
+            code: "FORBIDDEN",
+            message: "Archived tasks are read only.",
+          });
+        }
         const reopened = await transaction.orm.public.Task.where({
           id: undo.entityId,
           status: "done",
           version: snapshot.version,
         }).updateAndCount({
-          completedAt: null,
-          status: snapshot.status,
+          ...taskStatusFields(snapshot.status, null, now),
           updatedAt: now,
           version: snapshot.version + 1,
         });

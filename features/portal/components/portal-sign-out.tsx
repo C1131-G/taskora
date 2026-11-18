@@ -10,6 +10,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import { releasePushForThisDevice } from "@/features/notifications/release-push";
+import { removePortalPushAction } from "@/features/portal/portal-push-actions";
 import { authClient } from "@/src/client/auth-client";
 
 const PortalSignOut = () => {
@@ -19,6 +21,7 @@ const PortalSignOut = () => {
   const signOut = async () => {
     setPending(true);
     try {
+      await releasePushForThisDevice(removePortalPushAction);
       const result = await authClient.signOut();
       if (result.error) {
         toast.error("Sign-out failed. Try again.");

@@ -6,6 +6,7 @@ import type { PortalActor } from "../portal/portal-contracts";
 import {
   approvalNotFound,
   loadVisibleRequest,
+  lockMilestone,
   toApprovalStatus,
 } from "./approval-access";
 import type {
@@ -42,6 +43,15 @@ export const decideApproval = (
         fieldErrors: { comment: "Tell the team what needs to change." },
         message: "Tell the team what needs to change.",
       });
+    }
+    // A milestone deleted after the request was sent is gone: there is
+    // nothing left to approve. The row is locked so a deletion either lands
+    // first and is seen here, or waits for this decision.
+    if (
+      request.milestoneId !== null &&
+      !(await lockMilestone(transaction, request.milestoneId))
+    ) {
+      throw conflict("The team removed this milestone.");
     }
     const status = approving ? "approved" : "changes_requested";
     const now = new Date();

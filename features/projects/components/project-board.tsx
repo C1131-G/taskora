@@ -21,6 +21,7 @@ import { BoardCardTransition } from "@/features/tasks/components/board-card-tran
 import { useBoardReorder } from "@/features/tasks/hooks/use-board-reorder";
 import { withTaskStatus } from "@/features/tasks/task-status-move";
 import { changeTaskColumnAction } from "@/features/tasks/tasks-actions";
+import { TASK_STATUSES } from "@/src/mobile-api/task-statuses";
 import type { LabelSummary } from "@/src/server/tasks/label-management";
 
 import { useProjectViewSearch } from "../hooks/use-project-view-search";
@@ -32,13 +33,7 @@ interface Employee {
   readonly name: string;
 }
 
-const columns = [
-  { id: "backlog", label: "Backlog" },
-  { id: "todo", label: "To Do" },
-  { id: "progress", label: "In Progress" },
-  { id: "review", label: "Review" },
-  { id: "done", label: "Done" },
-] as const;
+const columns = TASK_STATUSES;
 
 const priorityRank = {
   high: 1,

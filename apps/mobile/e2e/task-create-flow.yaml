@@ -5,4 +5,4 @@ appId: com.cibi.taskora
 - assertVisible: "My Tasks"
 - tapOn: "My Tasks"
 - assertVisible: "All"
-- assertVisible: "todo"
+- assertVisible: "To Do"

@@ -1,10 +1,11 @@
 import { and } from "@prisma/orm-postgres/orm-client";
 import { Context, Effect, Layer, Schema } from "effect";
 
-import { getUtcToday } from "@/src/lib/utc-today";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
+import { getCompanyToday } from "../work/work-company-today";
+import { isOverdue } from "../work/work-overdue";
 
 export interface DashboardOverview {
   readonly projects: {
@@ -124,26 +125,28 @@ const getOverview = (
         });
       }
 
-      const [projects, tasks, employees, milestones] = await Promise.all([
-        db.orm.public.Project.where({ archivedAt: null })
-          .select("id", "name", "status")
-          .all(),
-        db.orm.public.Task.where({ archivedAt: null })
-          .include("project")
-          .select("id", "status", "dueDate")
-          .all(),
-        db.orm.public.User.where((user) =>
-          and(
-            user.deactivatedAt.isNull(),
-            user.mustChangePassword.eq(false),
-            user.role.neq("client")
+      const [projects, tasks, employees, milestones, today] = await Promise.all(
+        [
+          db.orm.public.Project.where({ archivedAt: null })
+            .select("id", "name", "status")
+            .all(),
+          db.orm.public.Task.where({ archivedAt: null })
+            .include("project")
+            .select("id", "status", "dueDate")
+            .all(),
+          db.orm.public.User.where((user) =>
+            and(
+              user.deactivatedAt.isNull(),
+              user.mustChangePassword.eq(false),
+              user.role.neq("client")
+            )
           )
-        )
-          .select("id", "name")
-          .all(),
-        db.orm.public.ProjectMilestone.include("project").all(),
-      ]);
-      const today = getUtcToday();
+            .select("id", "name")
+            .all(),
+          db.orm.public.ProjectMilestone.include("project").all(),
+          getCompanyToday(),
+        ]
+      );
       const projectIds = new Set(projects.map(({ id }) => id));
       const upcomingMilestones = milestones
         .filter(
@@ -213,7 +216,7 @@ const getOverview = (
       for (const task of activeTasks) {
         const status = Schema.decodeUnknownSync(TaskStatusSchema)(task.status);
         taskCounts[status] += 1;
-        if (task.status !== "done" && task.dueDate && task.dueDate < today) {
+        if (isOverdue(task, today)) {
           overdueCount += 1;
         }
       }

@@ -49,6 +49,7 @@ const ArchivedWork = async () => {
         .map((task) => ({
           archivedAt: task.archivedAt,
           id: task.id,
+          projectArchived: project.archivedAt !== null,
           projectName: project.name,
           title: task.title,
           version: task.version,

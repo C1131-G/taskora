@@ -17,9 +17,12 @@ const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure
     ? undefined
     : Option.getOrUndefined(Cause.findErrorOption(exit.cause));
 
+// The server's rule (password-management.ts); a shorter one is refused there.
+const MIN_PASSWORD_LENGTH = 12;
+
 export interface ChangePasswordScreenProps {
   readonly onDone: () => void;
-  readonly session?: SessionService;
+  readonly session?: SessionService | null;
 }
 
 /** The forced (or voluntary) password change; the session stays signed in. */
@@ -33,7 +36,9 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
 
   const change = useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
-      Effect.runPromiseExit(session!.changeOwnPassword(input)),
+      session === null
+        ? Promise.reject(new Error("No session"))
+        : Effect.runPromiseExit(session.changeOwnPassword(input)),
     onSuccess: (result) => {
       const failure = failureOf(result);
       if (failure !== undefined) showError(failureMessage(failure));
@@ -47,8 +52,8 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
     if (currentPassword.length === 0) {
       errors.currentPassword = "Enter your current password";
     }
-    if (newPassword.length < 8) {
-      errors.newPassword = "New password needs at least 8 characters";
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      errors.newPassword = `New password needs at least ${MIN_PASSWORD_LENGTH} characters`;
     }
     if (confirm !== newPassword) {
       errors.confirm = "The passwords do not match";

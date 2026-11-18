@@ -1,7 +1,6 @@
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
-import { isUniqueConstraintViolation } from "../core/prisma-errors";
 import { EMAIL_CHANNEL, EMAIL_EVENT_TYPES } from "./email-contracts";
 import type { EmailEventType } from "./email-contracts";
 
@@ -66,22 +65,22 @@ export const hasDeliveryReceipt = async (dedupeKey: string): Promise<boolean> =>
 
 // The provider already accepted the mail, so a duplicate-key race with another
 // run is the same outcome as writing the receipt ourselves.
+// A receipt that already exists (a concurrent send) is left as it is. No error
+// is raised, so the write is safe inside a larger transaction.
 export const recordDeliveryReceipt = async (
   userId: string,
   dedupeKey: string
 ): Promise<void> => {
-  try {
-    await db.orm.public.EmailDelivery.create({
+  await db.orm.public.EmailDelivery.upsert({
+    conflictOn: { dedupeKey },
+    create: {
       dedupeKey,
       id: crypto.randomUUID(),
       sentAt: new Date(),
       userId,
-    });
-  } catch (error) {
-    if (!isUniqueConstraintViolation(error)) {
-      throw error;
-    }
-  }
+    },
+    update: {},
+  });
 };
 
 export const digestOptionOf = async (userId: string): Promise<boolean> => {

@@ -1,3 +1,5 @@
+import type { BugWorkflowStatusSchema } from "@/src/server/work/bug-contracts";
+
 const BUG_STATUS_FILTERS = [
   ["", "All"],
   ["reported", "Reported"],
@@ -9,8 +11,19 @@ const BUG_STATUS_FILTERS = [
   ["awaiting_admin_approval", "Approval"],
   ["approved_for_release", "Approved"],
   ["released", "Released"],
+  ["rejected", "Changes requested"],
   ["closed", "Closed"],
+  ["duplicate", "Duplicate"],
+  ["withdrawn", "Withdrawn"],
 ] as const;
+
+// Every bug status has a filter: this fails to compile when one is missing.
+type UnfilteredStatus = Exclude<
+  typeof BugWorkflowStatusSchema.Type,
+  (typeof BUG_STATUS_FILTERS)[number][0]
+>;
+const _everyStatusFiltered: [UnfilteredStatus] extends [never] ? true : never =
+  true;
 
 const BUG_SEVERITIES = [
   "blocker",

@@ -25,6 +25,21 @@ import {
 import { formatBugDate } from "../bug-workflow-ui-shared";
 import type { BugHistory, BugSubmit } from "../bug-workflow-ui-shared";
 
+// An evidence upload is two writes: finalizing the file, then linking it to
+// the bug. When the link is refused, the finalized file is kept so a retry
+// links that same file instead of uploading a second copy.
+type EvidenceUpload =
+  | { readonly status: "idle" }
+  | { readonly status: "uploading" }
+  | { readonly status: "linking"; readonly file: UnlinkedFile }
+  | { readonly status: "unlinked"; readonly file: UnlinkedFile };
+
+interface UnlinkedFile {
+  readonly fileAssetId: string;
+  readonly fileName: string;
+  readonly kind: string;
+}
+
 export const BugEvidenceSection = ({
   canEdit,
   history,
@@ -47,14 +62,38 @@ export const BugEvidenceSection = ({
   readonly submit: BugSubmit;
 }) => {
   const [evidenceKind, setEvidenceKind] = useState("before");
-  const [fileBusy, setFileBusy] = useState(false);
+  const [upload, setUpload] = useState<EvidenceUpload>({ status: "idle" });
   const [fileInputKey, setFileInputKey] = useState(0);
+  const fileBusy = upload.status === "uploading" || upload.status === "linking";
 
-  const uploadEvidence = async (file: File | undefined) => {
-    if (!file) {
+  const linkEvidence = async (file: UnlinkedFile) => {
+    setUpload({ file, status: "linking" });
+    const attached = await addBugEvidenceAction({
+      bugId: history.bug.id,
+      caption: file.fileName,
+      expectedVersion: history.bug.version,
+      externalUrl: null,
+      fileAssetId: file.fileAssetId,
+      fixAttemptId: latestAttempt?.id ?? null,
+      kind: file.kind,
+    });
+    if (attached.ok === false) {
+      onError(attached.error.message);
+      setUpload({ file, status: "unlinked" });
+      // A version conflict needs the current bug before a retry can succeed.
+      await onRefresh?.();
       return;
     }
-    setFileBusy(true);
+    setUpload({ status: "idle" });
+    setFileInputKey((value) => value + 1);
+    await onRefresh?.();
+  };
+
+  const uploadEvidence = async (file: File | undefined) => {
+    if (!file || upload.status !== "idle") {
+      return;
+    }
+    setUpload({ status: "uploading" });
     try {
       const ticket = await requestTaskUploadAction({
         contentType: file.type || "application/octet-stream",
@@ -64,7 +103,7 @@ export const BugEvidenceSection = ({
       });
       if (ticket.ok === false) {
         onError(ticket.error.message);
-        setFileBusy(false);
+        setUpload({ status: "idle" });
         return;
       }
       const response = await fetch(ticket.data.uploadUrl, {
@@ -76,7 +115,7 @@ export const BugEvidenceSection = ({
         onError(
           `Upload failed for ${file.name}. Check the storage configuration and try again.`
         );
-        setFileBusy(false);
+        setUpload({ status: "idle" });
         return;
       }
       const finalized = await finalizeUploadAction({
@@ -85,31 +124,34 @@ export const BugEvidenceSection = ({
       });
       if (finalized.ok === false) {
         onError(finalized.error.message);
-        setFileBusy(false);
+        setUpload({ status: "idle" });
         return;
       }
-      const attached = await addBugEvidenceAction({
-        bugId: history.bug.id,
-        caption: file.name,
-        expectedVersion: history.bug.version,
-        externalUrl: null,
+      await linkEvidence({
         fileAssetId: finalized.data.id,
-        fixAttemptId: latestAttempt?.id ?? null,
+        fileName: file.name,
         kind: evidenceKind,
       });
-      if (attached.ok === false) {
-        onError(attached.error.message);
-        setFileBusy(false);
-        return;
-      }
-      if (onRefresh) {
-        await onRefresh();
-      }
-      setFileInputKey((value) => value + 1);
     } catch {
       onError("Upload failed. Check the storage configuration and try again.");
+      setUpload((current) =>
+        current.status === "linking"
+          ? { file: current.file, status: "unlinked" }
+          : { status: "idle" }
+      );
     }
-    setFileBusy(false);
+  };
+
+  const retryLink = async () => {
+    if (upload.status !== "unlinked") {
+      return;
+    }
+    try {
+      await linkEvidence(upload.file);
+    } catch {
+      onError("The file could not be added as evidence. Try again.");
+      setUpload({ file: upload.file, status: "unlinked" });
+    }
   };
 
   if (!canEdit || isReadOnly) {
@@ -211,6 +253,28 @@ export const BugEvidenceSection = ({
         ) : (
           <UploadSimple aria-hidden="true" size={18} />
         )}
+        {upload.status === "unlinked" ? (
+          <output className="bug-field-help">
+            {upload.file.fileName} was uploaded but is not linked as evidence
+            yet. It stays in the task files.{" "}
+            <Button
+              onClick={retryLink}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              Retry linking
+            </Button>{" "}
+            <Button
+              onClick={() => setUpload({ status: "idle" })}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              Dismiss
+            </Button>
+          </output>
+        ) : null}
       </div>
     </section>
   );

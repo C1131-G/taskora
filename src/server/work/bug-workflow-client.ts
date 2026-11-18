@@ -3,6 +3,10 @@ import { Schema } from "effect";
 
 import { createCommentInTransaction } from "../collaboration/create-comment";
 import {
+  ASK_CLIENT_FROM_STATUSES,
+  CLOSE_NOT_A_BUG_FROM_STATUSES,
+} from "./bug-status-edges";
+import {
   NEEDS_INFO_REMINDER_AFTER_MS,
   NEEDS_INFO_AUTOCLOSE_AFTER_MS,
   AWAITING_CLIENT_AUTOCLOSE_AFTER_MS,
@@ -22,6 +26,7 @@ import type {
 } from "./bug-workflow-client-support";
 import {
   assertBugEditor,
+  assertWritable,
   conflict,
   forbidden,
   loadBug,
@@ -41,7 +46,7 @@ export const requestClientInfo = async (
   const input = Schema.decodeUnknownSync(RequestClientInfoInputSchema)(
     rawInput
   );
-  const [actor, { bug, task }] = await Promise.all([
+  const [actor, { bug, project, task }] = await Promise.all([
     workspaceActor(transaction, actorId),
     loadBug(transaction, input.bugId),
   ]);
@@ -51,10 +56,12 @@ export const requestClientInfo = async (
   await assertBugEditor(transaction, actor, bug);
   if (
     bug.version !== input.expectedVersion ||
-    !["triaged", "in_progress", "in_verification"].includes(bug.status)
+    !ASK_CLIENT_FROM_STATUSES.has(bug.status)
   ) {
     conflict();
   }
+  // The client cannot see an archived bug, so it cannot be asked about one.
+  assertWritable(bug, task, project);
   if (!input.question.trim()) {
     required("Write the question for the client.");
   }
@@ -214,9 +221,7 @@ export const closeClientBugAsNotABug = async (
   await assertBugEditor(transaction, actor, bug);
   if (
     bug.version !== input.expectedVersion ||
-    !["reported", "triaged", "in_progress", "needs_info"].includes(
-      bug.status
-    ) ||
+    !CLOSE_NOT_A_BUG_FROM_STATUSES.has(bug.status) ||
     task.archivedAt ||
     project.archivedAt
   ) {

@@ -1,7 +1,5 @@
-import { Schema } from "effect";
-
 import { AppError } from "../core/action-result";
-import { FinalizedFileSchema } from "./uploads-contracts";
+import { decodeFileCopyState } from "./upload-states";
 import type { FinalizedFile } from "./uploads-contracts";
 
 export const toFinalizedFile = (file: {
@@ -23,9 +21,7 @@ export const toFinalizedFile = (file: {
   }
   return {
     contentType: file.contentType,
-    copyState: Schema.decodeUnknownSync(FinalizedFileSchema.fields.copyState)(
-      file.copyState
-    ),
+    copyState: decodeFileCopyState(file.copyState),
     createdAt: file.createdAt.toISOString(),
     id: file.id,
     originalName: file.originalName,

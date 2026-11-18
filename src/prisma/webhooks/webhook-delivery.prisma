@@ -20,6 +20,7 @@ model WebhookDelivery {
   endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
   @@unique([endpointId, eventId])
+  @@check(expression: "\"status\" IN ('pending', 'retrying', 'succeeded', 'dead')", name: "webhook_delivery_status_valid")
   @@index([endpointId, createdAt])
   @@index([createdAt])
   @@map("webhook_delivery")

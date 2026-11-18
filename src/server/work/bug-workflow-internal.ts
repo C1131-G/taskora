@@ -8,7 +8,8 @@ import { UUIDSchema } from "../core/input-schemas";
 import { enqueueWebhookEvent } from "../webhooks/webhook-enqueue";
 import { BugWorkflowStatusSchema } from "./bug-contracts";
 import { slaOnStatusChange } from "./bug-sla";
-import { canMoveBug } from "./bug-status-edges";
+import { READ_ONLY_BUG_STATUSES, canMoveBug } from "./bug-status-edges";
+import { taskStatusFields } from "./work-internal";
 import type { Transaction } from "./work-internal";
 
 export const BugWorkflowReceiptSchema = Schema.Struct({
@@ -121,15 +122,7 @@ export const assertWritable = (
   if (
     task.archivedAt ||
     project.archivedAt ||
-    [
-      "closed",
-      "duplicate",
-      "awaiting_admin_approval",
-      "approved_for_release",
-      "released",
-      "awaiting_client",
-      "withdrawn",
-    ].includes(bug.status)
+    READ_ONLY_BUG_STATUSES.has(bug.status)
   ) {
     forbidden(
       "Archived or completed bugs are read only until an admin restores or reopens them."
@@ -178,12 +171,6 @@ export const taskStatusByBugStage = {
   typeof BugWorkflowStatusSchema.Type,
   "backlog" | "progress" | "review" | "done"
 >;
-
-const completedBugStatuses: ReadonlySet<string> = new Set([
-  "closed",
-  "duplicate",
-  "withdrawn",
-]);
 
 export const updateBugStatus = async (
   transaction: Transaction,
@@ -236,8 +223,7 @@ export const updateBugStatus = async (
     id: task.id,
     version: task.version,
   }).updateAndCount({
-    completedAt: completedBugStatuses.has(input.nextStatus) ? input.now : null,
-    status: taskStatus,
+    ...taskStatusFields(taskStatus, null, input.now),
     updatedAt: input.now,
     version: task.version + 1,
   });

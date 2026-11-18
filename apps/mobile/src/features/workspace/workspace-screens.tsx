@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { withSkeleton } from "react-zero-skeleton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, SignOut } from "phosphor-react-native";
@@ -179,11 +178,6 @@ export const SettingsScreen = ({
 }) => {
   const { isDark, mode, setMode } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
-  const [picked, setPicked] = useState(mode);
-
-  useEffect(() => {
-    setPicked(mode);
-  }, [mode]);
 
   return (
     <WorkspaceTabShell>
@@ -193,7 +187,7 @@ export const SettingsScreen = ({
             <Pressable
               accessibilityLabel={`Theme ${candidate}`}
               accessibilityRole="radio"
-              accessibilityState={{ selected: picked === candidate }}
+              accessibilityState={{ selected: mode === candidate }}
               key={candidate}
               onPress={() => setMode(candidate)}
               style={({ pressed }) => [
@@ -204,7 +198,7 @@ export const SettingsScreen = ({
               <Text style={[typeStyle("md"), { color: palette.text, flex: 1 }]}>
                 {THEME_LABELS[candidate]}
               </Text>
-              {picked === candidate ? <Check color={palette.accent} size={18} weight="bold" /> : null}
+              {mode === candidate ? <Check color={palette.accent} size={18} weight="bold" /> : null}
             </Pressable>
           ))}
         </WorkspaceListGroup>

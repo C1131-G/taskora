@@ -29,14 +29,11 @@ import {
   isDraftDirty,
 } from "@/features/tasks/task-details-draft";
 import { updateTaskAction } from "@/features/tasks/tasks-actions";
+import {
+  TASK_STATUS_ORDER,
+  TASK_STATUSES,
+} from "@/src/mobile-api/task-statuses";
 
-const TASK_STATUSES: readonly TaskDetailsDraft["status"][] = [
-  "backlog",
-  "todo",
-  "progress",
-  "review",
-  "done",
-];
 const TASK_PRIORITIES: readonly TaskDetailsDraft["priority"][] = [
   "urgent",
   "high",
@@ -189,7 +186,7 @@ export const TaskDetailsForm = ({
             disabled={!editable}
             id={fieldId("status")}
             onValueChange={(value) => {
-              const status = TASK_STATUSES.find(
+              const status = TASK_STATUS_ORDER.find(
                 (candidate) => candidate === value
               );
               if (status) {
@@ -198,13 +195,11 @@ export const TaskDetailsForm = ({
             }}
             value={draft.status}
           >
-            <WorkspaceSelectItem value="backlog">Backlog</WorkspaceSelectItem>
-            <WorkspaceSelectItem value="todo">To Do</WorkspaceSelectItem>
-            <WorkspaceSelectItem value="progress">
-              In Progress
-            </WorkspaceSelectItem>
-            <WorkspaceSelectItem value="review">Review</WorkspaceSelectItem>
-            <WorkspaceSelectItem value="done">Done</WorkspaceSelectItem>
+            {TASK_STATUSES.map(({ id, label }) => (
+              <WorkspaceSelectItem key={id} value={id}>
+                {label}
+              </WorkspaceSelectItem>
+            ))}
           </WorkspaceSelect>
         </label>
         <label className="field" htmlFor={fieldId("priority")}>

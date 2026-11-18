@@ -21,11 +21,7 @@ import {
 } from "@/features/dashboard/components/home-panels";
 import type { TaskViewLists } from "@/features/dashboard/components/home-panels";
 import { getDashboardOverview } from "@/features/dashboard/dashboard-queries";
-import {
-  formatFullDate,
-  greetingAt,
-  localDateString,
-} from "@/features/dashboard/home-dates";
+import { formatFullDate, greetingAt } from "@/features/dashboard/home-dates";
 import type { HomeTaskView } from "@/features/dashboard/home-task-view";
 import { listAllEmployees } from "@/features/people/people-queries";
 import { ProjectCreateForm } from "@/features/projects/components/project-create-form";
@@ -34,6 +30,9 @@ import { QuickTaskForm } from "@/features/tasks/components/quick-task-form";
 import { listAllProjectTasks } from "@/features/tasks/tasks-queries";
 import { getPageSession } from "@/src/server/auth/page-session";
 import { isWorkspaceUser } from "@/src/server/auth/session";
+import { companyToday } from "@/src/server/budgets/budget-math";
+import { getCompanyTimeZone } from "@/src/server/work/work-company-today";
+import { isOverdue } from "@/src/server/work/work-overdue";
 
 const HomeTaskViewPanel = ({
   taskView,
@@ -59,11 +58,13 @@ const WorkspaceHome = async ({
     redirect("/portal");
   }
 
-  const [dashboardResult, projectResult, employeesResult] = await Promise.all([
-    getDashboardOverview({}),
-    listProjects({}),
-    listAllEmployees(),
-  ]);
+  const [dashboardResult, projectResult, employeesResult, timeZone] =
+    await Promise.all([
+      getDashboardOverview({}),
+      listProjects({}),
+      listAllEmployees(),
+      getCompanyTimeZone(),
+    ]);
   if (!dashboardResult.ok || !projectResult.ok) {
     throw new Error("Workspace data could not be loaded.");
   }
@@ -76,7 +77,8 @@ const WorkspaceHome = async ({
       : null;
   // eslint-disable-next-line react/purity -- Request-time dashboard dates follow the workspace time zone.
   const now = new Date();
-  const today = localDateString(now);
+  const dayOf = (date: Date): string => companyToday(date, timeZone);
+  const today = dayOf(now);
   const activeProjects = projectResult.data.filter(
     (project) => project.status !== "complete"
   );
@@ -110,12 +112,7 @@ const WorkspaceHome = async ({
   const taskViews: TaskViewLists = {
     completed: myTasks.filter((task) => task.status === "done"),
     overdue: myTasks
-      .filter(
-        (task) =>
-          task.status !== "done" &&
-          task.dueDate !== null &&
-          task.dueDate < today
-      )
+      .filter((task) => isOverdue(task, today))
       .toSorted((left, right) =>
         (left.dueDate ?? "").localeCompare(right.dueDate ?? "")
       ),
@@ -136,8 +133,8 @@ const WorkspaceHome = async ({
       task.completedAt &&
       Date.parse(task.completedAt) >= now.getTime() - 7 * 24 * 60 * 60 * 1000
   );
-  const overdueCount = openTasks.filter(
-    (task) => task.dueDate !== null && task.dueDate < today
+  const overdueCount = openTasks.filter((task) =>
+    isOverdue(task, today)
   ).length;
   const deadlineGroups = [
     {
@@ -147,8 +144,7 @@ const WorkspaceHome = async ({
     {
       name: "Tomorrow",
       tasks: openTasks.filter(
-        (task) =>
-          task.dueDate === localDateString(new Date(now.getTime() + 86_400_000))
+        (task) => task.dueDate === dayOf(new Date(now.getTime() + 86_400_000))
       ),
     },
     {
@@ -156,10 +152,8 @@ const WorkspaceHome = async ({
       tasks: openTasks.filter(
         (task) =>
           task.dueDate !== null &&
-          task.dueDate >
-            localDateString(new Date(now.getTime() + 86_400_000)) &&
-          task.dueDate <=
-            localDateString(new Date(now.getTime() + 7 * 86_400_000))
+          task.dueDate > dayOf(new Date(now.getTime() + 86_400_000)) &&
+          task.dueDate <= dayOf(new Date(now.getTime() + 7 * 86_400_000))
       ),
     },
   ];

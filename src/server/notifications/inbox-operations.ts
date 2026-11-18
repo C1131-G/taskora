@@ -110,23 +110,29 @@ export const markRead = (
     catch: mapError,
     try: async () => {
       await verifyUser(userId);
+      // Only the call that moves the row from unread to read writes the time
+      // and tells the other tabs; a concurrent or repeated call changes nothing.
+      const marked = await db.orm.public.Notification.where({
+        id: notificationId,
+        readAt: null,
+        userId,
+      }).updateAndCount({ readAt: new Date() });
+      if (marked > 0) {
+        // The unread count changes in the person's other tabs too.
+        queueRealtimeEvents([{ kind: "inbox", userId }]);
+        return;
+      }
       const notification = await db.orm.public.Notification.where({
         id: notificationId,
         userId,
-      }).first();
+      })
+        .select("id")
+        .first();
       if (!notification) {
         throw new AppError({
           code: "NOT_FOUND",
           message: "The notification was not found.",
         });
-      }
-      if (!notification.readAt) {
-        await db.orm.public.Notification.where({
-          id: notificationId,
-          userId,
-        }).update({ readAt: new Date() });
-        // The unread count changes in the person's other tabs too.
-        queueRealtimeEvents([{ kind: "inbox", userId }]);
       }
     },
   });

@@ -29,8 +29,8 @@ import {
 } from "@/features/tasks/tasks-queries";
 import { getPersonalPreferences } from "@/features/user/user-queries";
 import { currentUtcMonthRange } from "@/src/lib/utc-date-range";
-import { getUtcToday } from "@/src/lib/utc-today";
 import { getPageSession } from "@/src/server/auth/page-session";
+import { getCompanyToday } from "@/src/server/work/work-company-today";
 
 const AUTOMATION_RUNS_SHOWN = 50;
 
@@ -315,7 +315,7 @@ export const getProjectBodyData = async (
     preferencesError: preferences.ok ? null : preferences.error.message,
     project,
     teamResult,
-    today: getUtcToday(),
+    today: await getCompanyToday(),
     view,
   };
 };

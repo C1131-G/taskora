@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Effect, Layer, SubscriptionRef } from "effect";
+import { Cause, Effect, Exit, Layer, Option, SubscriptionRef } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
@@ -32,11 +32,14 @@ const fetchImpl = ((input: Request | string | URL, init?: RequestInit) => {
   if (url.endsWith("/api/auth/sign-in/email")) {
     return jsonResponse(200, { user: ME }, { "set-auth-token": "token-new" });
   }
-  if (url.endsWith("/api/auth/change-password")) {
+  if (url.endsWith("/api/v1/me/password")) {
     const body = JSON.parse(String(init?.body ?? "{}")) as { currentPassword?: string };
     return body.currentPassword === "old-pass"
-      ? jsonResponse(200, { ok: true })
-      : jsonResponse(400, { error: { message: "Wrong current password" } });
+      ? jsonResponse(200, { data: { changed: true }, ok: true, requestId: "r" })
+      : jsonResponse(400, {
+          error: { code: "VALIDATION_FAILED", message: "Wrong current password", requestId: "r" },
+          ok: false,
+        });
   }
   if (url.endsWith("/api/auth/sign-out")) {
     return jsonResponse(200, { ok: true });
@@ -190,7 +193,8 @@ it.effect("reports storage failure when invalidating a session", () =>
   Effect.gen(function* () {
     const session = yield* Effect.service(Session);
     yield* session.signIn({ email: "c@taskora.test", password: "secret" });
-    const error = yield* Effect.flip(session.invalidate);
+    const current = yield* session.current;
+    const error = yield* Effect.flip(session.invalidate(current.kind === "authenticated" ? current.token : ""));
     expect(error._tag).toBe("StorageFailure");
     expect((yield* session.current).kind).toBe("anonymous");
   }).pipe(
@@ -271,5 +275,11 @@ it.effect("changes the password and surfaces the server field error", () =>
     );
 
     expect(exit._tag).toBe("Failure");
+    const failure = Exit.isFailure(exit) ? Cause.findErrorOption(exit.cause) : Option.none();
+    expect(
+      Option.isSome(failure) && failure.value._tag === "ValidationFailed"
+        ? failure.value.fieldErrors["currentPassword"]
+        : undefined,
+    ).toBe("Wrong current password");
   }).pipe(Effect.provide(sessionLayer(null))),
 );

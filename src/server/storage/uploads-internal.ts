@@ -164,6 +164,33 @@ export const getEditableTask = async (
   return task;
 };
 
+// Locks the task row until the transaction ends and returns the project the
+// task is in now. A task move locks the same row before it reads the task's
+// uploads and files, so a move and an upload, finalize or copy on that task
+// take turns, and the file is recorded in the task's current project.
+export const lockTaskProject = async (
+  transaction: Transaction,
+  taskId: string
+): Promise<string> => {
+  await transaction.query(
+    transaction.sql.public.task
+      .select("id")
+      .where((field, fns) => fns.eq(field.id, taskId))
+      .forShare()
+      .build()
+  );
+  const task = await transaction.orm.public.Task.where({ id: taskId })
+    .select("projectId")
+    .first();
+  if (!task) {
+    throw new AppError({
+      code: "NOT_FOUND",
+      message: "The task was not found.",
+    });
+  }
+  return task.projectId;
+};
+
 export const activeActor = async (
   actorId: string
 ): Promise<{

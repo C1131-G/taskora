@@ -77,7 +77,7 @@ beforeAll(async () => {
     [randomUUID(), ids.clientCompanyId, projectId]
   );
   await authPool.query(
-    "INSERT INTO task (id, \"projectId\", \"projectTaskNumber\", title, status, \"dueDate\", description, \"clientVisible\", \"createdById\") VALUES ($1, $2, 1, $3, 'done', '2026-11-01', $4, true, $5), ($6, $2, 2, $7, 'progress', '2026-12-15', $4, true, $5), ($8, $2, 3, $9, 'todo', null, $4, false, $5)",
+    'INSERT INTO task (id, "projectId", "projectTaskNumber", title, status, "dueDate", description, "clientVisible", "createdById", "completedAt") VALUES ($1, $2, 1, $3, \'done\', \'2026-11-01\', $4, true, $5, now()), ($6, $2, 2, $7, \'progress\', \'2026-12-15\', $4, true, $5, null), ($8, $2, 3, $9, \'todo\', null, $4, false, $5, null)',
     [
       fixture.doneTaskId,
       projectId,

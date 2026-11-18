@@ -1,4 +1,5 @@
 import type { BugWorkflowStatusSchema } from "@/src/server/work/bug-contracts";
+import { BUG_STATUSES } from "@/src/server/work/bug-status-edges";
 
 type BugWorkflowStatus = typeof BugWorkflowStatusSchema.Type;
 
@@ -82,23 +83,7 @@ export const clientStatusText: Record<ClientStatusLabel, string> = {
 export const internalStatusesFor = (
   label: ClientStatusLabel
 ): readonly BugWorkflowStatus[] =>
-  (
-    [
-      "reported",
-      "triaged",
-      "in_progress",
-      "in_verification",
-      "awaiting_admin_approval",
-      "approved_for_release",
-      "released",
-      "closed",
-      "duplicate",
-      "rejected",
-      "needs_info",
-      "awaiting_client",
-      "withdrawn",
-    ] as const
-  ).filter(
+  BUG_STATUSES.filter(
     (status) =>
       clientStatusLabel(status) === label ||
       (label === "not_a_bug" && status === "closed")

@@ -131,7 +131,7 @@ const deliveriesFor = async (endpointId: string) => {
     lastError: string | null;
     payload: Record<string, unknown>;
   }>(
-    'SELECT id, "eventId", status, attempts, "responseCode", "responseBody", "lastError", payload FROM webhook_delivery WHERE "endpointId" = $1 ORDER BY "createdAt"',
+    'SELECT id, "eventId", status, attempts, "responseCode", "responseBody", "lastError", payload FROM webhook_delivery WHERE "endpointId" = $1 ORDER BY "createdAt", id',
     [endpointId]
   );
   return rows.rows;

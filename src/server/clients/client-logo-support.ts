@@ -11,6 +11,8 @@ import {
   requireAdmin,
   serializeAdminChanges,
 } from "../people/user-internal";
+import { decodeUploadIntentState } from "../storage/upload-states";
+import type { UploadIntentState } from "../storage/upload-states";
 import type { ClientCompanyReceipt } from "./client-company-contracts";
 import { bumpCompany, loadCompany } from "./client-company-core";
 import {
@@ -57,7 +59,8 @@ export const normalizeUpload = (input: RequestClientLogoUploadInput) => ({
   sizeBytes: input.sizeBytes,
 });
 
-export interface LogoIntent {
+// An upload intent row as the database returns it.
+interface LogoIntentRow {
   readonly contentType: string;
   readonly expiresAt: Date;
   readonly objectKey: string;
@@ -68,10 +71,14 @@ export interface LogoIntent {
   readonly taskId: string | null;
 }
 
+export interface LogoIntent extends Omit<LogoIntentRow, "state"> {
+  readonly state: UploadIntentState;
+}
+
 // A logo intent belongs to the admin who asked for it and to one company,
 // and must still have the shape a logo is allowed to have.
 export const assertLogoIntent = (
-  intent: LogoIntent | null | undefined,
+  intent: LogoIntentRow | null | undefined,
   actorId: string,
   companyId: string
 ): LogoIntent => {
@@ -90,7 +97,7 @@ export const assertLogoIntent = (
   ) {
     throw changedRequest();
   }
-  return intent;
+  return { ...intent, state: decodeUploadIntentState(intent.state) };
 };
 
 export const assertPendingIntent = (intent: LogoIntent): void => {
@@ -116,8 +123,12 @@ export const retireLogo = async (
   }
   const retired = await transaction.orm.public.UploadIntent.where({
     id: intentId,
-    state: "finalized",
-  }).updateAndCount({ removedAt: now, state: "removed", updatedAt: now });
+    state: "finalized" satisfies UploadIntentState,
+  }).updateAndCount({
+    removedAt: now,
+    state: "removed" satisfies UploadIntentState,
+    updatedAt: now,
+  });
   if (!retired) {
     return;
   }

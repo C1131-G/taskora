@@ -13,6 +13,15 @@ export const WEBHOOK_STATUSES = [
 ] as const;
 export type WebhookStatus = (typeof WEBHOOK_STATUSES)[number];
 
+// Only a finished delivery can be sent again; one still queued or retrying
+// would race its own attempt.
+export const REDELIVERABLE_STATUSES: readonly WebhookStatus[] = [
+  "succeeded",
+  "dead",
+];
+export const canRedeliverWebhook = (status: string): boolean =>
+  REDELIVERABLE_STATUSES.some((redeliverable) => redeliverable === status);
+
 const MAX_NAME_LENGTH = 80;
 const MAX_URL_LENGTH = 2000;
 

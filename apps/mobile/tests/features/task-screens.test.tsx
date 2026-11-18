@@ -68,12 +68,34 @@ it("filters the visible rows through the chips", async () => {
   const user = userEvent.setup();
   await renderWithTheme(<MyTasksScreen isLoading={false} onOpenTask={() => undefined} tasks={TASKS} />);
 
-  await user.press(screen.getByRole("button", { name: "done" }));
+  await user.press(screen.getByRole("button", { name: "Done" }));
 
   expect(screen.getByText("1 of 3 tasks")).toBeTruthy();
   expect(screen.queryByText("Open task Ship the landing page")).toBeNull();
 });
 
+
+it("offers a backlog chip with every status label", async () => {
+  const backlog: TaskRowModel = {
+    dueAt: null,
+    id: "task-4",
+    priority: "low",
+    projectName: "Website relaunch",
+    status: "backlog",
+    title: "Someday",
+  };
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <MyTasksScreen isLoading={false} onOpenTask={() => undefined} tasks={[...TASKS, backlog]} />,
+  );
+
+  for (const label of ["All", "Backlog", "To Do", "In Progress", "Review", "Done"]) {
+    expect(screen.getByRole("button", { name: label })).toBeTruthy();
+  }
+  await user.press(screen.getByRole("button", { name: "Backlog" }));
+
+  expect(screen.getByText("1 of 4 tasks")).toBeTruthy();
+});
 
 const keysStub: KeysContextValue = {
   forget: () => Effect.void,
@@ -137,7 +159,7 @@ it("moves the status with the version the screen last saw", async () => {
   );
   const user = userEvent.setup();
   await user.press(screen.getByRole("button", { name: "Change status" }));
-  await user.press(screen.getByRole("radio", { name: "done" }));
+  await user.press(screen.getByRole("radio", { name: "Done" }));
 
   await waitFor(() => expect(sent.length).toBe(1));
   expect(sent[0]).toMatchObject({
@@ -157,7 +179,7 @@ it("tells the user when a status move fails", async () => {
   );
   const user = userEvent.setup();
   await user.press(screen.getByRole("button", { name: "Change status" }));
-  await user.press(screen.getByRole("radio", { name: "done" }));
+  await user.press(screen.getByRole("radio", { name: "Done" }));
 
   await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
   expect(screen.getByText("Cannot move this task")).toBeTruthy();
@@ -247,18 +269,18 @@ it("buzzes once per accepted move and ignores repeats and the current status", a
   );
 
   await user.press(screen.getByRole("button", { name: "Change status" }));
-  await user.press(screen.getByRole("radio", { name: "progress" }));
+  await user.press(screen.getByRole("radio", { name: "In Progress" }));
   expect(sent).toHaveLength(0);
   expect(events).toEqual([]);
 
   await user.press(screen.getByRole("button", { name: "Change status" }));
-  await user.press(screen.getByRole("radio", { name: "done" }));
+  await user.press(screen.getByRole("radio", { name: "Done" }));
   await user.press(screen.getByRole("button", { name: "Change status" }));
-  await user.press(screen.getByRole("radio", { name: "review" }));
+  await user.press(screen.getByRole("radio", { name: "Review" }));
 
   await waitFor(() => expect(sent).toHaveLength(1));
   expect(events).toEqual(["light"]);
-  expect(screen.getByText("Status: done")).toBeTruthy();
+  expect(screen.getByText("Status: Done")).toBeTruthy();
 });
 
 it("shows a moved status at once while the write is pending", async () => {
@@ -267,7 +289,29 @@ it("shows a moved status at once while the write is pending", async () => {
   await renderWithTheme(<TaskDetailScreen isLoading={false} api={api} keys={keysStub} task={detail()} taskId="task-1" />);
 
   await user.press(screen.getByRole("button", { name: "Change status" }));
-  await user.press(screen.getByRole("radio", { name: "done" }));
+  await user.press(screen.getByRole("radio", { name: "Done" }));
 
-  expect(screen.getByText("Status: done")).toBeTruthy();
+  expect(screen.getByText("Status: Done")).toBeTruthy();
+});
+
+it("marks a backlog task's status as current and labels it", async () => {
+  await renderWithTheme(
+    <TaskDetailScreen
+      isLoading={false}
+      api={apiWith({})}
+      keys={keysStub}
+      task={detail({ status: "backlog" })}
+      taskId="task-1"
+    />,
+  );
+  const user = userEvent.setup();
+  expect(screen.getByText("Status: Backlog")).toBeTruthy();
+  await user.press(screen.getByRole("button", { name: "Change status" }));
+
+  expect(screen.getByRole("radio", { name: "Backlog" }).props.accessibilityState).toMatchObject({
+    checked: true,
+  });
+  expect(screen.getByRole("radio", { name: "Done" }).props.accessibilityState).toMatchObject({
+    checked: false,
+  });
 });
