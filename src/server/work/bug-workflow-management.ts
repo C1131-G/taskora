@@ -32,6 +32,7 @@ import {
   addEvidence,
   addFixAttempt,
   recordVerification,
+  returnToFixing,
 } from "./bug-workflow-investigation";
 import { pickClientBug } from "./bug-workflow-pick";
 import { reassignClientBug } from "./bug-workflow-reassign";
@@ -96,6 +97,10 @@ export class BugWorkflowManagement extends Context.Service<
       actorId: string,
       input: BugVerificationInput
     ) => Effect.Effect<BugWorkflowReceipt, AppError>;
+    readonly returnToFixing: (
+      actorId: string,
+      input: BugVersionInput
+    ) => Effect.Effect<BugWorkflowReceipt, AppError>;
     readonly submitApproval: (
       actorId: string,
       input: BugSubmitApprovalInput
@@ -154,6 +159,7 @@ export const BugWorkflowManagementLive = Layer.succeed(
     reopen: operation(reopenBug),
     requestInfo: operation(requestClientInfo),
     restore: operation(restoreBug),
+    returnToFixing: operation(returnToFixing),
     submitApproval: operation(submitApproval),
     triage: operation(triageBug),
     verifyFix: operation(recordVerification),

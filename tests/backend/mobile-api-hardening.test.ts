@@ -87,8 +87,13 @@ it("says why a 401 happened: no session, a deactivated account, or inactivity", 
 
   const idle = await createPersona("employee", "idle");
   await authPool.query(
-    'UPDATE "user" SET role = \'client\', "clientCompanyId" = $2, "mustChangePassword" = false, "lastActiveAt" = now() - interval \'3 hours\' WHERE id = $1',
+    'UPDATE "user" SET role = \'client\', "clientCompanyId" = $2, "mustChangePassword" = false WHERE id = $1',
     [idle.id, ids.clientCompanyId]
+  );
+  // Idle time belongs to the session, not the person.
+  await authPool.query(
+    'UPDATE session SET "lastActiveAt" = now() - interval \'3 hours\' WHERE "userId" = $1',
+    [idle.id]
   );
   const inactive = await portalBugs(idle.bearerToken);
 

@@ -155,8 +155,13 @@ export const countRows = async (
 export const forceStatus = async (
   bugId: string,
   status: string,
-  columns: Record<string, string | number | Date | null> = {}
+  given: Record<string, string | number | Date | null> = {}
 ): Promise<void> => {
+  // A bug is closed exactly when it has a resolution.
+  const columns = {
+    resolution: status === "closed" ? "fixed" : null,
+    ...given,
+  };
   const names = Object.keys(columns);
   const set = names.map((name, index) => `"${name}" = $${index + 3}`);
   await authPool.query(

@@ -9,6 +9,10 @@ import {
 import { decodeAutomationJob } from "../automation/automation-job";
 import { sweepOverdueTasks } from "../automation/automation-overdue";
 import { runAutomationEvent } from "../automation/automation-runner";
+import {
+  BUDGET_EVALUATION_JOB,
+  evaluateBudgetAlerts,
+} from "../budgets/budget-alerts";
 import { AppError } from "../core/action-result";
 import { WEBHOOK_DELIVERY_JOB } from "../webhooks/webhook-contracts";
 import { deliverWebhook, liveDeliveryDeps } from "../webhooks/webhook-delivery";
@@ -21,6 +25,7 @@ import {
 } from "../work/bug-workflow-pick";
 import type { JsonValue } from "./job-handlers";
 import {
+  BudgetCheckPayloadSchema,
   ClientWaitPayloadSchema,
   DailyDueSummaryPayloadSchema,
   ISO_DATE_LENGTH,
@@ -52,6 +57,28 @@ export const handleWorkJob = (
             }),
           try: () =>
             db.transaction((transaction) => run(transaction, bugId, since)),
+        })
+      ),
+      Effect.asVoid
+    );
+  }
+  if (kind === BUDGET_EVALUATION_JOB) {
+    return Effect.try({
+      catch: () =>
+        new AppError({
+          code: "VALIDATION_FAILED",
+          message: "The budget check payload is invalid.",
+        }),
+      try: () => Schema.decodeUnknownSync(BudgetCheckPayloadSchema)(payload),
+    }).pipe(
+      Effect.flatMap(({ projectId }) =>
+        Effect.tryPromise({
+          catch: () =>
+            new AppError({
+              code: "UNAVAILABLE",
+              message: "The budget check could not be completed.",
+            }),
+          try: () => evaluateBudgetAlerts(projectId, new Date()),
         })
       ),
       Effect.asVoid

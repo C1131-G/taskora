@@ -180,6 +180,15 @@ export const triageBug = async (
   });
 };
 
+// A bug that ended without a fix cannot be the original of a duplicate: the
+// duplicate would wait on a fix that is never coming.
+const isNeverFixed = (bug: { status: string; resolution: string | null }) =>
+  bug.status === "duplicate" ||
+  bug.status === "withdrawn" ||
+  (bug.status === "closed" &&
+    bug.resolution !== "fixed" &&
+    bug.resolution !== "confirmed");
+
 export const addBugRelation = async (
   transaction: Transaction,
   actorId: string,
@@ -203,6 +212,11 @@ export const addBugRelation = async (
   const target = await loadBug(transaction, input.relatedBugId);
   if (source.bug.id === target.bug.id) {
     required("A bug report cannot be related to itself.");
+  }
+  if (input.type === "duplicate" && isNeverFixed(target.bug)) {
+    required(
+      "That bug was closed without a fix. Link to a bug that is still open or was fixed."
+    );
   }
   const existing = await transaction.orm.public.BugRelation.where({
     fromBugReportId: source.bug.id,

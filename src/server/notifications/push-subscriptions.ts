@@ -27,16 +27,6 @@ export const register: PushNotifications["Service"]["register"] = (
       }
       validateEndpoint(input.endpoint);
       await requireActiveUser(userId);
-      const existing = await db.orm.public.PushSubscription.where({
-        endpoint: input.endpoint,
-      }).first();
-      if (existing && existing.userId !== userId) {
-        throw new AppError({
-          code: "CONFLICT",
-          message:
-            "This push endpoint is already registered to another account.",
-        });
-      }
       const now = new Date();
       await db.orm.public.PushSubscription.upsert({
         conflictOn: { endpoint: input.endpoint },
@@ -49,10 +39,13 @@ export const register: PushNotifications["Service"]["register"] = (
           userAgent: input.userAgent,
           userId,
         },
+        // A browser endpoint belongs to whoever is signed in on it now, so a
+        // registration from another account moves it to this user.
         update: {
           keys: input.keys,
           updatedAt: now,
           userAgent: input.userAgent,
+          userId,
         },
       });
     },

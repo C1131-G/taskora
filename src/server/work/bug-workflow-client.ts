@@ -6,6 +6,7 @@ import {
   ASK_CLIENT_FROM_STATUSES,
   CLOSE_NOT_A_BUG_FROM_STATUSES,
 } from "./bug-status-edges";
+import { transitionBugStatus } from "./bug-workflow";
 import {
   NEEDS_INFO_REMINDER_AFTER_MS,
   NEEDS_INFO_AUTOCLOSE_AFTER_MS,
@@ -203,6 +204,58 @@ export const handOverClientDuplicates = async (
   return duplicates.length;
 };
 
+// When the original is closed as not a bug, no fix is coming, so every client
+// report merged into it is closed too, with the same reason shown to its client.
+const closeClientDuplicates = async (
+  transaction: Transaction,
+  originalBugId: string,
+  actorId: string,
+  now: Date,
+  reason: string
+): Promise<void> => {
+  const relations = await transaction.orm.public.BugRelation.where({
+    toBugReportId: originalBugId,
+    type: "duplicate",
+  })
+    .select("fromBugReportId")
+    .all();
+  if (relations.length === 0) {
+    return;
+  }
+  const duplicates = await transaction.orm.public.BugReport.where((bug) =>
+    and(
+      bug.id.in(relations.map(({ fromBugReportId }) => fromBugReportId)),
+      bug.clientCompanyId.isNotNull(),
+      bug.status.eq("duplicate")
+    )
+  )
+    .select("id")
+    .all();
+  // Each close reads and writes only its own bug and task rows, so they are
+  // queued together on the transaction.
+  await Promise.all(
+    duplicates.map(async (duplicate) => {
+      const { bug, task } = await loadBug(transaction, duplicate.id);
+      await updateBugStatus(transaction, {
+        actorId,
+        bug,
+        details: { duplicateOf: originalBugId, reason: "not_a_bug" },
+        fields: { resolution: "not_a_bug" },
+        nextStatus: "closed",
+        now,
+      });
+      await createCommentInTransaction(transaction, {
+        actorId,
+        body: reason,
+        clientNotice:
+          "Your bug report was closed because it duplicates a report that is not a bug",
+        taskId: task.id,
+        visibility: "public",
+      });
+    })
+  );
+};
+
 // An assignee or admin closes a client report that is not a bug, with the
 // reason shown to the client as a public reply.
 export const closeClientBugAsNotABug = async (
@@ -230,6 +283,12 @@ export const closeClientBugAsNotABug = async (
   if (!input.reason.trim()) {
     required("Tell the client why this is not a bug.");
   }
+  transitionBugStatus({
+    actorRole: actor.role,
+    closesClientReportAsNotABug: true,
+    currentStatus: bug.status,
+    nextStatus: "closed",
+  });
   const now = new Date();
   const receipt = await updateBugStatus(transaction, {
     actorId,
@@ -250,5 +309,6 @@ export const closeClientBugAsNotABug = async (
     taskId: task.id,
     visibility: "public",
   });
+  await closeClientDuplicates(transaction, bug.id, actorId, now, input.reason);
   return receipt;
 };

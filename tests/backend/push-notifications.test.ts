@@ -209,3 +209,55 @@ it("removes expired provider endpoints so later deliveries stop retrying them", 
     await authPool.query('DELETE FROM "user" WHERE id = $1', [userId]);
   }
 });
+
+it("moves a push endpoint to the account that registers it next", async () => {
+  const first = randomUUID();
+  const second = randomUUID();
+  const endpoint = `https://fcm.googleapis.com/${randomUUID()}`;
+  await authPool.query(
+    'INSERT INTO "user" (id, name, email, "emailNormalized", role, "mustChangePassword") VALUES ($1, $2, $3, $3, \'employee\', false), ($4, $5, $6, $6, \'employee\', false)',
+    [
+      first,
+      "Shared Device One",
+      `${first}@push-test.example`,
+      second,
+      "Shared Device Two",
+      `${second}@push-test.example`,
+    ]
+  );
+  try {
+    const subscription = {
+      endpoint,
+      keys: { auth: "auth-key-123456", p256dh: "public-key-1234567890" },
+      userAgent: "shared browser",
+    };
+    await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* registerBoth() {
+          const push = yield* PushNotifications;
+          yield* push.register(first, subscription);
+          yield* push.register(second, subscription);
+        }),
+        Layer.provide(
+          PushNotificationsLive,
+          Layer.succeed(
+            PushTransport,
+            PushTransport.of({ send: () => Effect.succeed("delivered") })
+          )
+        )
+      )
+    );
+    const rows = await authPool.query<{ userId: string }>(
+      'SELECT "userId" FROM push_subscription WHERE endpoint = $1',
+      [endpoint]
+    );
+    expect(rows.rows).toEqual([{ userId: second }]);
+  } finally {
+    await authPool.query("DELETE FROM push_subscription WHERE endpoint = $1", [
+      endpoint,
+    ]);
+    await authPool.query('DELETE FROM "user" WHERE id = ANY($1)', [
+      [first, second],
+    ]);
+  }
+});

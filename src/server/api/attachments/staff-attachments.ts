@@ -75,7 +75,12 @@ export const listWorkspaceAttachments = (
       Effect.gen(function* list() {
         const uploads = yield* Uploads;
         const files = yield* uploads.listTaskFiles(user.id, input.query.taskId);
-        return { items: yield* summarizeFiles(files.map(({ id }) => id)) };
+        return {
+          items: yield* summarizeFiles(
+            files.map(({ id }) => id),
+            { readyOnly: true }
+          ),
+        };
       })
   );
 

@@ -240,6 +240,12 @@ it("completes report, evidence, verification, approval, release, and closure wit
     expect(outcome.triage.status).toBe("triaged");
     expect(outcome.closed.status).toBe("closed");
     expect(outcome.missingEvidenceSubmission._tag).toBe("Failure");
+    // An internal close records the bug as fixed.
+    const closedRow = await authPool.query<{ resolution: string | null }>(
+      "SELECT resolution FROM bug_report WHERE id = $1",
+      [bugId]
+    );
+    expect(closedRow.rows[0]?.resolution).toBe("fixed");
     expect(outcome.history.approvals).toHaveLength(1);
     expect(outcome.history.approvals[0]).toMatchObject({ status: "approved" });
     expect(outcome.history.attempts[0]).toMatchObject({
@@ -261,6 +267,52 @@ it("completes report, evidence, verification, approval, release, and closure wit
       postReleaseCheckPassed: true,
       version: "3.0.1",
     });
+  } finally {
+    await removeLifecycleRecords(ids, taskId, bugId);
+  }
+});
+
+// A passed verification can be wrong: the assignee sends the bug back to
+// fixing, and only from verification.
+it("sends a verified bug back to fixing", async () => {
+  const ids: LifecycleIds = {
+    adminId: randomUUID(),
+    employeeId: randomUUID(),
+    projectId: randomUUID(),
+  };
+  await seedLifecycleRecords(ids);
+  let taskId: string | null = null;
+  let bugId: string | null = null;
+  try {
+    const outcome = await Effect.runPromise(
+      Effect.gen(function* backToFixing() {
+        const workflow = yield* BugWorkflowManagement;
+        const { report, triage } = yield* reportAndTriage(ids);
+        ({ id: bugId, taskId } = report);
+        const early = yield* Effect.exit(
+          workflow.returnToFixing(ids.employeeId, {
+            bugId: report.id,
+            expectedVersion: triage.version,
+          })
+        );
+        const fix = yield* failThenPassFix(
+          ids.employeeId,
+          report.id,
+          triage.version
+        );
+        const back = yield* workflow.returnToFixing(ids.employeeId, {
+          bugId: report.id,
+          expectedVersion: fix.version,
+        });
+        return { back, early };
+      }).pipe(
+        Effect.provide(BugManagementLive),
+        Effect.provide(BugWorkflowManagementLive),
+        Effect.provide(BugHistoryLive)
+      )
+    );
+    expect(outcome.early._tag).toBe("Failure");
+    expect(outcome.back.status).toBe("in_progress");
   } finally {
     await removeLifecycleRecords(ids, taskId, bugId);
   }

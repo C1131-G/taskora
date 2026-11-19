@@ -424,7 +424,45 @@ it("raises the alert from a logged time entry", async () => {
       TimeTrackingLive
     )
   );
+  // The check is queued as a job, not run while the time is saved.
+  expect(await notificationCount(adminId)).toBe(before);
+  const queued = await authPool.query<{ id: string }>(
+    "SELECT id FROM job WHERE kind = 'budget.evaluate' AND payload->>'projectId' = $1",
+    [projectId]
+  );
+  expect(queued.rows).toHaveLength(1);
+  await evaluateBudgetAlerts(projectId, new Date());
   expect(await notificationCount(adminId)).toBeGreaterThan(before);
+  await authPool.query(
+    "DELETE FROM job WHERE kind = 'budget.evaluate' AND payload->>'projectId' = $1",
+    [projectId]
+  );
+});
+
+it("announces again after the hours or the warning level are edited", async () => {
+  await clearEntries();
+  await budgets((service) =>
+    service.save(adminId, projectId, retainer, OCTOBER)
+  );
+  const before = await notificationCount(adminId);
+  await logMinutes(500, "2026-10-02");
+  await evaluateBudgetAlerts(projectId, OCTOBER);
+  expect(await notificationCount(adminId)).toBe(before + 1);
+  // More hours: 500 of 700 is under the warning, nothing is said.
+  await budgets((service) =>
+    service.save(
+      adminId,
+      projectId,
+      { ...retainer, budgetMinutes: 700 },
+      OCTOBER
+    )
+  );
+  expect(await notificationCount(adminId)).toBe(before + 1);
+  // Crossing the new warning level announces again in the same period.
+  await logMinutes(100, "2026-10-03");
+  await evaluateBudgetAlerts(projectId, OCTOBER);
+  expect(await notificationCount(adminId)).toBe(before + 2);
+  await clearEntries();
 });
 
 it("stops tracking when the budget is cleared", async () => {

@@ -106,11 +106,23 @@ const save = (
       await requireAdmin(actorId);
       validateInput(input);
       await requireProject(projectId);
+      const before = await db.orm.public.ProjectBudget.where({
+        projectId,
+      }).first();
       const row = await db.orm.public.ProjectBudget.upsert({
         conflictOn: { projectId },
         create: { ...input, createdAt: now, projectId, updatedAt: now },
         update: { ...input, updatedAt: now },
       });
+      // Changing the hours or the warning level starts the alerts over, so the
+      // new limits warn again even in a period that already warned.
+      if (
+        before &&
+        (before.budgetMinutes !== row.budgetMinutes ||
+          before.warningPercent !== row.warningPercent)
+      ) {
+        await db.orm.public.ProjectBudgetAlert.where({ projectId }).delete();
+      }
       await evaluateBudgetAlerts(projectId, now);
       return await toView(row, now, await companyTimeZone(), true);
     },

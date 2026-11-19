@@ -17,11 +17,18 @@ import {
   createClient,
   signIn,
   cookieOf,
-  lastActiveMs,
   installHooks,
 } from "./support/client-security-fixtures";
 
 installHooks();
+
+const sessionActiveMs = async (userId: string): Promise<number> => {
+  const result = await authPool.query<{ at: Date | null }>(
+    'SELECT max("lastActiveAt") AS at FROM session WHERE "userId" = $1',
+    [userId]
+  );
+  return result.rows[0]?.at?.getTime() ?? 0;
+};
 
 const portalAccess = (headers: Headers) =>
   runEffectResult(
@@ -42,32 +49,32 @@ it("signs a client out after two idle hours and tracks activity at most once a m
 
   // Active a moment ago: nothing to write.
   await authPool.query(
-    `UPDATE "user" SET "lastActiveAt" = now() - interval '10 seconds' WHERE id = $1`,
+    `UPDATE session SET "lastActiveAt" = now() - interval '10 seconds' WHERE "userId" = $1`,
     [client.id]
   );
-  const before = await lastActiveMs(client.id);
+  const before = await sessionActiveMs(client.id);
   expect(await portalAccess(headers)).toMatchObject({ ok: true });
-  expect(await lastActiveMs(client.id)).toBe(before);
+  expect(await sessionActiveMs(client.id)).toBe(before);
 
   // Quiet for 90 seconds: the activity time moves forward.
   await authPool.query(
-    `UPDATE "user" SET "lastActiveAt" = now() - interval '90 seconds' WHERE id = $1`,
+    `UPDATE session SET "lastActiveAt" = now() - interval '90 seconds' WHERE "userId" = $1`,
     [client.id]
   );
-  const stale = await lastActiveMs(client.id);
+  const stale = await sessionActiveMs(client.id);
   expect(await portalAccess(headers)).toMatchObject({ ok: true });
-  expect(await lastActiveMs(client.id)).toBeGreaterThan(stale);
+  expect(await sessionActiveMs(client.id)).toBeGreaterThan(stale);
 
   // An hour and a half is still fine.
   await authPool.query(
-    `UPDATE "user" SET "lastActiveAt" = now() - interval '110 minutes' WHERE id = $1`,
+    `UPDATE session SET "lastActiveAt" = now() - interval '110 minutes' WHERE "userId" = $1`,
     [client.id]
   );
   expect(await portalAccess(headers)).toMatchObject({ ok: true });
 
   // More than two hours idle ends the session.
   await authPool.query(
-    `UPDATE "user" SET "lastActiveAt" = now() - interval '121 minutes' WHERE id = $1`,
+    `UPDATE session SET "lastActiveAt" = now() - interval '121 minutes' WHERE "userId" = $1`,
     [client.id]
   );
   const idle = await portalAccess(headers);
@@ -83,6 +90,33 @@ it("signs a client out after two idle hours and tracks activity at most once a m
   // The session is gone, so the next request is just signed out.
   expect(await portalAccess(headers)).toMatchObject({
     error: { code: "UNAUTHENTICATED", message: "Sign in to continue." },
+    ok: false,
+  });
+});
+
+// Idle time belongs to one session: activity on another device does not keep
+// a forgotten session alive.
+it("ends an idle session even while the same client is active elsewhere", async () => {
+  const client = await createClient();
+  const forgotten = new Headers({
+    cookie: cookieOf(await signIn(client.email, client.password)),
+  });
+  const active = new Headers({
+    cookie: cookieOf(await signIn(client.email, client.password)),
+  });
+  expect(await portalAccess(forgotten)).toMatchObject({ ok: true });
+  expect(await portalAccess(active)).toMatchObject({ ok: true });
+  const sessions = await authPool.query<{ id: string }>(
+    'SELECT id FROM session WHERE "userId" = $1 ORDER BY "createdAt"',
+    [client.id]
+  );
+  await authPool.query(
+    `UPDATE session SET "lastActiveAt" = now() - interval '121 minutes' WHERE id = $1`,
+    [sessions.rows[0]?.id]
+  );
+  expect(await portalAccess(active)).toMatchObject({ ok: true });
+  expect(await portalAccess(forgotten)).toMatchObject({
+    error: { message: "Signed out for inactivity." },
     ok: false,
   });
 });

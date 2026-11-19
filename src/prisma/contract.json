@@ -8082,6 +8082,13 @@
                   "kind": "scalar"
                 }
               },
+              "lastActiveAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
               "token": {
                 "nullable": false,
                 "type": {
@@ -8145,6 +8152,9 @@
                 },
                 "ipAddress": {
                   "column": "ipAddress"
+                },
+                "lastActiveAt": {
+                  "column": "lastActiveAt"
                 },
                 "token": {
                   "column": "token"
@@ -9855,6 +9865,13 @@
                   "kind": "scalar"
                 }
               },
+              "lastFailedLoginAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
               "lockedUntil": {
                 "nullable": true,
                 "type": {
@@ -10502,6 +10519,9 @@
                 },
                 "lastActiveAt": {
                   "column": "lastActiveAt"
+                },
+                "lastFailedLoginAt": {
+                  "column": "lastFailedLoginAt"
                 },
                 "lockedUntil": {
                   "column": "lockedUntil"
@@ -13249,8 +13269,8 @@
                   "prefix": "bug_report_resolution_check"
                 },
                 {
-                  "expression": "\"resolution\" IS NULL OR \"status\" = 'closed'",
-                  "name": "bug_report_resolution_closed_dba429df",
+                  "expression": "(\"status\" = 'closed') = (\"resolution\" IS NOT NULL)",
+                  "name": "bug_report_resolution_closed_b8d5a64c",
                   "prefix": "bug_report_resolution_closed"
                 },
                 {
@@ -18119,6 +18139,11 @@
                   "dataType": "pg/text",
                   "nullable": true
                 },
+                "lastActiveAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
                 "token": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -19458,8 +19483,8 @@
                   "prefix": "upload_size_valid"
                 },
                 {
-                  "expression": "state IN ('pending', 'finalized', 'failed', 'removed')",
-                  "name": "upload_state_valid_f79005c7",
+                  "expression": "state IN ('pending', 'finalized', 'removed')",
+                  "name": "upload_state_valid_7792647d",
                   "prefix": "upload_state_valid"
                 }
               ],
@@ -19801,6 +19826,11 @@
                   "nullable": true
                 },
                 "lastActiveAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "lastFailedLoginAt": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
                   "nullable": true
@@ -20543,7 +20573,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "af6ecd66fd2aaddd35dc4c9a0a33ff8ba394c2d30cf839494cb61c02f471c2a4"
+    "storageHash": "e4dc20acb298e9934090c81403a317ddeb57735bdd626142b9a55e0984cf10bb"
   },
   "execution": {
     "executionHash": "3ef83339784932ff44a74add40452346987a6331301bd5a1a3b4f9da50f8fc55",

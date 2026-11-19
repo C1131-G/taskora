@@ -108,6 +108,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   const users = [aliceId, bobId, adminId, clientId];
+  await authPool.query("DELETE FROM job WHERE kind = 'budget.evaluate'");
   await authPool.query(
     'DELETE FROM time_entry WHERE "userId" = ANY($1::text[])',
     [users]
@@ -191,6 +192,39 @@ it("keeps one running timer per person and stops the old one when another starts
   expect(
     await failureCode((service) => service.stopTimer(aliceId, new Date()))
   ).toBe("NOT_FOUND");
+});
+
+it("keeps the one-day cap on a timer left running and reports the minutes it dropped", async () => {
+  const started = new Date("2026-10-20T09:00:00.000Z");
+  await time((service) =>
+    service.startTimer(
+      aliceId,
+      { billable: false, note: null, taskId: taskA },
+      started
+    )
+  );
+  // 25 hours later: one day is saved, the last hour is reported as dropped.
+  const stopped = await time((service) =>
+    service.stopTimer(aliceId, new Date("2026-10-21T10:00:00.000Z"))
+  );
+  expect(stopped.minutes).toBe(1440);
+  expect(stopped.droppedMinutes).toBe(60);
+  // An ordinary stop reports nothing dropped.
+  await time((service) =>
+    service.startTimer(
+      aliceId,
+      { billable: false, note: null, taskId: taskA },
+      started
+    )
+  );
+  const ordinary = await time((service) =>
+    service.stopTimer(aliceId, new Date("2026-10-20T10:00:00.000Z"))
+  );
+  expect(ordinary.droppedMinutes).toBeUndefined();
+  // Later tests total the task's entries, so these two are removed.
+  await authPool.query("DELETE FROM time_entry WHERE id = ANY($1)", [
+    [stopped.id, ordinary.id],
+  ]);
 });
 
 it("totals manual entries per task and keeps billable minutes apart", async () => {

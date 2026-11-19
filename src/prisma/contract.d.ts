@@ -18,7 +18,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'af6ecd66fd2aaddd35dc4c9a0a33ff8ba394c2d30cf839494cb61c02f471c2a4'>;
+  StorageHashBase<'e4dc20acb298e9934090c81403a317ddeb57735bdd626142b9a55e0984cf10bb'>;
 export type ExecutionHash =
   ExecutionHashBase<'3ef83339784932ff44a74add40452346987a6331301bd5a1a3b4f9da50f8fc55'>;
 export type ProfileHash =
@@ -818,6 +818,7 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly impersonatedBy: CodecTypes['pg/text@1']['output'] | null;
       readonly ipAddress: CodecTypes['pg/text@1']['output'] | null;
+      readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
       readonly token: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['output'];
       readonly userAgent: CodecTypes['pg/text@1']['output'] | null;
@@ -954,6 +955,7 @@ export type FieldOutputTypes = {
       readonly image: CodecTypes['pg/text@1']['output'] | null;
       readonly jobTitle: CodecTypes['pg/text@1']['output'] | null;
       readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
+      readonly lastFailedLoginAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
       readonly lockedUntil: CodecTypes['pg/timestamptz-date@1']['output'] | null;
       readonly mustChangePassword: CodecTypes['pg/bool@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
@@ -1593,6 +1595,7 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly impersonatedBy: CodecTypes['pg/text@1']['input'] | null;
       readonly ipAddress: CodecTypes['pg/text@1']['input'] | null;
+      readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['input'] | null;
       readonly token: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['input'];
       readonly userAgent: CodecTypes['pg/text@1']['input'] | null;
@@ -1729,6 +1732,7 @@ export type FieldInputTypes = {
       readonly image: CodecTypes['pg/text@1']['input'] | null;
       readonly jobTitle: CodecTypes['pg/text@1']['input'] | null;
       readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['input'] | null;
+      readonly lastFailedLoginAt: CodecTypes['pg/timestamptz-date@1']['input'] | null;
       readonly lockedUntil: CodecTypes['pg/timestamptz-date@1']['input'] | null;
       readonly mustChangePassword: CodecTypes['pg/bool@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
@@ -2368,6 +2372,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly impersonatedBy: CodecTypes['pg/text@1']['output'] | null;
       readonly ipAddress: CodecTypes['pg/text@1']['output'] | null;
+      readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
       readonly token: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['output'];
       readonly userAgent: CodecTypes['pg/text@1']['output'] | null;
@@ -2504,6 +2509,7 @@ export type StorageColumnTypes = {
       readonly image: CodecTypes['pg/text@1']['output'] | null;
       readonly jobTitle: CodecTypes['pg/text@1']['output'] | null;
       readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
+      readonly lastFailedLoginAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
       readonly lockedUntil: CodecTypes['pg/timestamptz-date@1']['output'] | null;
       readonly mustChangePassword: CodecTypes['pg/bool@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
@@ -3143,6 +3149,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly impersonatedBy: CodecTypes['pg/text@1']['input'] | null;
       readonly ipAddress: CodecTypes['pg/text@1']['input'] | null;
+      readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['input'] | null;
       readonly token: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-date@1']['input'];
       readonly userAgent: CodecTypes['pg/text@1']['input'] | null;
@@ -3279,6 +3286,7 @@ export type StorageColumnInputTypes = {
       readonly image: CodecTypes['pg/text@1']['input'] | null;
       readonly jobTitle: CodecTypes['pg/text@1']['input'] | null;
       readonly lastActiveAt: CodecTypes['pg/timestamptz-date@1']['input'] | null;
+      readonly lastFailedLoginAt: CodecTypes['pg/timestamptz-date@1']['input'] | null;
       readonly lockedUntil: CodecTypes['pg/timestamptz-date@1']['input'] | null;
       readonly mustChangePassword: CodecTypes['pg/bool@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
@@ -4143,6 +4151,7 @@ export namespace Models {
     id: CodecTypes['pg/text@1']['output'];
     impersonatedBy: CodecTypes['pg/text@1']['output'] | null;
     ipAddress: CodecTypes['pg/text@1']['output'] | null;
+    lastActiveAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
     token: CodecTypes['pg/text@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-date@1']['output'];
     userAgent: CodecTypes['pg/text@1']['output'] | null;
@@ -4338,6 +4347,7 @@ export namespace Models {
     image: CodecTypes['pg/text@1']['output'] | null;
     jobTitle: CodecTypes['pg/text@1']['output'] | null;
     lastActiveAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
+    lastFailedLoginAt: CodecTypes['pg/timestamptz-date@1']['output'] | null;
     lockedUntil: CodecTypes['pg/timestamptz-date@1']['output'] | null;
     mustChangePassword: CodecTypes['pg/bool@1']['output'];
     name: CodecTypes['pg/text@1']['output'];
@@ -10185,6 +10195,12 @@ type ContractBase = Omit<
                   readonly nullable: true;
                   readonly many: false;
                 };
+                readonly lastActiveAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly token: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -11526,6 +11542,12 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly lastActiveAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastFailedLoginAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
                   readonly nullable: true;
@@ -16958,6 +16980,13 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly lastActiveAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                };
+              };
               readonly token: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -16998,6 +17027,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly impersonatedBy: { readonly column: 'impersonatedBy' };
                 readonly ipAddress: { readonly column: 'ipAddress' };
+                readonly lastActiveAt: { readonly column: 'lastActiveAt' };
                 readonly token: { readonly column: 'token' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userAgent: { readonly column: 'userAgent' };
@@ -18064,6 +18094,13 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-date@1';
                 };
               };
+              readonly lastFailedLoginAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                };
+              };
               readonly lockedUntil: {
                 readonly nullable: true;
                 readonly type: {
@@ -18514,6 +18551,7 @@ type ContractBase = Omit<
                 readonly image: { readonly column: 'image' };
                 readonly jobTitle: { readonly column: 'jobTitle' };
                 readonly lastActiveAt: { readonly column: 'lastActiveAt' };
+                readonly lastFailedLoginAt: { readonly column: 'lastFailedLoginAt' };
                 readonly lockedUntil: { readonly column: 'lockedUntil' };
                 readonly mustChangePassword: { readonly column: 'mustChangePassword' };
                 readonly name: { readonly column: 'name' };

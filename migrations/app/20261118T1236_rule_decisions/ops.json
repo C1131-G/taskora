@@ -1,0 +1,283 @@
+[
+  {
+    "id": "dropCheckConstraint.bug_report.bug_report_resolution_closed_dba429df",
+    "label": "Drop check constraint \"bug_report_resolution_closed_dba429df\" on \"bug_report\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "bug_report_resolution_closed_dba429df",
+        "table": "bug_report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"bug_report_resolution_closed_dba429df\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_resolution_closed_dba429df",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"bug_report_resolution_closed_dba429df\"",
+        "sql": "ALTER TABLE \"public\".\"bug_report\" DROP CONSTRAINT \"bug_report_resolution_closed_dba429df\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"bug_report_resolution_closed_dba429df\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_resolution_closed_dba429df",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.upload_intent.upload_state_valid_f79005c7",
+    "label": "Drop check constraint \"upload_state_valid_f79005c7\" on \"upload_intent\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "upload_state_valid_f79005c7",
+        "table": "upload_intent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"upload_state_valid_f79005c7\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "upload_state_valid_f79005c7",
+          "public",
+          "\"public\".\"upload_intent\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"upload_state_valid_f79005c7\"",
+        "sql": "ALTER TABLE \"public\".\"upload_intent\" DROP CONSTRAINT \"upload_state_valid_f79005c7\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"upload_state_valid_f79005c7\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "upload_state_valid_f79005c7",
+          "public",
+          "\"public\".\"upload_intent\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data.rule_decisions.backfillRows",
+    "label": "Mark internally closed bugs as fixed and retire failed upload intents",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "closed bugs without a resolution were closed by a passed post-release check",
+        "sql": "UPDATE \"public\".\"bug_report\" SET \"resolution\" = 'fixed' WHERE \"status\" = 'closed' AND \"resolution\" IS NULL"
+      },
+      {
+        "description": "failed upload intents become removed",
+        "sql": "UPDATE \"public\".\"upload_intent\" SET \"state\" = 'removed' WHERE \"state\" = 'failed'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "every closed bug has a resolution",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"bug_report\" WHERE \"status\" = 'closed' AND \"resolution\" IS NULL) AS \"result\""
+      },
+      {
+        "description": "no upload intent is failed",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"public\".\"upload_intent\" WHERE \"state\" = 'failed') AS \"result\""
+      }
+    ]
+  },
+  {
+    "id": "column.public.session.lastActiveAt",
+    "label": "Add column \"lastActiveAt\" to \"session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastActiveAt",
+        "table": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastActiveAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "session",
+          "lastActiveAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastActiveAt\"",
+        "sql": "ALTER TABLE \"public\".\"session\" ADD COLUMN \"lastActiveAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastActiveAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "session",
+          "lastActiveAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.user.lastFailedLoginAt",
+    "label": "Add column \"lastFailedLoginAt\" to \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastFailedLoginAt",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastFailedLoginAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "lastFailedLoginAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastFailedLoginAt\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD COLUMN \"lastFailedLoginAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastFailedLoginAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "lastFailedLoginAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.bug_report.bug_report_resolution_closed_b8d5a64c",
+    "label": "Add check constraint \"bug_report_resolution_closed_b8d5a64c\" on \"bug_report\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "bug_report_resolution_closed_b8d5a64c",
+        "table": "bug_report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"bug_report_resolution_closed_b8d5a64c\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_resolution_closed_b8d5a64c",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"bug_report_resolution_closed_b8d5a64c\"",
+        "sql": "ALTER TABLE \"public\".\"bug_report\" ADD CONSTRAINT \"bug_report_resolution_closed_b8d5a64c\" CHECK ((\"status\" = 'closed') = (\"resolution\" IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"bug_report_resolution_closed_b8d5a64c\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "bug_report_resolution_closed_b8d5a64c",
+          "public",
+          "\"public\".\"bug_report\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.upload_intent.upload_state_valid_7792647d",
+    "label": "Add check constraint \"upload_state_valid_7792647d\" on \"upload_intent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "upload_state_valid_7792647d",
+        "table": "upload_intent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"upload_state_valid_7792647d\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "upload_state_valid_7792647d",
+          "public",
+          "\"public\".\"upload_intent\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"upload_state_valid_7792647d\"",
+        "sql": "ALTER TABLE \"public\".\"upload_intent\" ADD CONSTRAINT \"upload_state_valid_7792647d\" CHECK (state IN ('pending', 'finalized', 'removed'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"upload_state_valid_7792647d\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "upload_state_valid_7792647d",
+          "public",
+          "\"public\".\"upload_intent\""
+        ]
+      }
+    ]
+  }
+]

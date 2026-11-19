@@ -74,7 +74,7 @@ it("requires successful verification before approval submission", () => {
   expect(() =>
     transitionBugStatus({
       actorRole: "employee",
-      currentStatus: "in_progress",
+      currentStatus: "in_verification",
       nextStatus: "awaiting_admin_approval",
     })
   ).toThrow("A verified fix with before and after evidence is required.");

@@ -1,12 +1,12 @@
 import { Schema } from "effect";
 
 // The one list of upload intent states. It matches the database CHECK
-// `upload_state_valid_f79005c7`. Nothing writes "failed" yet.
+// `upload_state_valid`: an upload that cannot finish is
+// removed, and a failed copy shows on the file's own copy state.
 export const UploadIntentStateSchema = Schema.Literals([
   "pending",
   "finalized",
   "removed",
-  "failed",
 ]);
 export type UploadIntentState = typeof UploadIntentStateSchema.Type;
 

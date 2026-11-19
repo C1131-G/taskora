@@ -165,6 +165,9 @@ export const BugApprovalReleaseSection = ({
       {activeRelease && status === "released" ? (
         <section className="panel panel-b bug-detail-section">
           <h2>Post-release check</h2>
+          <p className="muted">
+            A failed check keeps the bug released so it can be checked again.
+          </p>
           <form
             className="bug-inline-form"
             onSubmit={(event) =>

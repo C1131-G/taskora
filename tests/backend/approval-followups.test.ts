@@ -182,7 +182,8 @@ it("gives no link for a foreign company, an unshared project or a cancelled requ
       requestId: id,
     })
   );
-  expect(await approvalIdFor("client", "Followup launch")).toBeNull();
+  // A cancelled request's notice is hidden from the web portal.
+  expect(await approvalIdFor("client", "Followup launch")).toBeUndefined();
 });
 
 it("links a re-request to its own version only", async () => {
@@ -199,7 +200,8 @@ it("links a re-request to its own version only", async () => {
   const idOf = (prefix: string) =>
     items.find(({ text }) => text.startsWith(prefix))?.approvalId;
   expect(idOf("Approval requested again")).toBe(second.id);
-  expect(idOf("Approval requested:")).toBeNull();
+  // The first request was cancelled, so its notice is no longer listed.
+  expect(idOf("Approval requested:")).toBeUndefined();
 });
 
 interface ProjectRequest {
@@ -319,4 +321,41 @@ it("offers the request form's choices to administrators only", async () => {
     files: [],
     milestones: [],
   });
+});
+
+it("cancels a pending request when its milestone is deleted", async () => {
+  await clear();
+  const doomedId = randomUUID();
+  await authPool.query(
+    "INSERT INTO project_milestone (id, \"projectId\", name, position) VALUES ($1, $2, 'Doomed launch', 1)",
+    [doomedId, fixture.projectId]
+  );
+  const { id } = okData<Receipt>(
+    await requestMilestone({ milestoneId: doomedId })
+  );
+  const project = await authPool.query<{ version: number }>(
+    "SELECT version FROM project WHERE id = $1",
+    [fixture.projectId]
+  );
+  const projects = await import("../../features/projects/projects-actions");
+  okData(
+    await callAs("admin", projects.saveProjectMilestonesAction, {
+      expectedVersion: project.rows[0]?.version,
+      idempotencyKey: nextKey(),
+      milestones: [
+        {
+          completed: false,
+          dueDate: null,
+          id: fixture.milestoneId,
+          name: "Followup launch",
+        },
+      ],
+      projectId: fixture.projectId,
+    })
+  );
+  const row = await authPool.query<{ status: string }>(
+    "SELECT status FROM approval_request WHERE id = $1",
+    [id]
+  );
+  expect(row.rows[0]?.status).toBe("cancelled");
 });

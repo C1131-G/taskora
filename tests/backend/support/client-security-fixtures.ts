@@ -115,11 +115,6 @@ export const failedCount = async (userId: string): Promise<number> => {
   return row.failedLoginCount;
 };
 
-export const lastActiveMs = async (userId: string): Promise<number> => {
-  const row = await loginState(userId);
-  return row.lastActiveAt?.getTime() ?? 0;
-};
-
 export const auditTypes = async (subjectId: string): Promise<string[]> => {
   const result = await authPool.query<{ type: string }>(
     'SELECT type FROM audit_event WHERE "subjectUserId" = $1 ORDER BY "createdAt", id',

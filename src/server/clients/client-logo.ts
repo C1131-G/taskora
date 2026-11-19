@@ -93,15 +93,30 @@ export const makeClientLogos = (storage: StorageApi) => {
           actorId,
           input.companyId
         );
+        // A retry of a finalize that already saved gets the saved result back.
+        if (intent.state === "finalized") {
+          const company = await loadCompany(transaction, input.companyId);
+          if (company.logoAssetId === input.uploadIntentId) {
+            return {
+              receipt: {
+                companyId: company.id,
+                version: company.version,
+              } satisfies ClientCompanyReceipt,
+            };
+          }
+        }
         assertPendingIntent(intent);
-        return intent;
+        return { intent };
       });
+      if ("receipt" in found) {
+        return found.receipt;
+      }
       // The object must be in storage, with the declared type and size,
       // before the company points at it.
       yield* storage.verifyObject(
-        found.objectKey,
-        found.contentType,
-        Number(found.sizeBytes)
+        found.intent.objectKey,
+        found.intent.contentType,
+        Number(found.intent.sizeBytes)
       );
       return yield* adminTransaction(actorId, async (transaction) => {
         const intent = assertLogoIntent(
