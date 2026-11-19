@@ -108,6 +108,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   const users = [aliceId, bobId, adminId, clientId];
+  await authPool.query("DELETE FROM job WHERE kind = 'budget.evaluate'");
   await authPool.query(
     'DELETE FROM time_entry WHERE "userId" = ANY($1::text[])',
     [users]
