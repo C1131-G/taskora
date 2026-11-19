@@ -88,9 +88,11 @@ test.describe("scheduling", () => {
     const sourceAdd = await sourceCell
       .getByRole("button", { name: /^Add task on /u })
       .getAttribute("aria-label");
-    const targetCell = page
-      .locator(".cday:not(.out):not(:has(.cal-chip)):has(.calendar-add-task)")
-      .first();
+    // The nearest empty day before the chip, so source and target sit on screen
+    // together: a target a scroll away from the chip never receives the drop.
+    const targetCell = sourceCell.locator(
+      "xpath=preceding-sibling::div[contains(@class,'cday')][not(contains(@class,' out'))][not(.//*[contains(@class,'cal-chip')])][.//*[contains(@class,'calendar-add-task')]][1]"
+    );
     const targetAdd = await targetCell
       .getByRole("button", { name: /^Add task on /u })
       .getAttribute("aria-label");
