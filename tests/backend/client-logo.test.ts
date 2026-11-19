@@ -181,16 +181,16 @@ it("lets an admin upload a client logo and returns a signed URL for it", async (
   );
   expect(activity.rowCount).toBeGreaterThan(0);
 
-  // An upload ticket can be finalized once; a stale version is refused.
+  // A retry of a finalize that already saved gets the saved result back.
   expect(
-    await failureCode((logos) =>
+    await succeed((logos) =>
       logos.finalizeLogoUpload(personaId("admin"), {
         companyId: ids.clientCompanyId,
         expectedVersion: receipt.version,
         uploadIntentId: ticket.uploadIntentId,
       })
     )
-  ).toBe("CONFLICT");
+  ).toEqual({ companyId: ids.clientCompanyId, version: receipt.version });
   const second = await succeed((logos) =>
     logos.requestLogoUpload(personaId("admin"), {
       companyId: ids.clientCompanyId,

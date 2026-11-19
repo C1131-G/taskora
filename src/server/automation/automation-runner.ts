@@ -283,3 +283,22 @@ export const runAutomationEvent = async (
     throw retry;
   }
 };
+
+// A job that ran out of attempts never wrote its run rows. Each enabled rule
+// of the event gets a failed row, so the run history shows the event was lost;
+// a rule that already logged this event keeps its own row.
+export const recordDeadAutomationJob = async (
+  payload: AutomationJobPayload,
+  reason: string,
+  now: Date = new Date()
+): Promise<void> => {
+  const rules = await db.orm.public.AutomationRule.where({
+    enabled: true,
+    projectId: payload.projectId,
+    trigger: payload.trigger,
+  }).all();
+  for (const rule of rules) {
+    // eslint-disable-next-line no-await-in-loop
+    await recordFailure(payload, rule.id, reason, now);
+  }
+};

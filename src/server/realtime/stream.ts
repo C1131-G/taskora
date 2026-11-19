@@ -20,6 +20,8 @@ interface StreamOptions {
   readonly signal: AbortSignal;
   // Runs the onPing on every heartbeat and returns a function that stops it.
   readonly schedulePing: (onPing: () => void) => () => void;
+  // Asked on every heartbeat: a stream whose session was revoked is closed.
+  readonly isSessionActive?: () => Promise<boolean>;
 }
 
 const encoder = new TextEncoder();
@@ -88,6 +90,18 @@ export const createRealtimeStream = (
     },
   };
 
+  // A revoked session ends its stream at the next heartbeat. A failed check
+  // leaves the stream open; the next heartbeat asks again.
+  const closeIfRevoked = async (): Promise<void> => {
+    try {
+      if (options.isSessionActive && !(await options.isSessionActive())) {
+        sink.close();
+      }
+    } catch {
+      // Ask again on the next heartbeat.
+    }
+  };
+
   return new ReadableStream<Uint8Array>({
     cancel: () => {
       teardown();
@@ -105,6 +119,7 @@ export const createRealtimeStream = (
       }
       stopPing = options.schedulePing(() => {
         write(encoder.encode(": ping\n\n"));
+        void closeIfRevoked();
       });
       const release = await options.hub.subscribe(options.viewer, sink);
       if (ended) {

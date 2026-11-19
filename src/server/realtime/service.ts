@@ -4,6 +4,7 @@ import { Client } from "pg";
 
 import { db } from "@/src/prisma/db";
 
+import { auth } from "../auth/auth";
 import { AuthSession, AuthSessionLive } from "../auth/session";
 import { AppError } from "../core/action-result";
 import type { AppErrorCode } from "../core/action-result";
@@ -147,8 +148,21 @@ export const openRealtimeResponse = async (
   if (!outcome.ok) {
     return failure(outcome.error);
   }
+  const current = await auth.api
+    .getSession({ headers: request.headers })
+    .catch(() => null);
+  const sessionId = current?.session.id ?? null;
   const stream = createRealtimeStream({
     hub,
+    isSessionActive: async () => {
+      if (!sessionId) {
+        return true;
+      }
+      const row = await db.orm.public.Session.where({ id: sessionId })
+        .select("expiresAt")
+        .first();
+      return row !== null && row.expiresAt.getTime() > Date.now();
+    },
     lastEventId: request.headers.get("last-event-id"),
     schedulePing: (onPing) => {
       const timer = setInterval(onPing, HEARTBEAT_INTERVAL_MS);

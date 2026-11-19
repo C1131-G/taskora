@@ -65,11 +65,20 @@ const unavailable = () =>
 // activity time moves forward.
 const trackClientActivity = (
   sessionId: string,
-  userId: string,
-  lastActiveAt: Date | null
+  userId: string
 ): Effect.Effect<void, AppError> =>
   Effect.gen(function* trackActivity() {
     const now = Date.now();
+    // Idle time belongs to this session, so another device's activity does
+    // not keep a forgotten session alive.
+    const current = yield* Effect.tryPromise({
+      catch: unavailable,
+      try: () =>
+        db.orm.public.Session.where({ id: sessionId })
+          .select("lastActiveAt")
+          .first(),
+    });
+    const lastActiveAt = current?.lastActiveAt ?? null;
     if (lastActiveAt && now - lastActiveAt.getTime() > CLIENT_IDLE_LIMIT_MS) {
       yield* Effect.tryPromise({
         catch: unavailable,
@@ -86,10 +95,14 @@ const trackClientActivity = (
     if (!lastActiveAt || now - lastActiveAt.getTime() > ACTIVITY_THROTTLE_MS) {
       yield* Effect.tryPromise({
         catch: unavailable,
-        try: () =>
-          db.orm.public.User.where({ id: userId }).update({
+        try: async () => {
+          await db.orm.public.Session.where({ id: sessionId }).update({
             lastActiveAt: new Date(now),
-          }),
+          });
+          await db.orm.public.User.where({ id: userId }).update({
+            lastActiveAt: new Date(now),
+          });
+        },
       });
     }
   });
@@ -118,8 +131,7 @@ const loadSessionUser = (
             "name",
             "deactivatedAt",
             "timeZone",
-            "clientCompanyId",
-            "lastActiveAt"
+            "clientCompanyId"
           )
           .first(),
     });
@@ -140,11 +152,7 @@ const loadSessionUser = (
     }
 
     if (user.role === "client") {
-      yield* trackClientActivity(
-        session.session.id,
-        session.user.id,
-        user.lastActiveAt
-      );
+      yield* trackClientActivity(session.session.id, session.user.id);
     }
 
     return {

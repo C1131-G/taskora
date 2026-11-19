@@ -6,11 +6,13 @@ import type {
   BugEvidenceInput,
   BugFixAttemptInput,
   BugVerificationInput,
+  BugVersionInput,
 } from "./bug-contracts";
 import {
   BugEvidenceInputSchema,
   BugFixAttemptInputSchema,
   BugVerificationInputSchema,
+  BugVersionInputSchema,
 } from "./bug-contracts";
 import { transitionBugStatus } from "./bug-workflow";
 import {
@@ -242,6 +244,46 @@ export const recordVerification = async (
     actorId,
     bugId: bug.id,
     details: { attemptId: attempt.id, outcome: input.outcome },
+    now,
+    projectId: project.id,
+    taskId: task.id,
+  });
+  return result;
+};
+
+// A passed verification can be wrong: the assignee sends the bug back to
+// fixing, and the next fix attempt starts a fresh verification.
+export const returnToFixing = async (
+  transaction: Transaction,
+  actorId: string,
+  rawInput: BugVersionInput
+): Promise<BugWorkflowReceipt> => {
+  const input = Schema.decodeUnknownSync(BugVersionInputSchema)(rawInput);
+  const [actor, { bug, project, task }] = await Promise.all([
+    workspaceActor(transaction, actorId),
+    loadBug(transaction, input.bugId),
+  ]);
+  await assertBugEditor(transaction, actor, bug);
+  assertWritable(bug, task, project);
+  if (
+    bug.version !== input.expectedVersion ||
+    bug.status !== "in_verification"
+  ) {
+    conflict();
+  }
+  const now = new Date();
+  const result = await updateBugStatus(transaction, {
+    actorId,
+    bug,
+    details: { backToFixing: true },
+    nextStatus: "in_progress",
+    now,
+  });
+  await writeActivity(transaction, {
+    action: "bug.returned_to_fixing",
+    actorId,
+    bugId: bug.id,
+    details: {},
     now,
     projectId: project.id,
     taskId: task.id,

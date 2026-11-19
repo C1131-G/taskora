@@ -10,6 +10,8 @@ model Session {
   userAgent      String?
   userId         String
   impersonatedBy String?
+  // The last request this session made; clients are signed out per session.
+  lastActiveAt   TimestamptzJsDate?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

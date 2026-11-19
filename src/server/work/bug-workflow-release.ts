@@ -161,6 +161,7 @@ export const postReleaseCheck = async (
     actorId,
     bug,
     details: { postReleaseCheck: "passed", releaseId: release.id },
+    fields: { resolution: "fixed" },
     nextStatus: "closed",
     now,
   });

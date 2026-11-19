@@ -62,6 +62,6 @@ model BugReport {
   @@check(expression: "(\"status\" = 'needs_info') = (\"needsInfoSince\" IS NOT NULL) AND (\"status\" = 'needs_info') = (\"statusBeforeNeedsInfo\" IS NOT NULL)", name: "bug_report_needs_info_pair")
   @@check(expression: "\"statusBeforeNeedsInfo\" IS NULL OR \"statusBeforeNeedsInfo\" IN ('triaged', 'in_progress', 'in_verification')", name: "bug_report_before_needs_info_valid")
   @@check(expression: "(\"status\" = 'awaiting_client') = (\"awaitingClientSince\" IS NOT NULL)", name: "bug_report_awaiting_client_pair")
-  @@check(expression: "\"resolution\" IS NULL OR \"status\" = 'closed'", name: "bug_report_resolution_closed")
+  @@check(expression: "(\"status\" = 'closed') = (\"resolution\" IS NOT NULL)", name: "bug_report_resolution_closed")
   @@map("bug_report")
 }

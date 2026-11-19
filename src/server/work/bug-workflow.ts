@@ -2,12 +2,14 @@ import { Schema } from "effect";
 
 import { AppError } from "../core/action-result";
 import { BugWorkflowStatusSchema } from "./bug-contracts";
-import { canMoveBug } from "./bug-status-edges";
+import { CLOSE_NOT_A_BUG_FROM_STATUSES, canMoveBug } from "./bug-status-edges";
 
 const BugRoleSchema = Schema.Literals(["admin", "employee"]);
 
 export const BugTransitionInputSchema = Schema.Struct({
   actorRole: BugRoleSchema,
+  // The assignee, not only an admin, may close a client report as not a bug.
+  closesClientReportAsNotABug: Schema.optional(Schema.Boolean),
   currentStatus: BugWorkflowStatusSchema,
   hasSuccessfulPostReleaseCheck: Schema.optional(Schema.Boolean),
   hasVerifiedBeforeAndAfterEvidence: Schema.optional(Schema.Boolean),
@@ -41,6 +43,13 @@ export const transitionBugStatus = (
 ): typeof BugWorkflowStatusSchema.Type => {
   const input = Schema.decodeUnknownSync(BugTransitionInputSchema)(rawInput);
   const { actorRole, currentStatus, nextStatus } = input;
+  if (
+    input.closesClientReportAsNotABug &&
+    nextStatus === "closed" &&
+    CLOSE_NOT_A_BUG_FROM_STATUSES.has(currentStatus)
+  ) {
+    return "closed";
+  }
   if (
     actorRole !== "admin" &&
     currentStatus === "awaiting_admin_approval" &&

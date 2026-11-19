@@ -30,6 +30,8 @@ model User {
   clientCompanyId    Uuid?
   failedLoginCount   Int     @default(0)
   lockedUntil        TimestamptzJsDate?
+  // Failed sign-ins only count within a 15-minute window of this time.
+  lastFailedLoginAt  TimestamptzJsDate?
   lastActiveAt       TimestamptzJsDate?
 
   team             Team?  @relation(fields: [teamId], references: [id], onDelete: SetNull)

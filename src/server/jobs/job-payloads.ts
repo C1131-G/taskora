@@ -84,6 +84,9 @@ export const isClientWaitJob = (
   kind: string
 ): kind is keyof typeof clientWaitJobs =>
   isOneOf(Object.keys(clientWaitJobs), kind);
+export const BudgetCheckPayloadSchema = Schema.Struct({
+  projectId: Schema.String.check(Schema.isUUID()),
+});
 export const UnpickedReminderPayloadSchema = Schema.Struct({
   bugId: Schema.String.check(Schema.isUUID()),
 });

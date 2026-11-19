@@ -106,6 +106,11 @@ export const TimerControl = ({
           toast.error(result.error.message);
           return;
         }
+        if (result.data.droppedMinutes) {
+          toast.warning(
+            `The timer ran past 24 hours. 24 hours were saved and ${result.data.droppedMinutes} minutes were not.`
+          );
+        }
         await onChanged?.();
       } catch {
         toast.error("The timer could not be stopped or refreshed. Try again.");

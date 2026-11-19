@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { and } from "@prisma/orm-postgres/orm-client";
 import { Effect, Schema } from "effect";
 
 import { db } from "@/src/prisma/db";
@@ -178,15 +179,26 @@ export const saveProjectMilestones = (
         const keepIds = new Set(
           milestones.flatMap(({ id }) => (id ? [id] : []))
         );
+        const removedIds = existing.flatMap(({ id }) =>
+          keepIds.has(id) ? [] : [id]
+        );
+        // A request for a milestone that no longer exists cannot be answered:
+        // it is cancelled with the milestone, in the same transaction.
+        if (removedIds.length > 0) {
+          await transaction.orm.public.ApprovalRequest.where((request) =>
+            and(
+              request.milestoneId.in(removedIds),
+              request.status.eq("pending")
+            )
+          ).updateAll({
+            cancelledAt: new Date(),
+            cancelledById: actorId,
+            status: "cancelled",
+          });
+        }
         await Promise.all(
-          existing.flatMap((milestone) =>
-            keepIds.has(milestone.id)
-              ? []
-              : [
-                  transaction.orm.public.ProjectMilestone.where({
-                    id: milestone.id,
-                  }).delete(),
-                ]
+          removedIds.map((id) =>
+            transaction.orm.public.ProjectMilestone.where({ id }).delete()
           )
         );
         await Promise.all(

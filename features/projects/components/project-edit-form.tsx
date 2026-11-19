@@ -51,6 +51,15 @@ const ProjectEditForm = ({
       });
       if (!result.ok) {
         toast.error(result.error.message);
+        return;
+      }
+      // A project may be completed with tasks still open; say how many.
+      if (formData.get("status") === "complete" && project.openTaskCount > 0) {
+        toast.info(
+          `Marked complete with ${project.openTaskCount} open ${
+            project.openTaskCount === 1 ? "task" : "tasks"
+          }.`
+        );
       }
     });
 
@@ -108,7 +117,9 @@ const ProjectEditForm = ({
             <WorkspaceSelectItem value="risk">At Risk</WorkspaceSelectItem>
             <WorkspaceSelectItem value="hold">On Hold</WorkspaceSelectItem>
             <WorkspaceSelectItem value="complete">
-              Completed
+              {project.openTaskCount > 0
+                ? `Completed (${project.openTaskCount} open)`
+                : "Completed"}
             </WorkspaceSelectItem>
           </WorkspaceSelect>
         </label>

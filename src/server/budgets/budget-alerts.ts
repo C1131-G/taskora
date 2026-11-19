@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { db } from "@/src/prisma/db";
 
 import { isUniqueConstraintViolation } from "../core/prisma-errors";
@@ -103,4 +105,30 @@ export const evaluateBudgetAlerts = async (
       throw error;
     }
   }
+};
+
+export const BUDGET_EVALUATION_JOB = "budget.evaluate";
+const MINUTE_MS = 60_000;
+
+// Logging time asks for a budget check without waiting for it: the check runs
+// as a queued job, so a slow or failing alert never delays saving the time.
+// Checks queued within the same minute for one project share a job.
+export const enqueueBudgetEvaluation = async (
+  projectId: string,
+  now: Date
+): Promise<void> => {
+  const dedupeKey = `${BUDGET_EVALUATION_JOB}:${projectId}:${Math.floor(now.getTime() / MINUTE_MS)}`;
+  await db.orm.public.Job.upsert({
+    conflictOn: { dedupeKey },
+    create: {
+      availableAt: now,
+      createdAt: now,
+      dedupeKey,
+      id: randomUUID(),
+      kind: BUDGET_EVALUATION_JOB,
+      payload: { projectId },
+      updatedAt: now,
+    },
+    update: { updatedAt: now },
+  });
 };

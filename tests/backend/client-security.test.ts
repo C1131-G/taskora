@@ -15,6 +15,26 @@ import {
 
 installHooks();
 
+it("counts failed sign-ins only inside a 15-minute window", async () => {
+  const client = await createClient();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await signIn(client.email, "not-the-password-1!");
+  }
+  const counted = await loginState(client.id);
+  expect(counted.failedLoginCount).toBe(3);
+  // The last failure is now older than the window: the next one starts over.
+  await authPool.query(
+    `UPDATE "user" SET "lastFailedLoginAt" = now() - interval '16 minutes' WHERE id = $1`,
+    [client.id]
+  );
+  const failed = await signIn(client.email, "not-the-password-1!");
+  expect(failed.status).toBe(401);
+  const state = await loginState(client.id);
+  expect(state.failedLoginCount).toBe(1);
+  expect(state.lockedUntil).toBeNull();
+});
+
 it("locks an account after five failed sign-ins and keeps it generic", async () => {
   const client = await createClient();
   for (let attempt = 1; attempt <= 4; attempt += 1) {

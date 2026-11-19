@@ -12,15 +12,12 @@ const EDGES: Readonly<Record<Status, readonly Status[]>> = {
   awaiting_admin_approval: ["approved_for_release", "rejected"],
   awaiting_client: ["closed", "triaged", "reported", "in_progress"],
   closed: ["in_progress"],
-  duplicate: ["awaiting_client"],
+  // Handed to its client when the original ships; closed with it when the
+  // original is closed as not a bug.
+  duplicate: ["awaiting_client", "closed"],
   // A move to the same status is the fix attempt being updated in place.
-  in_progress: [
-    "in_progress",
-    "in_verification",
-    "awaiting_admin_approval",
-    "needs_info",
-    "closed",
-  ],
+  in_progress: ["in_progress", "in_verification", "needs_info", "closed"],
+  // "in_progress" is the "Back to fixing" action after a passed verification.
   in_verification: ["in_progress", "awaiting_admin_approval", "needs_info"],
   // Answered, the bug returns to the status it was asked from.
   needs_info: ["triaged", "in_progress", "in_verification", "closed"],

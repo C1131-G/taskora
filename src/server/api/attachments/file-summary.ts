@@ -45,7 +45,9 @@ const toSummary = (file: {
 // The files with these ids as the app lists them, oldest first. Callers decide
 // which ids a person may see; this only shapes them.
 export const summarizeFiles = (
-  fileIds: readonly string[]
+  fileIds: readonly string[],
+  // The mobile list shows a file only once its copy is ready to open.
+  options: { readonly readyOnly?: boolean } = {}
 ): Effect.Effect<readonly AttachmentSummary[], AppError> =>
   Effect.tryPromise({
     catch: () =>
@@ -61,7 +63,11 @@ export const summarizeFiles = (
         .where((file) => file.id.in([...fileIds]))
         .orderBy((file) => file.createdAt.asc())
         .all();
-      return files.map(toSummary);
+      return files.flatMap((file) =>
+        !options.readyOnly || file.copyState === "ready"
+          ? [toSummary(file)]
+          : []
+      );
     },
   });
 

@@ -8,6 +8,7 @@ const NoteSchema = Schema.NullOr(Schema.String);
 
 export const TimeEntryViewSchema = Schema.Struct({
   billable: Schema.Boolean,
+  droppedMinutes: Schema.optional(Schema.Number),
   id: Schema.String,
   minutes: Schema.Number,
   note: NoteSchema,

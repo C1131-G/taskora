@@ -9,6 +9,9 @@ const MONDAY_OFFSET = 6;
 
 export interface TimeEntryView {
   readonly billable: boolean;
+  // Set only on a stopped timer that ran past the one-day cap: the minutes
+  // that were not saved, so the person is told.
+  readonly droppedMinutes?: number | undefined;
   readonly id: string;
   readonly minutes: number;
   readonly note: string | null;

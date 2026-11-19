@@ -1,7 +1,11 @@
 import { Cause, Effect, Exit, Schema } from "effect";
 
+import { AUTOMATION_RULE_JOB } from "../automation/automation-contracts";
+import { AutomationJobPayloadSchema } from "../automation/automation-job";
+import { recordDeadAutomationJob } from "../automation/automation-runner";
 import { AppError } from "../core/action-result";
-import type { JobHandlersApi } from "./job-handlers";
+import { logger } from "../core/logger";
+import type { JobHandlersApi, JsonValue } from "./job-handlers";
 import type {
   ClaimedJob,
   JobBatchResult,
@@ -87,6 +91,21 @@ const workerIdSchema = Schema.String.check(
   )
 );
 
+const logDeadAutomationJob = async (
+  payload: JsonValue,
+  reason: string
+): Promise<void> => {
+  try {
+    const decoded = Schema.decodeUnknownSync(AutomationJobPayloadSchema)(
+      payload
+    );
+    await recordDeadAutomationJob(decoded, reason);
+  } catch (error) {
+    // The dead job is already recorded; a missing history row is not fatal.
+    logger.error("A dead automation job could not be logged.", { error });
+  }
+};
+
 export const makeProcessBatch =
   (handlers: JobHandlersApi, leasePolicy: JobLeasePolicy) =>
   (
@@ -138,9 +157,11 @@ export const makeProcessBatch =
             if (!retryScheduled) {
               return "lease-lost";
             }
-            return permanent || job.attempts >= job.maxAttempts
-              ? "dead-lettered"
-              : "retried";
+            const dead = permanent || job.attempts >= job.maxAttempts;
+            if (dead && job.kind === AUTOMATION_RULE_JOB) {
+              await logDeadAutomationJob(job.payload, errorMessage(exit.cause));
+            }
+            return dead ? "dead-lettered" : "retried";
           })
         );
 

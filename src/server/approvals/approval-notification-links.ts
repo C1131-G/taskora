@@ -52,3 +52,40 @@ export const approvalLinksFor = async (
   }
   return links;
 };
+
+// Notices written for a request that was cancelled afterwards. The web portal
+// leaves them out, as the mobile inbox does, because they lead nowhere.
+export const cancelledApprovalNoticeIds = async (
+  transaction: Transaction,
+  companyId: string,
+  notifications: readonly NotificationRow[]
+): Promise<ReadonlySet<string>> => {
+  const candidates = notifications.filter(
+    ({ projectId, taskId, type }) =>
+      taskId === null && projectId !== null && type === "status"
+  );
+  if (candidates.length === 0) {
+    return new Set();
+  }
+  const cancelled = await transaction.orm.public.ApprovalRequest.where({
+    companyId,
+    status: "cancelled",
+  }).all();
+  const keys = new Set(
+    cancelled.map((request) =>
+      [
+        request.projectId,
+        request.requestedAt.getTime(),
+        request.requestedById,
+        requestNotificationText(request.subjectTitle, request.version),
+      ].join("|")
+    )
+  );
+  return new Set(
+    candidates.flatMap(({ actorId, createdAt, id, projectId, text }) =>
+      keys.has([projectId, createdAt.getTime(), actorId, text].join("|"))
+        ? [id]
+        : []
+    )
+  );
+};

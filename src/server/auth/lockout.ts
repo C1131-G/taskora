@@ -68,11 +68,24 @@ export const clearExpiredLock = async (
 export const recordFailedSignIn = async (
   userId: string
 ): Promise<{ readonly count: number; readonly locked: boolean }> => {
+  // Failures count inside a 15-minute window: an older failure starts the
+  // count again at one.
   const result = await authPool.query<{ count: number }>(
     `UPDATE "user"
-        SET "failedLoginCount" = "failedLoginCount" + 1,
+        SET "failedLoginCount" = CASE
+              WHEN "lastFailedLoginAt" IS NULL
+                OR "lastFailedLoginAt" < now() - make_interval(mins => $3)
+              THEN 1
+              ELSE "failedLoginCount" + 1
+            END,
+            "lastFailedLoginAt" = now(),
             "lockedUntil" = CASE
-              WHEN "failedLoginCount" + 1 >= $2
+              WHEN (CASE
+                      WHEN "lastFailedLoginAt" IS NULL
+                        OR "lastFailedLoginAt" < now() - make_interval(mins => $3)
+                      THEN 1
+                      ELSE "failedLoginCount" + 1
+                    END) >= $2
               THEN now() + make_interval(mins => $3)
               ELSE "lockedUntil"
             END
@@ -86,7 +99,7 @@ export const recordFailedSignIn = async (
 
 export const recordSuccessfulSignIn = async (userId: string): Promise<void> => {
   await authPool.query(
-    'UPDATE "user" SET "failedLoginCount" = 0, "lockedUntil" = NULL, "lastActiveAt" = now() WHERE id = $1',
+    'UPDATE "user" SET "failedLoginCount" = 0, "lockedUntil" = NULL, "lastFailedLoginAt" = NULL, "lastActiveAt" = now() WHERE id = $1',
     [userId]
   );
 };

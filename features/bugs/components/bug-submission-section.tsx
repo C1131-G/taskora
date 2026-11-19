@@ -3,7 +3,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { submitBugApprovalAction } from "@/features/bugs/bugs-actions";
+import {
+  returnBugToFixingAction,
+  submitBugApprovalAction,
+} from "@/features/bugs/bugs-actions";
 
 import type { BugActionRunner, BugHistory } from "../bug-workflow-ui-shared";
 
@@ -53,6 +56,21 @@ export const BugSubmissionSection = ({
         type="button"
       >
         Submit for approval
+      </Button>
+      <Button
+        disabled={pending}
+        onClick={() =>
+          runAction(
+            returnBugToFixingAction({
+              bugId: history.bug.id,
+              expectedVersion: history.bug.version,
+            })
+          )
+        }
+        type="button"
+        variant="outline"
+      >
+        Back to fixing
       </Button>
     </section>
   );

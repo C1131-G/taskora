@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 import { db } from "@/src/prisma/db";
 
-import { evaluateBudgetAlerts } from "../budgets/budget-alerts";
+import { enqueueBudgetEvaluation } from "../budgets/budget-alerts";
 import { AppError } from "../core/action-result";
 import { CalendarDateSchema, UUIDSchema } from "../core/input-schemas";
 import { isUniqueConstraintViolation } from "../core/prisma-errors";
@@ -184,14 +184,15 @@ export const viewOf = async (row: EntryRow): Promise<TimeEntryView> => {
 };
 
 // Logging time can cross a project's budget threshold. The entry is already
-// saved, so a failed budget check must not fail the person's time.
+// saved and the check is queued as a job, so a failure here must not fail the
+// person's time.
 export const checkBudget = async (taskId: string, now: Date): Promise<void> => {
   try {
     const task = await db.orm.public.Task.where({ id: taskId })
       .select("projectId")
       .first();
     if (task) {
-      await evaluateBudgetAlerts(task.projectId, now);
+      await enqueueBudgetEvaluation(task.projectId, now);
     }
   } catch {
     // The next logged entry evaluates the budget again.

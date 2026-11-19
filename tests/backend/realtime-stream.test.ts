@@ -12,7 +12,10 @@ const viewer: RealtimeViewer = {
   role: "employee",
 };
 
-const makeHarness = (lastEventId: string | null = null) => {
+const makeHarness = (
+  lastEventId: string | null = null,
+  isSessionActive?: () => Promise<boolean>
+) => {
   const abort = new AbortController();
   let sink: HubSink | null = null;
   let unsubscribed = 0;
@@ -28,6 +31,7 @@ const makeHarness = (lastEventId: string | null = null) => {
       },
     },
     lastEventId,
+    ...(isSessionActive ? { isSessionActive } : {}),
     schedulePing: (task) => {
       ping = task;
       return () => {
@@ -167,4 +171,25 @@ test("a send after the stream ended is ignored", async () => {
   harness.abort.abort();
   await harness.reader.read();
   expect(() => harness.sink()?.send({ event, type: "event" })).not.toThrow();
+});
+
+test("a heartbeat closes the stream once its session is revoked", async () => {
+  let active = true;
+  const harness = makeHarness(null, () => Promise.resolve(active));
+  await harness.read();
+  harness.firePing();
+  expect(await harness.read()).toContain(": ping");
+  active = false;
+  harness.firePing();
+  await harness.read();
+  expect(await harness.read()).toContain("event: closed");
+  expect(harness.unsubscribed()).toBe(1);
+});
+
+test("a failed session check leaves the stream open", async () => {
+  const harness = makeHarness(null, () => Promise.reject(new Error("down")));
+  await harness.read();
+  harness.firePing();
+  expect(await harness.read()).toContain(": ping");
+  expect(harness.unsubscribed()).toBe(0);
 });

@@ -65,7 +65,9 @@ const saveTimer = async (
     });
   });
   await checkBudget(timer.taskId, now);
-  return await viewOf(row);
+  const view = await viewOf(row);
+  const droppedMinutes = Math.max(elapsed - MAX_ENTRY_MINUTES, 0);
+  return droppedMinutes > 0 ? { ...view, droppedMinutes } : view;
 };
 
 const timerView = async (timer: TimerRow): Promise<RunningTimer> => {

@@ -21,7 +21,7 @@ model UploadIntent {
   project Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
 
   @@check(expression: "\"sizeBytes\" > 0 AND \"sizeBytes\" <= 52428800", name: "upload_size_valid")
-  @@check(expression: "state IN ('pending', 'finalized', 'failed', 'removed')", name: "upload_state_valid")
+  @@check(expression: "state IN ('pending', 'finalized', 'removed')", name: "upload_state_valid")
   @@index([ownerId, state, createdAt])
   @@index([taskId, state])
   @@index([projectId, state])

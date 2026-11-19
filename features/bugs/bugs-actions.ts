@@ -251,3 +251,15 @@ export async function reopenBugAction(input: unknown) {
     )
   );
 }
+
+// eslint-disable-next-line func-style -- Next Server Actions stay named declarations.
+export async function returnBugToFixingAction(input: unknown) {
+  return revalidateBugViews(
+    await runBugWorkflowAction(input, BugVersionInputSchema, (actorId, value) =>
+      Effect.gen(function* returnToFixing() {
+        const service = yield* BugWorkflowManagement;
+        return yield* service.returnToFixing(actorId, value);
+      })
+    )
+  );
+}
