@@ -600,7 +600,6 @@
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--st-review);
   border-radius: var(--r-sm);
   color: var(--text-2);
   display: flex;

@@ -30,7 +30,6 @@
 .workspace-app .approval-request {
   align-items: flex-start;
   border-bottom: 1px solid var(--divider);
-  border-left: 3px solid var(--border-strong);
   display: flex;
   gap: 16px;
   justify-content: space-between;
@@ -42,15 +41,6 @@
 }
 .workspace-app .approval-request:hover {
   background: var(--surface-2);
-}
-.workspace-app .approval-request[data-approval-status="approved"] {
-  border-left-color: var(--st-done);
-}
-.workspace-app .approval-request[data-approval-status="changes_requested"] {
-  border-left-color: var(--st-progress);
-}
-.workspace-app .approval-request[data-approval-status="pending"] {
-  border-left-color: var(--st-review);
 }
 .workspace-app .approval-request-main {
   display: grid;
@@ -111,13 +101,4 @@
 }
 .workspace-app [data-project-approvals] .approval-request:last-child {
   border-bottom: 1px solid var(--border);
-}
-.workspace-app [data-project-approvals] .approval-request[data-approval-status="approved"] {
-  border-left-color: var(--st-done);
-}
-.workspace-app [data-project-approvals] .approval-request[data-approval-status="changes_requested"] {
-  border-left-color: var(--st-progress);
-}
-.workspace-app [data-project-approvals] .approval-request[data-approval-status="pending"] {
-  border-left-color: var(--st-review);
 }

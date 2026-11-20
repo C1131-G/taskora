@@ -69,7 +69,6 @@
 }
 .workspace-app .notification-row.unread {
   background: var(--accent-soft);
-  box-shadow: inset 3px 0 0 var(--accent);
 }
 .workspace-app .notification-row-icon {
   background: color-mix(in srgb, var(--inbox-type, var(--text-3)) 16%, var(--surface));
@@ -158,7 +157,6 @@
 }
 .workspace-app .notification-row.unread {
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  box-shadow: inset 4px 0 0 var(--accent);
 }
 .workspace-app .notification-row.unread .notification-row-title::before {
   background: var(--accent);
@@ -189,7 +187,6 @@
   filter: saturate(0);
 }
 .workspace-app .inbox-item.unread {
-  box-shadow: inset 3px 0 0 var(--accent);
 }
 .workspace-app .inbox-item.unread:not(.selected) {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));

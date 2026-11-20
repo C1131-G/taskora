@@ -55,7 +55,6 @@
   background: var(--sunken);
   border-bottom: 1px solid var(--border);
   border-top: 1px solid var(--border);
-  box-shadow: inset 3px 0 0 var(--text-4);
   color: var(--text);
   font-size: var(--fs-sm);
   font-weight: 600;
@@ -71,17 +70,7 @@
   padding: 2px 7px;
 }
 .workspace-app .mtt .is-overdue .mtt-group th {
-  box-shadow: inset 3px 0 0 var(--red);
   color: var(--red);
-}
-.workspace-app .mtt .is-today .mtt-group th {
-  box-shadow: inset 3px 0 0 var(--st-progress);
-}
-.workspace-app .mtt .is-upcoming .mtt-group th {
-  box-shadow: inset 3px 0 0 var(--accent);
-}
-.workspace-app .mtt .is-completed .mtt-group th {
-  box-shadow: inset 3px 0 0 var(--st-done);
 }
 .workspace-app .mtt .is-completed .mtt-title {
   color: var(--text-3);

@@ -152,6 +152,7 @@ const WorkspaceSearchPalette = ({
         <kbd className="kbd">{toggleKeys.join(" ")}</kbd>
       </Button>
       <CommandDialog
+        className="palette-dialog"
         description="Search workspace pages and projects, run a command, or open workspace search."
         onCloseAutoFocus={(event) => {
           const pending = pendingFocus.current;
@@ -272,6 +273,21 @@ const WorkspaceSearchPalette = ({
               </CommandGroup>
             ) : null}
           </CommandList>
+          <div aria-hidden="true" className="pal-f">
+            <span>
+              <kbd className="kbd">↑</kbd>
+              <kbd className="kbd">↓</kbd>
+              Navigate
+            </span>
+            <span>
+              <kbd className="kbd">↵</kbd>
+              Open
+            </span>
+            <span>
+              <kbd className="kbd">esc</kbd>
+              Close
+            </span>
+          </div>
         </Command>
       </CommandDialog>
       <WorkspaceShortcutsHelp
