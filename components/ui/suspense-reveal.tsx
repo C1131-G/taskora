@@ -3,11 +3,15 @@
 import type { ReactNode } from "react";
 import { Suspense, ViewTransition, useCallback, useEffect, useRef, useState } from "react";
 
+import { useHydrated } from "@/components/workspace/use-hydrated";
+
 const SHOW_DELAY_MS = 150;
 const MIN_DISPLAY_MS = 300;
 
-// The fallback mounts only after a short delay, so fast or cached content
-// never flashes a skeleton.
+// A client-side navigation mounts the fallback only after a short delay, so
+// fast or cached content never flashes a skeleton over the page still on
+// screen. The first load has no page to keep: the server HTML and hydration
+// show the skeleton at once, so the area never sits blank while data streams.
 const DelayedFallback = ({
   children,
   onVisible,
@@ -15,18 +19,26 @@ const DelayedFallback = ({
   readonly children: ReactNode;
   readonly onVisible: () => void;
 }): ReactNode => {
-  const [visible, setVisible] = useState(false);
+  const hydrated = useHydrated();
+  const [visible, setVisible] = useState(!hydrated);
 
-  useEffect(function scheduleFallbackVisibility() {
-    function showFallback() {
-      setVisible(true);
-      onVisible();
-    }
-    const timer = setTimeout(showFallback, SHOW_DELAY_MS);
-    return function cancelFallbackVisibility() {
-      clearTimeout(timer);
-    };
-  }, [onVisible]);
+  useEffect(
+    function scheduleFallbackVisibility() {
+      if (visible) {
+        onVisible();
+        return;
+      }
+      function showFallback() {
+        setVisible(true);
+        onVisible();
+      }
+      const timer = setTimeout(showFallback, SHOW_DELAY_MS);
+      return function cancelFallbackVisibility() {
+        clearTimeout(timer);
+      };
+    },
+    [onVisible, visible]
+  );
 
   if (!visible) {
     return null;
