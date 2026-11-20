@@ -18,7 +18,7 @@ const openPopulatedCalendar = async (page: Page) => {
 const barDates = async (page: Page, title: string) => {
   const label =
     (await page
-      .getByRole("button", { name: new RegExp(`^${title}, `, "u") })
+      .getByRole("button", { exact: false, name: `${title}, ` })
       .first()
       .getAttribute("aria-label")) ?? "";
   const dates = label.split(". Arrow keys")[0] ?? "";
@@ -26,6 +26,29 @@ const barDates = async (page: Page, title: string) => {
     .slice(dates.lastIndexOf(", ") + 2)
     .split(" to ");
   return { due, start };
+};
+
+// The first movable bar whose task title appears once (bug and intake tasks are
+// managed from the Bugs workspace). Seed tasks share titles and start
+// dates, so a bar found by position or title could be a different task after a move.
+const firstUniqueBar = async (page: Page) => {
+  const labels = await page
+    .locator("button.bar")
+    .evaluateAll((items) =>
+      items.map(
+        (item) => (item.getAttribute("aria-label") ?? "").split(", ")[0] ?? ""
+      )
+    );
+  const unique = labels.find(
+    (label) =>
+      label !== "" &&
+      !/^(?:Bug|Intake)/u.test(label) &&
+      labels.filter((other) => other === label).length === 1
+  );
+  if (unique === undefined) {
+    throw new Error("no timeline bar has a unique title");
+  }
+  return page.getByRole("button", { exact: false, name: `${unique}, ` });
 };
 
 // React attaches its props to DOM nodes once hydrated. Until then pointer and key
@@ -155,7 +178,7 @@ test.describe("scheduling", () => {
     await page.goto("/timeline");
     await page.waitForLoadState("networkidle");
     await waitForHydratedBar(page);
-    const timelineBar = page.locator("button.bar").first();
+    const timelineBar = await firstUniqueBar(page);
     await expect(timelineBar).toBeVisible({ timeout: 15_000 });
     const title =
       ((await timelineBar.getAttribute("aria-label")) ?? "").split(", ")[0] ??
@@ -204,7 +227,7 @@ test.describe("scheduling", () => {
     await page.goto("/timeline");
     await page.waitForLoadState("networkidle");
     await waitForHydratedBar(page);
-    const timelineBar = page.locator("button.bar").first();
+    const timelineBar = await firstUniqueBar(page);
     await expect(timelineBar).toBeVisible({ timeout: 15_000 });
     const title =
       ((await timelineBar.getAttribute("aria-label")) ?? "").split(", ")[0] ??
