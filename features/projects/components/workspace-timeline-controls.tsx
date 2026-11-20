@@ -2,6 +2,8 @@
 
 "use client";
 
+import { Crosshair, MagnifyingGlass } from "@phosphor-icons/react";
+
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceCombobox } from "@/components/workspace/workspace-combobox";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -61,12 +63,13 @@ export const WorkspaceTimelineControls = ({
   readonly onScaleChange: (value: TimelineScale) => void;
   readonly onToday: () => void;
 }) => (
-  <div className="panel-h timeline-panel-header">
-    <h2>Work timeline</h2>
+  <div className="timeline-panel-header">
+    <h2 className="sr-only">Work timeline</h2>
     <fieldset className="toolbar timeline-toolbar">
       <legend className="sr-only">Timeline controls</legend>
       <label className="field timeline-search" htmlFor={`${id}-search`}>
         <span className="sr-only">Search timeline tasks</span>
+        <MagnifyingGlass aria-hidden="true" size={14} />
         <WorkspaceInput
           autoComplete="off"
           id={`${id}-search`}
@@ -187,7 +190,8 @@ export const WorkspaceTimelineControls = ({
           Months
         </WorkspaceButton>
       </fieldset>
-      <WorkspaceButton onClick={onToday} type="button" variant="outline">
+      <WorkspaceButton onClick={onToday} type="button" variant="ghost">
+        <Crosshair aria-hidden="true" size={14} />
         Today
       </WorkspaceButton>
     </fieldset>

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { useHydrated } from "@/components/workspace/use-hydrated";
 import { WorkspaceTimelineChart } from "@/features/projects/components/workspace-timeline-chart";
@@ -200,18 +200,16 @@ export const WorkspaceTimeline = ({
       : groupTasks(visibleTasks, groupBy, employeesById);
   const rows: TimelineRow[] = [];
   const projectsWithTasks = new Set(tasks.map((task) => task.projectId));
-  for (const lane of milestoneReschedule.lanes) {
-    if (projectsWithTasks.has(lane.projectId)) {
-      rows.push({
-        key: `milestones:${lane.projectId}`,
-        lane,
-        type: "milestones",
-      });
-    }
+  const projectLanes = milestoneReschedule.lanes.filter((lane) =>
+    projectsWithTasks.has(lane.projectId)
+  );
+  if (projectLanes.some((lane) => lane.allMilestones.length > 0)) {
+    rows.push({ key: "milestones", lanes: projectLanes, type: "milestones" });
   }
   for (const group of groups) {
     if (groupBy !== "none") {
       rows.push({
+        count: group.tasks.length,
         key: `group:${group.key}`,
         label: group.label,
         type: "group",
@@ -240,6 +238,21 @@ export const WorkspaceTimeline = ({
       left: Math.max(0, today * dayWidth - 160),
     });
   };
+  // Open with today near the left edge. The viewport only exists while there
+  // are rows, and a new scale changes the pixel position of today.
+  const hasRows = rows.length > 0;
+  useEffect(
+    function scrollToTodayOnOpen() {
+      if (!hasRows || today < 0 || today >= dayCount) {
+        return;
+      }
+      viewportRef.current?.scrollTo({
+        behavior: "instant",
+        left: Math.max(0, today * dayWidth - 160),
+      });
+    },
+    [dayCount, dayWidth, hasRows, today]
+  );
 
   return (
     <section
@@ -275,6 +288,7 @@ export const WorkspaceTimeline = ({
           dayCount={dayCount}
           dayWidth={dayWidth}
           editableIds={new Set(editableTaskIds)}
+          employeesById={employeesById}
           from={from}
           onMove={handleMove}
           onMoveMilestone={handleMoveMilestone}

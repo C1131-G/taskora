@@ -42,11 +42,17 @@ export interface TimelineGroup {
 }
 
 export type TimelineRow =
-  | { readonly type: "group"; readonly key: string; readonly label: string }
+  | {
+      readonly type: "group";
+      readonly key: string;
+      readonly label: string;
+      readonly count: number;
+    }
   | {
       readonly type: "milestones";
       readonly key: string;
-      readonly lane: TimelineMilestoneLane;
+      // One lane per project; the chart draws them all on a single row.
+      readonly lanes: readonly TimelineMilestoneLane[];
     }
   | {
       readonly type: "task";

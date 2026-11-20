@@ -13,6 +13,8 @@ import { datesAfterDrag, dayDiff, sameSpan } from "@/features/tasks/task-dates";
 
 // Pixels from either end of a bar that count as an edge drag.
 const EDGE_PX = 8;
+// Narrower than this and the title no longer fits inside the bar.
+const SHORT_BAR_PX = 110;
 
 interface Drag {
   readonly days: number;
@@ -155,31 +157,46 @@ export const TimelineBar = ({
     onMove(task, next);
   };
 
+  const left = clippedStart * dayWidth;
+  // Bars too short to hold their title put it just after the bar.
+  const labelOutside = width < SHORT_BAR_PX;
+
   return (
-    <button
-      aria-describedby={describedBy}
-      aria-label={`${label}. Arrow keys move. Shift with arrows changes the end date. Alt with arrows changes the start date.`}
-      className={`bar${task.status === "done" ? " done" : ""}${editable ? " movable" : ""}${conflict ? " dep-conflict" : ""}`}
-      onBlur={() => onActivate(null)}
-      onClick={handleClick}
-      onFocus={() => onActivate(task.id)}
-      onKeyDown={handleKeyDown}
-      onPointerCancel={handlePointerCancel}
-      onPointerDown={handlePointerDown}
-      onPointerEnter={() => onActivate(task.id)}
-      onPointerLeave={() => onActivate(null)}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      style={{
-        "--c": "var(--accent)",
-        left: clippedStart * dayWidth,
-        top: TIMELINE_BAR_TOP,
-        width,
-      }}
-      title={`${task.title} · ${shownStart} → ${shownEnd}`}
-      type="button"
-    >
-      <span className="trunc">{task.title}</span>
-    </button>
+    <>
+      <button
+        aria-describedby={describedBy}
+        aria-label={`${label}. Arrow keys move. Shift with arrows changes the end date. Alt with arrows changes the start date.`}
+        className={`bar${task.status === "done" ? " done" : ""}${editable ? " movable" : ""}${conflict ? " dep-conflict" : ""}`}
+        onBlur={() => onActivate(null)}
+        onClick={handleClick}
+        onFocus={() => onActivate(task.id)}
+        onKeyDown={handleKeyDown}
+        onPointerCancel={handlePointerCancel}
+        onPointerDown={handlePointerDown}
+        onPointerEnter={() => onActivate(task.id)}
+        onPointerLeave={() => onActivate(null)}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={{
+          "--c": `var(--st-${task.status}, var(--accent))`,
+          left,
+          top: TIMELINE_BAR_TOP,
+          width,
+        }}
+        title={`${task.title} · ${shownStart} → ${shownEnd}`}
+        type="button"
+      >
+        {labelOutside ? null : <span className="trunc">{task.title}</span>}
+      </button>
+      {labelOutside ? (
+        <span
+          aria-hidden="true"
+          className="bar-lbl"
+          style={{ left: left + width + 8, top: TIMELINE_BAR_TOP + 3 }}
+        >
+          {task.title}
+        </span>
+      ) : null}
+    </>
   );
 };

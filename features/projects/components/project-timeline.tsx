@@ -21,7 +21,10 @@ import {
 import type { TimelineMilestoneLane } from "@/features/projects/types/workspace-timeline-types";
 import { TaskDrawerHost } from "@/features/tasks/components/task-drawer-host";
 import { canEditTaskRecord } from "@/features/tasks/task-permissions";
-import { currentUtcMonthRange } from "@/src/lib/utc-date-range";
+import {
+  currentUtcMonthRange,
+  utcMondayDaysAgo,
+} from "@/src/lib/utc-date-range";
 import { getPageSession } from "@/src/server/auth/page-session";
 
 const ProjectTimeline = async ({
@@ -30,7 +33,9 @@ const ProjectTimeline = async ({
   readonly initialTaskId: string | null;
 }) => {
   const session = await getPageSession();
-  const range = currentUtcMonthRange(0, 4);
+  const monthRange = currentUtcMonthRange(0, 4);
+  // Open on the Monday six weeks before today, so recent work stays in view.
+  const range = { from: utcMondayDaysAgo(42), to: monthRange.to };
   const [result, peopleResult, projectResult] = await Promise.all([
     listAllTaskCalendar({
       from: range.from,
@@ -144,8 +149,8 @@ const ProjectTimelineSkeleton = () => (
     aria-label="Workspace task timeline"
     className="panel timeline-panel"
   >
-    <div className="panel-h timeline-panel-header">
-      <h2>Work timeline</h2>
+    <div className="timeline-panel-header">
+      <h2 className="sr-only">Work timeline</h2>
       <div className="toolbar timeline-toolbar" inert>
         <span className="skeleton-filter-select skeleton-search">
           Search tasks

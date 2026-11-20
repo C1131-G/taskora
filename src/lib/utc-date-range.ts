@@ -40,3 +40,12 @@ export const currentUtcWeekRange = (weekOffset: number): UtcDateRange => {
     toInstant: end.toISOString(),
   };
 };
+
+// The Monday on or before the date `daysBack` days ago, as a UTC date string.
+export const utcMondayDaysAgo = (daysBack: number): string => {
+  const date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCDate(date.getUTCDate() - daysBack);
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
+};

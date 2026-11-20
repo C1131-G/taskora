@@ -1,8 +1,11 @@
 /* Project tabs that reuse a sidebar page's component sit inset like that page does. */
 .workspace-app .page.flush > .workspace-calendar,
-.workspace-app .page.flush > .file-project,
-.workspace-app .page.flush > .timeline-panel {
+.workspace-app .page.flush > .file-project {
   margin: 16px var(--gutter);
+}
+/* the timeline runs edge to edge; its toolbar carries the gutter */
+.workspace-app .page.flush > .timeline-panel {
+  margin: 0;
 }
 .workspace-app .page.flush > .file-project {
   margin-bottom: 24px;

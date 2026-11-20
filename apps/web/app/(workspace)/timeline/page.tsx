@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Timeline | Taskora" };
 
 const TimelinePage = ({ searchParams }: PageProps<"/timeline">) => (
   <PageTransition>
-    <div className="page">
+    <div className="page flush">
       <div className="ph">
         <div>
           <h1>Timeline</h1>

@@ -1,11 +1,11 @@
 /* eslint-disable shadcn/no-unknown-classes, shadcn/no-inline-styles */
 
-import Link from "next/link";
 import type { RefObject } from "react";
 import { useId, useState } from "react";
 
 import { TimelineBar } from "@/features/projects/components/workspace-timeline-bar";
-import { TimelineMilestoneMarker } from "@/features/projects/components/workspace-timeline-milestone";
+import { TimelineTaskList } from "@/features/projects/components/workspace-timeline-list";
+import { TimelineMilestoneRow } from "@/features/projects/components/workspace-timeline-milestone-row";
 import type { MilestoneRecord } from "@/features/projects/milestone-dates";
 import { computeDependencyLayout } from "@/features/projects/timeline-dependencies";
 import {
@@ -37,6 +37,7 @@ export const WorkspaceTimelineChart = ({
   dayCount,
   dayWidth,
   editableIds,
+  employeesById,
   from,
   onMove,
   onMoveMilestone,
@@ -50,6 +51,7 @@ export const WorkspaceTimelineChart = ({
   readonly dayCount: number;
   readonly dayWidth: number;
   readonly editableIds: ReadonlySet<string>;
+  readonly employeesById: ReadonlyMap<string, string>;
   readonly from: string;
   readonly onMove: (task: TimelineTask, dates: TaskSpan) => void;
   readonly onMoveMilestone: (
@@ -89,6 +91,9 @@ export const WorkspaceTimelineChart = ({
       title: task.title,
     })),
   });
+  const conflictIds = new Set(
+    [...details].flatMap(([id, detail]) => (detail.conflict ? [id] : []))
+  );
   const descriptionId = (taskId: string) => `${idPrefix}-deps-${taskId}`;
   const tickInterval = scale === "week" ? 1 : 7;
   const dateTicks: Date[] = [];
@@ -110,47 +115,25 @@ export const WorkspaceTimelineChart = ({
     }
   }
 
+  const weekendOffsets: number[] = [];
+  if (scale === "week") {
+    for (let index = 0; index < dayCount; index += 1) {
+      const weekday = new Date(start + index * DAY_MS).getUTCDay();
+      if (weekday === 0 || weekday === 6) {
+        weekendOffsets.push(index);
+      }
+    }
+  }
+
   return (
     <div className="tl workspace-timeline">
       <div className="tl-left">
         <div className="tl-head">Task</div>
-        <ul aria-label="Timeline tasks" className="tl-rows">
-          {rows.map((row) => {
-            if (row.type === "group") {
-              return (
-                <li className="tl-row g" key={row.key}>
-                  {row.label}
-                </li>
-              );
-            }
-            if (row.type === "milestones") {
-              return (
-                <li className="tl-row g" key={row.key}>
-                  Milestones · {row.lane.projectName}
-                </li>
-              );
-            }
-            return (
-              <li className="tl-row" key={row.key}>
-                <Link
-                  className="timeline-row-link"
-                  href={`/projects/${row.task.projectId}?view=board`}
-                >
-                  <span className="trunc grow">{row.task.title}</span>
-                  {details.get(row.task.id)?.conflict ? (
-                    <span
-                      className="tl-dep-flag"
-                      title="Starts before a task it depends on has ended"
-                    >
-                      Conflict
-                    </span>
-                  ) : null}
-                  <span className="faint">{row.task.projectName}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <TimelineTaskList
+          conflictIds={conflictIds}
+          employeesById={employeesById}
+          rows={rows}
+        />
       </div>
       <div className="tl-right" ref={viewportRef}>
         <div className="tl-head" style={{ width }}>
@@ -183,6 +166,13 @@ export const WorkspaceTimelineChart = ({
           className="tl-grid"
           style={{ height: rows.length * ROW_HEIGHT, width }}
         >
+          {weekendOffsets.map((offset) => (
+            <div
+              className="tl-we"
+              key={`we-${offset}`}
+              style={{ left: offset * dayWidth, width: dayWidth }}
+            />
+          ))}
           {dateTicks.map((date) => (
             <div
               className="tl-gl"
@@ -248,19 +238,15 @@ export const WorkspaceTimelineChart = ({
             }
             if (row.type === "milestones") {
               return (
-                <div className="tl-rowbg g" key={row.key} style={{ top }}>
-                  {row.lane.allMilestones.map((milestone) => (
-                    <TimelineMilestoneMarker
-                      dayCount={dayCount}
-                      dayWidth={dayWidth}
-                      from={from}
-                      key={milestone.id}
-                      lane={row.lane}
-                      milestone={milestone}
-                      onMove={onMoveMilestone}
-                    />
-                  ))}
-                </div>
+                <TimelineMilestoneRow
+                  dayCount={dayCount}
+                  dayWidth={dayWidth}
+                  from={from}
+                  key={row.key}
+                  lanes={row.lanes}
+                  onMove={onMoveMilestone}
+                  top={top}
+                />
               );
             }
             const { task } = row;
