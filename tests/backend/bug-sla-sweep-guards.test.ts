@@ -120,6 +120,8 @@ it("does not flag a resolution breach on a clock paused after the sweep read it"
   expect(await slaOf(bugId)).toMatchObject({ breachedResolution: true });
 });
 
+// Sweeping 600+ clocks across two pages takes ~17s on a quiet machine; the default 30s
+// leaves too little room when the machine is busy.
 it("reaches every open clock when there are more than one page of them", async () => {
   const bugId = await submit("First of many");
   await pinClocks(bugId, DUE_TODAY);
@@ -160,4 +162,4 @@ it("reaches every open clock when there are more than one page of them", async (
     [[bugId, ...cloned.rows.map(({ id }) => id)]]
   );
   expect(missed.rows[0]?.count).toBe("0");
-});
+}, 90_000);
