@@ -36,6 +36,17 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "8b40175e-109b-4e18-a6cc-271bb996bd25"
+      }
+    },
+    "owner": "cibigunaseelan"
   }
 }

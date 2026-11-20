@@ -41,6 +41,33 @@ it("emits each change of the text input", async () => {
   expect(values.join("")).toBe("Ship it");
 });
 
+it("hides a password until the eye button reveals it", async () => {
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <WorkspaceField label="Password">
+      <WorkspaceTextInput secureTextEntry value="hunter2" onChangeText={() => undefined} />
+    </WorkspaceField>,
+  );
+
+  expect(screen.getByLabelText("Password").props.secureTextEntry).toBe(true);
+
+  await user.press(screen.getByLabelText("Show password"));
+  expect(screen.getByLabelText("Password").props.secureTextEntry).toBe(false);
+
+  await user.press(screen.getByLabelText("Hide password"));
+  expect(screen.getByLabelText("Password").props.secureTextEntry).toBe(true);
+});
+
+it("shows no eye button on a plain text input", async () => {
+  await renderWithTheme(
+    <WorkspaceField label="Title">
+      <WorkspaceTextInput value="" onChangeText={() => undefined} />
+    </WorkspaceField>,
+  );
+
+  expect(screen.queryByLabelText("Show password")).toBeNull();
+});
+
 it("renders the ValidationFailed field errors and hides other failures", async () => {
   await renderWithTheme(
     <>
