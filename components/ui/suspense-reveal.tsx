@@ -35,12 +35,16 @@ const DelayedFallback = ({
 };
 
 // Once the fallback has been visible, keep it up for a minimum duration
-// so its appearance/disappearance does not feel abrupt.
+// so its appearance/disappearance does not feel abrupt. While waiting, the
+// skeleton stays on screen: rendering nothing would flash a blank gap between
+// the skeleton and the content.
 const MinDisplayGate = ({
   children,
+  fallback,
   fallbackShownAt,
 }: {
   readonly children: ReactNode;
+  readonly fallback: ReactNode;
   readonly fallbackShownAt: React.RefObject<number | null>;
 }): ReactNode => {
   const [ready, setReady] = useState(fallbackShownAt.current === null);
@@ -66,7 +70,7 @@ const MinDisplayGate = ({
   }, [fallbackShownAt]);
 
   if (!ready) {
-    return null;
+    return fallback;
   }
   return children;
 };
@@ -97,7 +101,7 @@ export const SuspenseReveal = ({
       }
     >
       <ViewTransition default="none" enter="reveal">
-        <MinDisplayGate fallbackShownAt={fallbackShownAt}>
+        <MinDisplayGate fallback={fallback} fallbackShownAt={fallbackShownAt}>
           {children}
         </MinDisplayGate>
       </ViewTransition>
