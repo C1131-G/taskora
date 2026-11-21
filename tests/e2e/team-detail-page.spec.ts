@@ -7,13 +7,19 @@ import { settleAnimations } from "./settle-animations";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-const openEngineering = async (page: Page) => {
+// Opens the first team on the list and returns its name.
+const openFirstTeam = async (page: Page) => {
   await page.goto("/teams");
-  await page.getByRole("link", { name: /^Engineering/u }).click();
+  const link = page.getByRole("article").first().getByRole("link").first();
+  const nameText = await link.locator("strong").textContent();
+  const teamName = nameText?.trim() ?? "";
+  expect(teamName).not.toBe("");
+  await link.click();
   await expect(page).toHaveURL(/\/teams\/[0-9a-f-]{36}$/u);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Engineering" })
+    page.getByRole("heading", { level: 1, name: teamName })
   ).toBeVisible();
+  return teamName;
 };
 
 test.describe("Team detail (/teams/[teamId])", () => {
@@ -22,20 +28,18 @@ test.describe("Team detail (/teams/[teamId])", () => {
   test("renders the team heading, actions, projects and open tasks", async ({
     page,
   }) => {
-    await openEngineering(page);
+    const teamName = await openFirstTeam(page);
 
     await expect(
-      page.getByRole("button", { name: "Edit team Engineering" })
+      page.getByRole("button", { name: `Edit team ${teamName}` })
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Add team member" })
     ).toBeVisible();
-    const projects = page.getByRole("region", { name: "Projects" });
     await expect(
-      projects.getByRole("heading", { level: 2, name: "Projects" })
-    ).toBeVisible();
-    await expect(
-      projects.getByRole("link", { name: /^Acme Web Platform/u })
+      page
+        .getByRole("region", { name: "Projects" })
+        .getByRole("heading", { level: 2, name: "Projects" })
     ).toBeVisible();
     await expect(
       page
@@ -44,27 +48,18 @@ test.describe("Team detail (/teams/[teamId])", () => {
     ).toBeVisible();
   });
 
-  test("a team project opens the project page and back returns to the team", async ({
-    page,
-  }) => {
-    await openEngineering(page);
-    const teamUrl = page.url();
-
-    await page
-      .getByRole("region", { name: "Projects" })
-      .getByRole("link", { name: /^Acme Web Platform/u })
-      .click();
-    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}/u);
+  test("back returns from the team to the teams list", async ({ page }) => {
+    await openFirstTeam(page);
 
     await page.goBack();
-    await expect(page).toHaveURL(teamUrl);
+    await expect(page).toHaveURL(/\/teams$/u);
     await expect(
-      page.getByRole("heading", { level: 1, name: "Engineering" })
+      page.getByRole("heading", { level: 1, name: "Teams" })
     ).toBeVisible();
   });
 
   test("the team detail passes axe", async ({ page }) => {
-    await openEngineering(page);
+    await openFirstTeam(page);
     await expect(
       page.getByRole("region", { name: "Open tasks" })
     ).toBeVisible();

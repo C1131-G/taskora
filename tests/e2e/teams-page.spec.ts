@@ -24,9 +24,7 @@ test.describe("Teams (/teams)", () => {
     await expect(
       cards.first().getByRole("button", { name: /^Manage /u })
     ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /^Engineering/u })
-    ).toBeVisible();
+    await expect(cards.first().getByRole("link").first()).toBeVisible();
   });
 
   test("a team card opens its detail page and back returns to the list", async ({
@@ -34,10 +32,14 @@ test.describe("Teams (/teams)", () => {
   }) => {
     await page.goto("/teams");
 
-    await page.getByRole("link", { name: /^Engineering/u }).click();
+    const link = page.getByRole("article").first().getByRole("link").first();
+    const nameText = await link.locator("strong").textContent();
+    const teamName = nameText?.trim() ?? "";
+    expect(teamName).not.toBe("");
+    await link.click();
     await expect(page).toHaveURL(/\/teams\/[0-9a-f-]{36}$/u);
     await expect(
-      page.getByRole("heading", { level: 1, name: "Engineering" })
+      page.getByRole("heading", { level: 1, name: teamName })
     ).toBeVisible();
 
     await page.goBack();
