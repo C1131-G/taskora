@@ -1,78 +1,7 @@
-.workspace-app .subt {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 32px;
-  padding: 0 6px;
-  border-radius: var(--r-sm);
-  font-size: var(--fs);
-}
-.workspace-app .subt:hover {
-  background: var(--surface-2);
-}
-.workspace-app .subt.done .s {
-  color: var(--text-3);
-  text-decoration: line-through;
-}
-.workspace-app .subt .x {
-  opacity: 0;
-  margin-left: auto;
-}
-.workspace-app .subt:hover .x {
-  opacity: 1;
-}
-.workspace-app .subt .s {
-  flex: 1;
-  min-width: 0;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 4px 0;
-  border-radius: var(--r-xs);
-}
-.workspace-app .subt .s:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--border-strong);
-  text-underline-offset: 3px;
-}
-.workspace-app .subt .due {
-  flex-shrink: 0;
-}
 .workspace-app .att {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 8px;
-}
-.workspace-app .attc {
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-  font-size: var(--fs-xs);
-  background: var(--surface);
-  position: relative;
-}
-.workspace-app .attc .fprev {
-  aspect-ratio: 16/9;
-}
-.workspace-app .attc .fprev .art {
-  inset: 10px 14px;
-  padding: 7px;
-  gap: 4px;
-}
-.workspace-app .attc .fi {
-  padding: 7px 9px;
-}
-.workspace-app .attc .x {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  opacity: 0;
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--border);
-}
-.workspace-app .attc:hover .x {
-  opacity: 1;
 }
 .workspace-app .cmt {
   display: flex;

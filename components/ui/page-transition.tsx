@@ -2,13 +2,19 @@ import type { ReactNode } from "react";
 import { ViewTransition } from "react";
 
 // Transition types a navigation can carry. Classes are in apps/web/app/view-transitions.css.
-export type NavigationTransitionType = "nav-back" | "nav-fade" | "nav-forward";
+export type NavigationTransitionType =
+  | "nav-back"
+  | "nav-fade"
+  | "nav-forward"
+  | "nav-instant";
 
 const PAGE_TRANSITION_CLASSES = {
   default: "nav-fade",
   "nav-back": "nav-back",
   "nav-fade": "nav-fade",
   "nav-forward": "nav-forward",
+  // Keyboard-driven navigation (the Ctrl+K palette) swaps pages with no motion.
+  "nav-instant": "none",
 } as const;
 
 // Wrap the root of every page.tsx. It must sit in the page, not a layout:

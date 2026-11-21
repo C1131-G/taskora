@@ -31,7 +31,6 @@ import {
   getAvailableCommands,
   getPaletteToggleKeys,
 } from "@/components/workspace/workspace-commands";
-import { getNavigationTransitionType } from "@/components/workspace/workspace-navigation-data";
 import {
   ShortcutKeys,
   WorkspaceShortcutsHelp,
@@ -97,9 +96,7 @@ const WorkspaceSearchPalette = ({
   const navigate = <Href extends string>(href: Route<Href>) => {
     setOpen(false);
     setQuery("");
-    router.push(href, {
-      transitionTypes: [getNavigationTransitionType(pathname, href)],
-    });
+    router.push(href, { transitionTypes: ["nav-instant"] });
   };
 
   const run = (command: WorkspaceCommand) => {

@@ -6,7 +6,7 @@ import { Suspense, ViewTransition, useCallback, useEffect, useRef, useState } fr
 import { useHydrated } from "@/components/workspace/use-hydrated";
 
 const SHOW_DELAY_MS = 150;
-const MIN_DISPLAY_MS = 300;
+const MIN_DISPLAY_MS = 150;
 
 // A client-side navigation mounts the fallback only after a short delay, so
 // fast or cached content never flashes a skeleton over the page still on
