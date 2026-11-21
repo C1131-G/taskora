@@ -129,7 +129,7 @@ it("duplicates project members, milestones, and active task structure", async ()
           const created = yield* work.createTask(adminId, {
             assigneeIds: [employeeId],
             description: "Copy task structure",
-            dueDate: "2026-11-20",
+            dueDate: "2099-01-01",
             priority: "high",
             projectId: source.id,
             title: "Prepare deliverables",
