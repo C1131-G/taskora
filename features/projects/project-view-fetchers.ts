@@ -2,12 +2,12 @@ import { listActivity } from "@/features/activity/activity-queries";
 import { listBugs } from "@/features/bugs/bugs-queries";
 import type { CalendarMode } from "@/features/calendar/calendar-params";
 import { listCalendarEvents } from "@/features/calendar/calendar-queries";
-import { getProjectCustomFieldTable } from "@/features/custom-fields/custom-field-queries";
+import { getProjectCustomFieldTable } from "@/features/custom-fields/custom-fields-queries";
 import { listProjectFiles } from "@/features/files/files-queries";
 import {
   listAutomationRules,
   listAutomationRuns,
-} from "@/features/projects/automation-queries";
+} from "@/features/projects/projects-automation-queries";
 import type { getProject } from "@/features/projects/projects-queries";
 import { listProjectTaskPages } from "@/features/tasks/tasks-queries";
 import { currentUtcMonthRange } from "@/src/lib/utc-date-range";

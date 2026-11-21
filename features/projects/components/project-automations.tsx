@@ -10,10 +10,6 @@ import { LocalTime } from "@/components/workspace/local-time";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
 import {
-  removeAutomationRuleAction,
-  setAutomationRuleEnabledAction,
-} from "@/features/projects/automation-actions";
-import {
   describeReason,
   describeRule,
   outcomeBadge,
@@ -25,6 +21,10 @@ import {
 } from "@/features/projects/automation-form";
 import type { Option } from "@/features/projects/components/automation-option-helpers";
 import { AutomationRuleForm } from "@/features/projects/components/automation-rule-form";
+import {
+  removeAutomationRuleAction,
+  setAutomationRuleEnabledAction,
+} from "@/features/projects/projects-automation-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 import { MAX_RULES_PER_PROJECT } from "@/src/server/automation/automation-contracts";
 import type {

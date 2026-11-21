@@ -10,10 +10,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthAlert } from "@/features/user/components/auth-alert";
-import {
-  AuthFieldSkeleton,
-  AuthFormSkeleton,
-} from "@/features/user/components/auth-skeleton";
 import { AuthSubmitButton } from "@/features/user/components/auth-submit-button";
 import { isRecord, isStringRecord } from "@/src/lib/type-guards";
 
@@ -209,19 +205,4 @@ const IntakeForm = ({
   );
 };
 
-const IntakeFormSkeleton = () => (
-  <>
-    <span
-      aria-hidden="true"
-      className="auth-skeleton-text auth-skeleton-note"
-    />
-    <AuthFormSkeleton label="Loading report form">
-      <AuthFieldSkeleton />
-      <AuthFieldSkeleton tall />
-      <AuthFieldSkeleton />
-      <AuthFieldSkeleton />
-    </AuthFormSkeleton>
-  </>
-);
-
-export { IntakeForm, IntakeFormSkeleton };
+export { IntakeForm };

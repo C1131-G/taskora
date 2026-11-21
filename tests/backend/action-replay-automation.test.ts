@@ -11,8 +11,10 @@ import {
 } from "./support/action-harness";
 import { refreshes } from "./support/next-cache-mock";
 
-const actions = await import("../../features/projects/automation-actions");
-const queries = await import("../../features/projects/automation-queries");
+const actions =
+  await import("../../features/projects/projects-automation-actions");
+const queries =
+  await import("../../features/projects/projects-automation-queries");
 
 beforeAll(setupHarness);
 afterAll(async () => {

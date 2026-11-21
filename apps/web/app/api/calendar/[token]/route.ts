@@ -44,7 +44,7 @@ const tooManyRequests = (retryAfterSeconds: number): Response =>
 // eslint-disable-next-line func-style -- Next route handler remains a named export.
 export async function GET(
   request: Request,
-  context: { readonly params: Promise<{ readonly token: string }> }
+  context: RouteContext<"/api/calendar/[token]">
 ): Promise<Response> {
   // Feeds change with the data; never prerender or share a cached copy.
   await connection();

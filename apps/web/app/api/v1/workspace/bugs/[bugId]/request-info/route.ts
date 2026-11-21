@@ -3,5 +3,5 @@ import { respondWith } from "@/src/server/api/http-response";
 
 export const POST = async (
   request: Request,
-  { params }: { params: Promise<{ bugId: string }> }
+  { params }: RouteContext<"/api/v1/workspace/bugs/[bugId]/request-info">
 ): Promise<Response> => respondWith(requestBugInfo(request, await params));

@@ -93,8 +93,8 @@ const ChangePasswordForm = () => {
       if (result.ok) {
         // The password page routes a finished account to its own home
         // (workspace or client portal) on the server.
+        // changeOwnPasswordAction already refreshes the server data.
         router.replace("/change-password");
-        router.refresh();
         return;
       }
       fail(result.error.message, "currentPassword");

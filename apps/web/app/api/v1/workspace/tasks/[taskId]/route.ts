@@ -8,13 +8,9 @@ import { changeTask } from "@/src/server/api/tasks/task-update";
 import { AuthSessionLive } from "@/src/server/auth/session";
 import { IdempotencyLive } from "@/src/server/core/idempotency";
 
-interface TaskRouteContext {
-  params: Promise<{ taskId: string }>;
-}
-
 export const GET = async (
   request: Request,
-  context: TaskRouteContext
+  context: RouteContext<"/api/v1/workspace/tasks/[taskId]">
 ): Promise<Response> => {
   const params = await context.params;
   return respondWith(
@@ -27,7 +23,7 @@ export const GET = async (
 
 export const PATCH = async (
   request: Request,
-  context: TaskRouteContext
+  context: RouteContext<"/api/v1/workspace/tasks/[taskId]">
 ): Promise<Response> => {
   const params = await context.params;
   return respondWith(

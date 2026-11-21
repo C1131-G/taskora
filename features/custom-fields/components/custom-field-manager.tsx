@@ -9,11 +9,11 @@ import { toast } from "sonner";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
 import { CustomFieldForm } from "@/features/custom-fields/components/custom-field-form";
+import { fieldTypeLabel } from "@/features/custom-fields/custom-field-labels";
 import {
   archiveCustomFieldAction,
   reorderCustomFieldsAction,
-} from "@/features/custom-fields/custom-field-actions";
-import { fieldTypeLabel } from "@/features/custom-fields/custom-field-labels";
+} from "@/features/custom-fields/custom-fields-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 import type { CustomFieldView } from "@/src/server/custom-fields/custom-field-contracts";
 import { MAX_FIELDS_PER_PROJECT } from "@/src/server/custom-fields/custom-field-definition";

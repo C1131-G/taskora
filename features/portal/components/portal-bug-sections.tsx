@@ -171,3 +171,11 @@ export const PortalBugNotices = ({
     </>
   );
 };
+
+// Holds the notice's line while response times load.
+export const PortalResponseNoticeSkeleton = () => (
+  <span
+    aria-hidden="true"
+    className="portal-notice portal-response-note portal-response-pending"
+  />
+);

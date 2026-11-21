@@ -10,8 +10,8 @@ import { SuspenseReveal } from "@/components/ui/suspense-reveal";
 import {
   ProjectBody,
   ProjectHeader,
+  ProjectSkeletonFallback,
 } from "@/features/projects/components/project-detail";
-import { ProjectSkeletonFallback } from "@/features/projects/components/project-detail-skeleton";
 import { parseProjectDetailQuery } from "@/features/projects/project-detail-params";
 import { projectMetadata } from "@/features/projects/project-metadata";
 import { parseTaskIdParam } from "@/features/tasks/task-param";

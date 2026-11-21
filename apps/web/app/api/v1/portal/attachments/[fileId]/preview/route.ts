@@ -3,6 +3,6 @@ import { respondWith } from "@/src/server/api/http-response";
 
 export const GET = async (
   request: Request,
-  { params }: { params: Promise<{ fileId: string }> }
+  { params }: RouteContext<"/api/v1/portal/attachments/[fileId]/preview">
 ): Promise<Response> =>
   respondWith(previewPortalAttachment(request, await params));

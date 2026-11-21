@@ -1,3 +1,4 @@
+import "server-only";
 import { ErrorToast } from "@/components/workspace/error-toast";
 import type { CalendarMode } from "@/features/calendar/calendar-params";
 import { getPersonalWorkspace } from "@/features/discovery/discovery-queries";

@@ -9,7 +9,7 @@ import { IdempotencyLive } from "@/src/server/core/idempotency";
 
 export const PATCH = async (
   request: Request,
-  context: { params: Promise<{ subtaskId: string; taskId: string }> }
+  context: RouteContext<"/api/v1/workspace/tasks/[taskId]/subtasks/[subtaskId]">
 ): Promise<Response> => {
   const params = await context.params;
   return respondWith(

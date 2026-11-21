@@ -9,9 +9,9 @@ import {
 } from "./support/action-harness";
 
 const fieldActions =
-  await import("../../features/custom-fields/custom-field-actions");
+  await import("../../features/custom-fields/custom-fields-actions");
 const valueActions =
-  await import("../../features/custom-fields/custom-field-value-actions");
+  await import("../../features/custom-fields/custom-fields-value-actions");
 
 beforeAll(setupHarness);
 afterAll(teardownHarness);

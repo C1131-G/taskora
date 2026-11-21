@@ -11,7 +11,7 @@ import { CustomFieldControl } from "@/features/custom-fields/components/custom-f
 import {
   clearCustomFieldValueAction,
   setCustomFieldValueAction,
-} from "@/features/custom-fields/custom-field-value-actions";
+} from "@/features/custom-fields/custom-fields-value-actions";
 import type { TaskCustomField } from "@/src/server/custom-fields/custom-field-contracts";
 import type { FieldValue } from "@/src/server/custom-fields/custom-field-values";
 

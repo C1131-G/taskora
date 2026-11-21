@@ -10,11 +10,11 @@ import {
 } from "./support/action-harness";
 
 const actions =
-  await import("../../features/custom-fields/custom-field-actions");
+  await import("../../features/custom-fields/custom-fields-actions");
 const valueActions =
-  await import("../../features/custom-fields/custom-field-value-actions");
+  await import("../../features/custom-fields/custom-fields-value-actions");
 const queries =
-  await import("../../features/custom-fields/custom-field-queries");
+  await import("../../features/custom-fields/custom-fields-queries");
 
 const fieldIds: Record<string, string> = {};
 

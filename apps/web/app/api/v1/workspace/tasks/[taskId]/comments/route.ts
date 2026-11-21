@@ -9,7 +9,7 @@ import { IdempotencyLive } from "@/src/server/core/idempotency";
 
 export const POST = async (
   request: Request,
-  context: { params: Promise<{ taskId: string }> }
+  context: RouteContext<"/api/v1/workspace/tasks/[taskId]/comments">
 ): Promise<Response> => {
   const params = await context.params;
   return respondWith(

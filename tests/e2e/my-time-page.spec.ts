@@ -78,6 +78,7 @@ test.describe("My time (/my-time)", () => {
       .getByRole("button", { name: /^Delete 1h 30m entry on/u })
       .first()
       .click();
+    await page.getByRole("button", { name: "Delete entry" }).click();
     await expect(page.getByText("E2E time entry")).toHaveCount(0, {
       timeout: 20_000,
     });
@@ -115,6 +116,7 @@ test.describe("My time (/my-time)", () => {
       .first();
     await expect(remove).toBeVisible({ timeout: 20_000 });
     await remove.click();
+    await page.getByRole("button", { name: "Delete entry" }).click();
     await expect(remove).toBeHidden({ timeout: 20_000 });
   });
 

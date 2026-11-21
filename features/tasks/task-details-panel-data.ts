@@ -1,7 +1,7 @@
 import "server-only";
 import { listTaskApprovals } from "@/features/approvals/approval-queries";
 import { getBugHistory } from "@/features/bugs/bugs-queries";
-import { getTaskCustomFields } from "@/features/custom-fields/custom-field-queries";
+import { getTaskCustomFields } from "@/features/custom-fields/custom-fields-queries";
 import { listTaskFilesAction } from "@/features/files/actions/files-upload-requests";
 import { getTaskLinkedPulls } from "@/features/github/github-queries";
 import { listTaskCommentsAction } from "@/features/tasks/actions/tasks-comments";

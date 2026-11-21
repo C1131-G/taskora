@@ -1,21 +1,20 @@
 /* eslint-disable shadcn/no-unknown-classes -- Public intake screens reuse the auth chrome styles. */
 
-import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
 import { IntakeForm } from "@/features/intake/components/intake-form";
-import { isPlausibleIntakeSlug } from "@/features/intake/intake-form-url";
 import {
   getPublicIntakeForm,
   issueIntakeFormToken,
 } from "@/features/intake/intake-public-queries";
+import {
+  AuthFieldSkeleton,
+  AuthFormSkeleton,
+} from "@/features/user/components/auth-skeleton";
 
 // The signed issue time makes this page per-request, so it opts out of
 // prerendering before it reads the clock.
 const IntakeFormSection = async ({ slug }: { readonly slug: string }) => {
-  if (!isPlausibleIntakeSlug(slug)) {
-    notFound();
-  }
   await connection();
   const form = await getPublicIntakeForm(slug);
   return (
@@ -28,4 +27,19 @@ const IntakeFormSection = async ({ slug }: { readonly slug: string }) => {
   );
 };
 
-export { IntakeFormSection };
+const IntakeFormSkeleton = () => (
+  <>
+    <span
+      aria-hidden="true"
+      className="auth-skeleton-text auth-skeleton-note"
+    />
+    <AuthFormSkeleton label="Loading report form">
+      <AuthFieldSkeleton />
+      <AuthFieldSkeleton tall />
+      <AuthFieldSkeleton />
+      <AuthFieldSkeleton />
+    </AuthFormSkeleton>
+  </>
+);
+
+export { IntakeFormSection, IntakeFormSkeleton };
