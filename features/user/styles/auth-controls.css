@@ -274,8 +274,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Stop the rotation but keep a slow pulse, so it still reads as busy. */
   .auth-spin {
-    animation: none;
+    animation: auth-pulse 2s ease-in-out infinite;
   }
 
   /* Drop movement only; color feedback keeps its transition. */

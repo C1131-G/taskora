@@ -19,4 +19,9 @@
   .workspace-app [data-workspace-progress] [data-slot="progress-indicator"] {
     transition: none;
   }
+  /* Tailwind spinners sit in dialogs outside .workspace-app: stop the rotation
+     and keep an opacity pulse so they still read as busy. */
+  .animate-spin {
+    animation: sk-pulse 2s ease-in-out infinite;
+  }
 }

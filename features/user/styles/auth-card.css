@@ -270,6 +270,6 @@
   .auth-skeleton-text,
   .auth-skeleton-input,
   .auth-skeleton-button {
-    animation: none;
+    animation-duration: 2s;
   }
 }
