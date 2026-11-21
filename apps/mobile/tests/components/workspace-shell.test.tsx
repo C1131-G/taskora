@@ -37,9 +37,10 @@ it("renders the tab bar with the active tab and badge", async () => {
     />,
   );
 
-  const home = screen.getByRole("tab", { name: "Home" });
+  // The badge count is part of the tab's name, not a separate element.
+  const home = screen.getByRole("tab", { name: "Home, 3 unread" });
   expect(home.props.accessibilityState.selected).toBe(true);
-  expect(screen.getByLabelText("3 unread")).toBeTruthy();
+  expect(screen.getByRole("tab", { name: "My Tasks" })).toBeTruthy();
 
   await user.press(screen.getByRole("tab", { name: "Inbox" }));
 

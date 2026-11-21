@@ -1,6 +1,6 @@
 import { Cause, Effect, Exit, Option } from "effect";
-import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useRef, useState } from "react";
+import { StyleSheet, type TextInputInstance, View } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -42,6 +42,8 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const newPasswordRef = useRef<TextInputInstance>(null);
+  const confirmRef = useRef<TextInputInstance>(null);
 
   const change = useMutation({
     mutationFn: ({ service, ...input }: PasswordChange) =>
@@ -56,6 +58,10 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
   });
 
   const submit = (): void => {
+    // The keyboard's return key can submit while the button is disabled.
+    if (change.isPending) {
+      return;
+    }
     const errors: Record<string, string> = {};
     if (currentPassword.length === 0) {
       errors.currentPassword = "Enter your current password";
@@ -79,25 +85,47 @@ export const ChangePasswordScreen = ({ onDone, session: sessionProp }: ChangePas
       <View style={styles.form}>
         <WorkspaceField label="Current password">
           <WorkspaceTextInput
+            autoCapitalize="none"
+            autoComplete="current-password"
+            autoCorrect={false}
             invalid={fieldErrors.currentPassword !== undefined}
             onChangeText={setCurrentPassword}
+            onSubmitEditing={() => newPasswordRef.current?.focus()}
+            returnKeyType="next"
             secureTextEntry
+            submitBehavior="submit"
+            textContentType="password"
             value={currentPassword}
           />
         </WorkspaceField>
         <WorkspaceField label="New password">
           <WorkspaceTextInput
+            autoCapitalize="none"
+            autoComplete="new-password"
+            autoCorrect={false}
             invalid={fieldErrors.newPassword !== undefined}
             onChangeText={setNewPassword}
+            onSubmitEditing={() => confirmRef.current?.focus()}
+            ref={newPasswordRef}
+            returnKeyType="next"
             secureTextEntry
+            submitBehavior="submit"
+            textContentType="newPassword"
             value={newPassword}
           />
         </WorkspaceField>
         <WorkspaceField label="Repeat new password">
           <WorkspaceTextInput
+            autoCapitalize="none"
+            autoComplete="new-password"
+            autoCorrect={false}
             invalid={fieldErrors.confirm !== undefined}
             onChangeText={setConfirm}
+            onSubmitEditing={submit}
+            ref={confirmRef}
+            returnKeyType="done"
             secureTextEntry
+            textContentType="newPassword"
             value={confirm}
           />
         </WorkspaceField>

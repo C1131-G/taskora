@@ -29,19 +29,19 @@ const OwnedTheme = () => {
   );
 };
 
-const selected = (label: string): boolean | undefined =>
-  screen.getByLabelText(label).props.accessibilityState?.selected;
+const checked = (label: string): boolean | undefined =>
+  screen.getByLabelText(label).props.accessibilityState?.checked;
 
 it("marks the theme mode the provider holds, with no lagging copy", async () => {
   const user = userEvent.setup();
   await renderWithTheme(<OwnedTheme />);
-  expect(selected("Theme light")).toBe(true);
+  expect(checked("Theme light")).toBe(true);
 
   await user.press(screen.getByLabelText("Theme dark"));
-  expect(selected("Theme dark")).toBe(true);
-  expect(selected("Theme light")).toBe(false);
+  expect(checked("Theme dark")).toBe(true);
+  expect(checked("Theme light")).toBe(false);
 
   await act(() => setModeFromOutside("system"));
-  expect(selected("Theme system")).toBe(true);
-  expect(selected("Theme dark")).toBe(false);
+  expect(checked("Theme system")).toBe(true);
+  expect(checked("Theme dark")).toBe(false);
 });

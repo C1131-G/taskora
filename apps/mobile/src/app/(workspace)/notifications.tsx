@@ -1,4 +1,5 @@
 import { DomainRoute } from "@/features/workspace/domain-route";
+import { domainKeys } from "@/runtime/query-keys";
 import { notificationsProgram } from "@/features/workspace/more-queries";
 
 export default function Route() {
@@ -7,7 +8,7 @@ export default function Route() {
       emptyMessage="Nothing here yet."
       emptyTitle="Notifications"
       makeProgram={(api) => notificationsProgram(api)}
-      queryKey={["notifications-ws"]}
+      queryKey={domainKeys.list("notifications")}
       screenTitle="Notifications"
     />
   );

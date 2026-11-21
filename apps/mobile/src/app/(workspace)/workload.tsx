@@ -1,4 +1,5 @@
 import { DomainRoute } from "@/features/workspace/domain-route";
+import { domainKeys } from "@/runtime/query-keys";
 import { workloadProgram } from "@/features/workspace/domain-queries";
 
 export default function Route() {
@@ -7,7 +8,7 @@ export default function Route() {
       emptyMessage="Nothing here yet."
       emptyTitle="Workload"
       makeProgram={(api) => workloadProgram(api)}
-      queryKey={["workload"]}
+      queryKey={domainKeys.list("workload")}
       screenTitle="Workload"
     />
   );

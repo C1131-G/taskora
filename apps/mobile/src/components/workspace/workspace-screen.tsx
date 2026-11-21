@@ -30,6 +30,7 @@ export const WorkspaceScreen = ({ children, title, toolbar }: WorkspaceScreenPro
       )}
       {toolbar === undefined ? null : <View style={styles.toolbar}>{toolbar}</View>}
       <ScrollView
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         style={styles.scroll}

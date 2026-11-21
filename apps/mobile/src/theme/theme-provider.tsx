@@ -96,5 +96,5 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [values, systemScheme, showError]);
 
-  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
+  return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 };

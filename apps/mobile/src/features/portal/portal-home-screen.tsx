@@ -9,6 +9,7 @@ import { PLACEHOLDER_PORTAL_PROJECTS } from "@/features/portal/portal-placeholde
 import { listPortalBugs, listPortalProjects } from "@/features/portal/queries";
 import { SkelterListRows, type ListRow } from "@/features/workspace/domain-list-screen";
 import { useApi, useApiQuery } from "@/runtime/api-hooks";
+import { portalKeys } from "@/runtime/query-keys";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
@@ -43,21 +44,18 @@ export const PortalHomeScreen = () => {
   const api = useApi();
   const projects = useApiQuery({
     enabled: api !== null,
-    program:
-      api === null
-        ? Effect.succeed({ projects: [] })
-        : Effect.map(listPortalProjects(api), (page) => ({ projects: [...page.projects] })),
-    queryKey: ["portal", "projects"],
+    program: api === null ? Effect.succeed({ projects: [] }) : listPortalProjects(api),
+    queryKey: portalKeys.projects(),
   });
   const bugs = useApiQuery({
     enabled: api !== null,
-    program:
-      api === null ? Effect.succeed([]) : Effect.map(listPortalBugs(api), (rows) => [...rows]),
-    queryKey: ["portal", "bugs"],
+    program: api === null ? Effect.succeed([]) : listPortalBugs(api),
+    queryKey: portalKeys.bugList(),
   });
   const projectsLoading = api === null || projects.isPending;
   const bugsLoading = api === null || bugs.isPending;
-  const failure = projects.error ?? bugs.error;
+  // Cached sections stay on screen when a background refresh fails.
+  const failure = (projects.data === undefined ? projects.error : null) ?? (bugs.data === undefined ? bugs.error : null);
   const bugRows = (bugs.data ?? []).map((bug) => ({ id: bug.id, subtitle: bug.status, title: bug.title }));
 
   if (failure !== null) {

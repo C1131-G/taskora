@@ -3,13 +3,12 @@ import { useEffect } from "react";
 import { useErrorToast } from "@/components/workspace/error-toast-provider";
 import { appRuntime } from "@/runtime/runtime";
 import { Connectivity } from "@/services/connectivity";
-import { onlineManager } from "@tanstack/react-query";
 import { Effect, Fiber, Stream } from "effect";
 
 /**
- * Shows a banner while the device is offline and mirrors the connectivity
- * stream into TanStack's online manager. Reduced-motion friendly: no
- * animation, just the live-region announcement.
+ * Announces going offline. TanStack's online manager is fed by the query
+ * manager wiring the session gate forks, not here. Reduced-motion
+ * friendly: no animation, just the live-region announcement.
  */
 export const OfflineBanner = () => {
   const showError = useErrorToast();
@@ -25,7 +24,6 @@ export const OfflineBanner = () => {
               showError("You are offline. Changes wait until the connection returns.");
             }
             wasOnline = value;
-            onlineManager.setOnline(value);
           }),
         ),
       ),

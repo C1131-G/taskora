@@ -254,6 +254,7 @@ it("buzzes once per accepted move and ignores repeats and the current status", a
     medium: record("medium"),
     success: record("success"),
     warning: record("warning"),
+    error: record("error"),
   };
   const api = apiWith({
     changeTask: (input: unknown) => {

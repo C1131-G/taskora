@@ -2,12 +2,16 @@ import { withSkeleton } from "react-zero-skeleton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, SignOut } from "phosphor-react-native";
 
+import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
+import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
 import { WorkspaceListGroup, WorkspaceListRow } from "@/components/workspace/workspace-list-row";
 import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
+import { DomainListBody } from "@/features/workspace/domain-list-screen";
 import { listBugs, listProjects, type BugSummary, type ProjectSummary } from "@/features/workspace/queries";
 import { useApi, useApiQuery, type ApiContextValue } from "@/runtime/api-hooks";
+import { bugKeys, projectKeys } from "@/runtime/query-keys";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
@@ -72,90 +76,104 @@ export const HomeScreen = ({
   const projects = useApiQuery({
     enabled: api !== null,
     program: api === null ? Effect.succeed({ projects: [] }) : listProjects(api),
-    queryKey: ["projects"],
+    queryKey: projectKeys.list(),
   });
   const bugs = useApiQuery({
     enabled: api !== null,
     program: api === null ? Effect.succeed({ bugs: [] }) : listBugs(api),
-    queryKey: ["bugs"],
+    queryKey: bugKeys.list(),
   });
   const isLoading = api === null || projects.isPending || bugs.isPending;
+  // Cached sections stay on screen when a background refresh fails.
+  const failure = (projects.data === undefined ? projects.error : null) ?? (bugs.data === undefined ? bugs.error : null);
+  const projectRows = projects.data?.projects ?? [];
+  const bugRows = (bugs.data?.bugs ?? []).slice(0, 3);
 
   return (
     <WorkspaceTabShell>
       <WorkspaceScreen title={name === undefined ? "Hello" : `Hello, ${name.split(" ")[0] ?? name}`}>
-        <WorkspaceLoadingRegion isLoading={isLoading} label="Loading home">
-          <SkelterHomeContent
-            bugs={isLoading ? PLACEHOLDER_BUGS : (bugs.data?.bugs ?? []).slice(0, 3)}
-            hasSkeleton={isLoading}
-            isLoading={isLoading}
-            projects={isLoading ? PLACEHOLDER_PROJECTS : (projects.data?.projects ?? [])}
+        {failure !== null ? (
+          <WorkspaceErrorState
+            failure={failure}
+            onRetry={() => {
+              void projects.refetch();
+              void bugs.refetch();
+            }}
           />
-        </WorkspaceLoadingRegion>
+        ) : !isLoading && projectRows.length === 0 && bugRows.length === 0 ? (
+          <WorkspaceEmptyState message="Projects and open bugs show up here." title="Nothing here yet" />
+        ) : (
+          <WorkspaceLoadingRegion isLoading={isLoading} label="Loading home">
+            <SkelterHomeContent
+              bugs={isLoading ? PLACEHOLDER_BUGS : bugRows}
+              hasSkeleton={isLoading}
+              isLoading={isLoading}
+              projects={isLoading ? PLACEHOLDER_PROJECTS : projectRows}
+            />
+          </WorkspaceLoadingRegion>
+        )}
       </WorkspaceScreen>
     </WorkspaceTabShell>
   );
 };
 
-/** The bugs list. */
+/** The bugs list: shares the home screen's bugs read. */
 export const BugsScreen = () => {
   const api = useApi();
   const bugs = useApiQuery({
     enabled: api !== null,
-    program:
-      api === null
-        ? Effect.succeed({ bugs: [] })
-        : Effect.map(listBugs(api), (page) => ({ bugs: [...page.bugs] })),
-    queryKey: ["bugs"],
+    program: api === null ? Effect.succeed({ bugs: [] }) : listBugs(api),
+    queryKey: bugKeys.list(),
   });
-  const rows = bugs.data?.bugs ?? [];
+  const rows = (bugs.data?.bugs ?? []).map((bug) => ({
+    id: bug.id,
+    subtitle: `${bug.reference} · ${bug.priority}`,
+    title: bug.title,
+  }));
 
   return (
     <WorkspaceTabShell>
       <WorkspaceScreen title="Bugs">
-        {rows.length === 0 ? null : (
-          <WorkspaceListGroup>
-            {rows.map((bug) => (
-              <WorkspaceListRow
-                key={bug.id}
-                subtitle={`${bug.reference} · ${bug.priority}`}
-                title={bug.title}
-              />
-            ))}
-          </WorkspaceListGroup>
-        )}
+        <DomainListBody
+          emptyMessage="No open bugs."
+          emptyTitle="Bugs"
+          failure={bugs.data === undefined ? bugs.error : null}
+          isLoading={bugs.isPending}
+          label="Loading bugs"
+          onRetry={() => void bugs.refetch()}
+          rows={rows}
+        />
       </WorkspaceScreen>
     </WorkspaceTabShell>
   );
 };
 
-/** The projects list. */
+/** The projects list: shares the home screen's projects read. */
 export const ProjectsScreen = () => {
   const api = useApi();
   const projects = useApiQuery({
     enabled: api !== null,
-    program:
-      api === null
-        ? Effect.succeed({ projects: [] })
-        : Effect.map(listProjects(api), (page) => ({ projects: [...page.projects] })),
-    queryKey: ["projects"],
+    program: api === null ? Effect.succeed({ projects: [] }) : listProjects(api),
+    queryKey: projectKeys.list(),
   });
-  const rows = projects.data?.projects ?? [];
+  const rows = (projects.data?.projects ?? []).map((project) => ({
+    id: project.id,
+    subtitle: `${project.openTasks} open tasks · ${project.progress}%`,
+    title: `${project.key} ${project.name}`,
+  }));
 
   return (
     <WorkspaceTabShell>
       <WorkspaceScreen title="Projects">
-        {rows.length === 0 ? null : (
-          <WorkspaceListGroup>
-            {rows.map((project) => (
-              <WorkspaceListRow
-                key={project.id}
-                subtitle={`${project.openTasks} open tasks · ${project.progress}%`}
-                title={`${project.key} ${project.name}`}
-              />
-            ))}
-          </WorkspaceListGroup>
-        )}
+        <DomainListBody
+          emptyMessage="No projects yet."
+          emptyTitle="Projects"
+          failure={projects.data === undefined ? projects.error : null}
+          isLoading={projects.isPending}
+          label="Loading projects"
+          onRetry={() => void projects.refetch()}
+          rows={rows}
+        />
       </WorkspaceScreen>
     </WorkspaceTabShell>
   );
@@ -187,7 +205,7 @@ export const SettingsScreen = ({
             <Pressable
               accessibilityLabel={`Theme ${candidate}`}
               accessibilityRole="radio"
-              accessibilityState={{ selected: mode === candidate }}
+              accessibilityState={{ checked: mode === candidate }}
               key={candidate}
               onPress={() => setMode(candidate)}
               style={({ pressed }) => [

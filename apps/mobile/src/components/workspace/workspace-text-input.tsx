@@ -1,6 +1,6 @@
 import { Eye, EyeSlash } from "phosphor-react-native";
-import { useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { type Ref, useState } from "react";
+import { Pressable, StyleSheet, TextInput, type TextInputInstance, type TextInputProps, View } from "react-native";
 
 import { useTheme } from "@/theme/theme-provider";
 import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
@@ -8,23 +8,41 @@ import { radii, spacing, theme } from "@/theme/tokens.generated";
 
 export interface WorkspaceTextInputProps {
   readonly accessibilityLabel?: string;
+  readonly autoCapitalize?: TextInputProps["autoCapitalize"];
+  readonly autoComplete?: TextInputProps["autoComplete"];
+  readonly autoCorrect?: boolean;
   readonly invalid?: boolean;
   readonly keyboardType?: "default" | "email-address" | "numeric" | "url";
   readonly multiline?: boolean;
   readonly onChangeText: (value: string) => void;
+  readonly onSubmitEditing?: () => void;
   readonly placeholder?: string;
+  /** Lets a form move focus to this field from the previous one. */
+  readonly ref?: Ref<TextInputInstance>;
+  readonly returnKeyType?: TextInputProps["returnKeyType"];
   readonly secureTextEntry?: boolean;
+  /** "submit" keeps the keyboard up while focus moves to the next field. */
+  readonly submitBehavior?: TextInputProps["submitBehavior"];
+  readonly textContentType?: TextInputProps["textContentType"];
   readonly value: string;
 }
 
 export const WorkspaceTextInput = ({
   accessibilityLabel,
+  autoCapitalize,
+  autoComplete,
+  autoCorrect,
   invalid = false,
   keyboardType = "default",
   multiline = false,
   onChangeText,
+  onSubmitEditing,
   placeholder,
+  ref,
+  returnKeyType,
   secureTextEntry = false,
+  submitBehavior,
+  textContentType,
   value,
 }: WorkspaceTextInputProps) => {
   const { isDark } = useTheme();
@@ -45,13 +63,21 @@ export const WorkspaceTextInput = ({
       <TextInput
         aria-invalid={invalid}
         accessibilityLabel={accessibilityLabel}
+        autoCapitalize={autoCapitalize}
+        autoComplete={autoComplete}
+        autoCorrect={autoCorrect}
         keyboardType={keyboardType}
         maxFontSizeMultiplier={FONT_SCALE_CAP}
         multiline={multiline}
         onChangeText={onChangeText}
+        onSubmitEditing={onSubmitEditing === undefined ? undefined : () => onSubmitEditing()}
         placeholder={placeholder}
         placeholderTextColor={palette.text3}
+        ref={ref}
+        returnKeyType={returnKeyType}
         secureTextEntry={secureTextEntry && !revealed}
+        submitBehavior={submitBehavior}
+        textContentType={textContentType}
         style={[typeStyle("md"), styles.input, { color: palette.text }]}
         value={value}
       />

@@ -1,7 +1,7 @@
 import { Effect, Exit } from "effect";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { withSkeleton } from "react-zero-skeleton";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
@@ -21,6 +21,7 @@ import {
   type ReportDraft,
 } from "@/features/portal/report-form";
 import { failureOf, useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
+import { portalKeys } from "@/runtime/query-keys";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
@@ -33,15 +34,15 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [draft, setDraft] = useState<ReportDraft>(EMPTY_REPORT_DRAFT);
+  // The ref blocks a second press in the same frame; the state disables the button.
+  const sendingRef = useRef(false);
+  const [isSending, setIsSending] = useState(false);
   const showError = useErrorToast();
 
   const projects = useApiQuery({
     enabled: api !== null,
-    program:
-      api === null
-        ? Effect.succeed({ projects: [] })
-        : Effect.map(listPortalProjects(api), (page) => ({ projects: [...page.projects] })),
-    queryKey: ["portal", "projects"],
+    program: api === null ? Effect.succeed({ projects: [] }) : listPortalProjects(api),
+    queryKey: portalKeys.projects(),
   });
   const projectsLoading = api === null || projects.isPending;
   const choices = projects.data?.projects ?? [];
@@ -52,7 +53,7 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
   const change = (patch: Partial<ReportDraft>): void => setDraft((previous) => ({ ...previous, ...patch }));
 
   const submit = (): void => {
-    if (api === null || keys === null) {
+    if (api === null || keys === null || sendingRef.current) {
       return;
     }
     const result = draftToReport({ ...draft, projectId });
@@ -60,17 +61,21 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
       showError(Object.values(result.fieldErrors).join(" ") || "Check the form");
       return;
     }
+    sendingRef.current = true;
+    setIsSending(true);
     void (async () => {
       const exit = await Effect.runPromiseExit(
         keys.run("portal-new-bug", (key) => submitPortalBug(api, key, result.body)),
       );
       if (Exit.isSuccess(exit)) {
-        await queryClient.invalidateQueries({ queryKey: ["portal", "bugs"] });
+        await queryClient.invalidateQueries({ queryKey: portalKeys.bugs() });
         onDone();
-        return;
+      } else {
+        const failure = failureOf(exit);
+        showError(failure === undefined ? "Could not send the report." : failureMessage(failure));
       }
-      const failure = failureOf(exit);
-      showError(failure === undefined ? "Could not send the report." : failureMessage(failure));
+      sendingRef.current = false;
+      setIsSending(false);
     })();
   };
 
@@ -108,15 +113,14 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
         <Text style={[typeStyle("sm", { weight: 500 }), { color: palette.text }]}>Impact</Text>
         <View style={styles.choices}>
           {REPORT_IMPACTS.map((impact) => (
-            <Pressable
+            <WorkspaceChip
               accessibilityLabel={`Impact ${impact}`}
-              accessibilityRole="button"
-              accessibilityState={{ selected: draft.impact === impact }}
+              color="gray"
               key={impact}
+              label={impact}
               onPress={() => change({ impact })}
-            >
-              <WorkspaceChip color="gray" label={impact} selected={draft.impact === impact} />
-            </Pressable>
+              selected={draft.impact === impact}
+            />
           ))}
         </View>
         <Text style={[typeStyle("sm", { weight: 500 }), { color: palette.text }]}>Project</Text>
@@ -130,7 +134,7 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
             selectedId={projectId}
           />
         </WorkspaceLoadingRegion>
-        <WorkspaceButton onPress={submit} size="lg">
+        <WorkspaceButton disabled={isSending} onPress={submit} size="lg">
           Send report
         </WorkspaceButton>
       </View>
@@ -149,15 +153,14 @@ const ProjectChips = ({
 }) => (
   <View style={styles.choices}>
     {projects.map((project) => (
-      <Pressable
+      <WorkspaceChip
         accessibilityLabel={`Project ${project.name}`}
-        accessibilityRole="button"
-        accessibilityState={{ selected: selectedId === project.id }}
+        color="gray"
         key={project.id}
+        label={project.name}
         onPress={() => onPick(project.id)}
-      >
-        <WorkspaceChip color="gray" label={project.name} selected={selectedId === project.id} />
-      </Pressable>
+        selected={selectedId === project.id}
+      />
     ))}
   </View>
 );

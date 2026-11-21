@@ -27,7 +27,8 @@ export const makeBridge = (runtime: AppRuntime) => ({
   }) =>
     tanstackQueryOptions({
       queryKey: input.queryKey,
-      queryFn: () => runtime.runPromise(input.program),
+      // TanStack aborts the signal on cancel; the run interrupts the program.
+      queryFn: ({ signal }) => runtime.runPromise(input.program, { signal }),
     }),
   mutationOptions: <TVariables, TData>(input: {
     readonly mutationKey?: readonly unknown[];

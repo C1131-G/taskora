@@ -1,4 +1,5 @@
 import { DomainRoute } from "@/features/workspace/domain-route";
+import { domainKeys } from "@/runtime/query-keys";
 import { bugApprovalsProgram } from "@/features/workspace/more-queries";
 
 export default function Route() {
@@ -7,7 +8,7 @@ export default function Route() {
       emptyMessage="Nothing here yet."
       emptyTitle="Bug approvals"
       makeProgram={(api) => bugApprovalsProgram(api)}
-      queryKey={["bug-approvals"]}
+      queryKey={domainKeys.list("bug-approvals")}
       screenTitle="Bug approvals"
     />
   );

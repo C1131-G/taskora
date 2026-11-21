@@ -1,6 +1,6 @@
 import { Effect, Exit } from "effect";
 import { withSkeleton } from "react-zero-skeleton";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -18,6 +18,7 @@ import {
   type InboxItem,
 } from "@/features/inbox/queries";
 import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
+import { inboxKeys } from "@/runtime/query-keys";
 import { useHapticFeedback, type HapticEvent } from "@/runtime/haptics-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -41,6 +42,9 @@ const InboxContent = ({ api, items, keys, onOpenTask }: InboxScreenProps) => {
   const visible = tab === "all" ? groups.all : groups.unread;
   const showError = useErrorToast();
   const haptic = useHapticFeedback();
+  // The ref blocks a second press in the same frame; the state disables the action.
+  const markingAllRef = useRef(false);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   const updateReadState = async (
     operation: Effect.Effect<unknown, AppFailure>,
@@ -48,7 +52,7 @@ const InboxContent = ({ api, items, keys, onOpenTask }: InboxScreenProps) => {
   ): Promise<void> => {
     const result = await Effect.runPromiseExit(operation);
     if (Exit.isSuccess(result)) {
-      await queryClient.invalidateQueries({ queryKey: ["inbox"] });
+      await queryClient.invalidateQueries({ queryKey: inboxKeys.all });
       // After the refetch, so the buzz lands with the cleared unread marks.
       if (successHaptic !== undefined) {
         haptic(successHaptic);
@@ -56,7 +60,7 @@ const InboxContent = ({ api, items, keys, onOpenTask }: InboxScreenProps) => {
       return;
     }
     const failure = failureOf(result);
-    haptic("warning");
+    haptic("error");
     showError(failure === undefined ? "Could not update the inbox." : failureMessage(failure));
   };
 
@@ -66,38 +70,42 @@ const InboxContent = ({ api, items, keys, onOpenTask }: InboxScreenProps) => {
   };
 
   const markAll = (): void => {
-    if (api === null || keys === null) return;
-    void updateReadState(
-      keys.run("read-all", (key) => markAllInboxRead(api, key)),
-      "success",
-    );
+    if (api === null || keys === null || markingAllRef.current) return;
+    markingAllRef.current = true;
+    setIsMarkingAll(true);
+    void (async () => {
+      await updateReadState(
+        keys.run("read-all", (key) => markAllInboxRead(api, key)),
+        "success",
+      );
+      markingAllRef.current = false;
+      setIsMarkingAll(false);
+    })();
   };
 
   return (
     <View style={styles.content}>
       <View style={styles.tabs}>
-        <Pressable
+        <WorkspaceChip
           accessibilityRole="tab"
-          accessibilityState={{ selected: tab === "all" }}
+          color="gray"
+          label={`All ${groups.all.length}`}
           onPress={() => setTab("all")}
-        >
-          <WorkspaceChip color="gray" label={`All ${groups.all.length}`} selected={tab === "all"} />
-        </Pressable>
-        <Pressable
+          selected={tab === "all"}
+        />
+        <WorkspaceChip
           accessibilityRole="tab"
-          accessibilityState={{ selected: tab === "unread" }}
+          color="green"
+          label={`Unread ${groups.unread.length}`}
           onPress={() => setTab("unread")}
-        >
-          <WorkspaceChip
-            color="green"
-            label={`Unread ${groups.unread.length}`}
-            selected={tab === "unread"}
-          />
-        </Pressable>
+          selected={tab === "unread"}
+        />
         <View style={styles.spacer} />
         {groups.unread.length > 0 ? (
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ disabled: isMarkingAll }}
+            disabled={isMarkingAll}
             onPress={markAll}
             style={({ pressed }) => [styles.markAll, { opacity: pressed ? 0.7 : 1 }]}
           >

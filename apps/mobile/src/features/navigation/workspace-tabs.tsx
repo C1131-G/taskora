@@ -32,7 +32,7 @@ import { WorkspaceBottomNavigation } from "@/components/workspace/workspace-bott
 import { isActiveHref, mobileTabs, moreGroups } from "@/features/navigation/navigation-data";
 import { useSessionState } from "@/features/auth/session-gate";
 import { useTheme } from "@/theme/theme-provider";
-import { typeStyle } from "@/theme/type-scale";
+import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
 
 const ICONS: Record<string, ComponentType<{ color: string; size: number; weight?: IconWeight }>> = {
@@ -129,7 +129,10 @@ export const MoreMenu = ({ onClose, visible }: MoreMenuProps) => {
       {moreGroups.map((group, groupIndex) => (
         <View key={group.label ?? `group-${groupIndex}`} style={styles.group}>
           {group.label === undefined ? null : (
-            <Text style={[typeStyle("xs"), styles.groupLabel, { color: palette.text3 }]}>
+            <Text
+              accessibilityRole="header"
+              style={[typeStyle("xs"), styles.groupLabel, { color: palette.text3 }]}
+            >
               {group.label}
             </Text>
           )}
@@ -185,7 +188,9 @@ export const WorkspaceTabShell = ({ children }: { children: React.ReactNode }) =
           style={({ pressed }) => [styles.moreButton, { opacity: pressed ? 0.7 : 1 }]}
         >
           <GearSix color={moreOpen ? palette.accent : palette.text2} size={22} weight={moreOpen ? "fill" : "regular"} />
-          <Text style={[typeStyle("2xs"), { color: palette.text3 }]}>More</Text>
+          <Text maxFontSizeMultiplier={FONT_SCALE_CAP} style={[typeStyle("2xs"), { color: palette.text3 }]}>
+            More
+          </Text>
         </Pressable>
       </View>
       <MoreMenu onClose={() => setMoreOpen(false)} visible={moreOpen} />
