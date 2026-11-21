@@ -60,6 +60,11 @@ export const useTouchChipDrag = ({
     const touchMoveListener = blockScroll.current;
     return function removeScrollBlock() {
       window.removeEventListener("touchmove", touchMoveListener);
+      // A hold that has not engaged yet must not fire after unmount.
+      const pendingHold = state.current?.timer;
+      if (pendingHold !== null && pendingHold !== undefined) {
+        window.clearTimeout(pendingHold);
+      }
     };
   }, []);
 

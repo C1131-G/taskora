@@ -3,6 +3,10 @@
 import { useCallback, useRef, useState } from "react";
 
 import type { TaskSubtaskView } from "@/features/tasks/components/task-details-subtasks";
+import type {
+  TaskLabelOption,
+  TaskRelationOption,
+} from "@/features/tasks/components/task-relations-section";
 import { useTaskComments } from "@/features/tasks/hooks/use-task-comments";
 import type { EditableTask } from "@/features/tasks/task-details-draft";
 import type {
@@ -24,6 +28,31 @@ const approvalsOf = (bundle: TaskBundle | null): TaskApprovals | null =>
 const customFieldsOf = (bundle: TaskBundle | null): TaskCustomFields | null =>
   bundle?.customFields.ok ? bundle.customFields.data : null;
 
+const labelChoicesOf = (
+  bundle: TaskBundle | null
+): readonly TaskLabelOption[] | null =>
+  bundle?.labels.ok ? bundle.labels.data : null;
+
+// The project's other tasks a task may depend on, named with their status.
+const dependencyChoicesOf = (
+  bundle: TaskBundle | null,
+  taskId: string
+): readonly TaskRelationOption[] | null => {
+  if (!bundle?.projectTasks.ok) {
+    return null;
+  }
+  const choices: TaskRelationOption[] = [];
+  for (const candidate of bundle.projectTasks.data) {
+    if (candidate.id !== taskId) {
+      choices.push({
+        id: candidate.id,
+        name: `${candidate.title} · ${candidate.status}`,
+      });
+    }
+  }
+  return choices;
+};
+
 const bundleError = (bundle: TaskBundle): string | null => {
   const reads = [
     bundle.task,
@@ -35,6 +64,8 @@ const bundleError = (bundle: TaskBundle): string | null => {
     bundle.pulls,
     bundle.approvals,
     bundle.customFields,
+    bundle.labels,
+    bundle.projectTasks,
     ...(bundle.bugHistory ? [bundle.bugHistory] : []),
   ];
   const messages = reads.flatMap((result) =>
@@ -92,6 +123,12 @@ export const useTaskBundle = ({
   const [customFields, setCustomFields] = useState(() =>
     customFieldsOf(initialBundle)
   );
+  const [labelChoices, setLabelChoices] = useState(() =>
+    labelChoicesOf(initialBundle)
+  );
+  const [dependencyChoices, setDependencyChoices] = useState(() =>
+    dependencyChoicesOf(initialBundle, taskId)
+  );
   const requestSequence = useRef(0);
 
   // Failed reads are reported while the reads that succeeded still show.
@@ -132,8 +169,16 @@ export const useTaskBundle = ({
       if (bundle.customFields.ok) {
         setCustomFields(bundle.customFields.data);
       }
+      const labelsRead = labelChoicesOf(bundle);
+      if (labelsRead) {
+        setLabelChoices(labelsRead);
+      }
+      const dependenciesRead = dependencyChoicesOf(bundle, taskId);
+      if (dependenciesRead) {
+        setDependencyChoices(dependenciesRead);
+      }
     },
-    [setComments]
+    [setComments, taskId]
   );
 
   const refresh = useCallback(async () => {
@@ -161,9 +206,11 @@ export const useTaskBundle = ({
     bugHistory,
     comments,
     customFields,
+    dependencyChoices,
     error,
     errorRevision,
     files,
+    labelChoices,
     loading,
     pulls,
     refresh,
