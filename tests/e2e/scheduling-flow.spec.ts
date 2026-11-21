@@ -209,8 +209,7 @@ test.describe("scheduling", () => {
         return;
       }
       await page
-        .locator("button.bar")
-        .filter({ hasText: title })
+        .getByRole("button", { exact: false, name: `${title}, ` })
         .first()
         .focus();
       await page.keyboard.press("ArrowLeft");
@@ -258,7 +257,9 @@ test.describe("scheduling", () => {
     expect(reloaded.due).not.toBe(original.due);
 
     // Move it back the same way; the drag above added two days.
-    const back = page.locator("button.bar").filter({ hasText: title }).first();
+    const back = page
+      .getByRole("button", { exact: false, name: `${title}, ` })
+      .first();
     await back.scrollIntoViewIfNeeded();
     const backBox = await back.boundingBox();
     if (!backBox) {
