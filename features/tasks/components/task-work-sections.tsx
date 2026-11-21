@@ -11,6 +11,7 @@ import { TaskSubtasksSection } from "@/features/tasks/components/task-details-su
 import type { TaskSubtaskView } from "@/features/tasks/components/task-details-subtasks";
 import { TaskRecurrenceEditor } from "@/features/tasks/components/task-recurrence-editor";
 import { TaskRelationsEditor } from "@/features/tasks/components/task-relations-editor";
+import type { RelationChoices } from "@/features/tasks/components/task-relations-editor";
 import type { useTaskSubtaskActions } from "@/features/tasks/hooks/use-task-subtask-actions";
 import type { EditableTask } from "@/features/tasks/task-details-draft";
 import type { EmployeeOption } from "@/features/tasks/task-details-panel-data";
@@ -28,7 +29,8 @@ export const TaskWorkSections = ({
   onSaved,
   onVersionChange,
   part,
-  projectId,
+  relationChoices,
+  relationChoicesLoading,
   subtaskActions,
   subtasks,
   task,
@@ -43,7 +45,8 @@ export const TaskWorkSections = ({
   readonly onSaved: DetailsFormProps["onSaved"];
   readonly onVersionChange: (version: number) => void;
   readonly part: TaskWorkPart;
-  readonly projectId: string;
+  readonly relationChoices: RelationChoices | null;
+  readonly relationChoicesLoading: boolean;
   readonly subtaskActions: ReturnType<typeof useTaskSubtaskActions>;
   readonly subtasks: readonly TaskSubtaskView[];
   readonly task: EditableTask | null;
@@ -111,9 +114,10 @@ export const TaskWorkSections = ({
             dependencyIds={task.dependencyIds}
             editable={editable}
             labelIds={task.labelIds}
+            loading={relationChoicesLoading}
             onVersionChange={onVersionChange}
             onReload={onReload}
-            projectId={projectId}
+            choices={relationChoices}
             taskId={taskId}
             version={version}
           />

@@ -6,7 +6,11 @@ import { listTaskFilesAction } from "@/features/files/actions/files-upload-reque
 import { getTaskLinkedPulls } from "@/features/github/github-queries";
 import { listTaskCommentsAction } from "@/features/tasks/actions/tasks-comments";
 import { listTaskSubtasksAction } from "@/features/tasks/actions/tasks-subtasks";
-import { getProjectTask } from "@/features/tasks/tasks-queries";
+import {
+  getProjectTask,
+  listLabels,
+  listProjectTasks,
+} from "@/features/tasks/tasks-queries";
 import { getRunningTimer, getTaskTime } from "@/features/time/time-queries";
 
 export interface TaskFile {
@@ -43,6 +47,8 @@ export const readTaskBundle = async (
     pulls,
     approvals,
     customFields,
+    labels,
+    projectTasks,
   ] = await Promise.all([
     getProjectTask({ projectId, taskId }),
     listTaskCommentsAction({ taskId }),
@@ -54,6 +60,9 @@ export const readTaskBundle = async (
     getTaskLinkedPulls({ taskId }),
     listTaskApprovals({ taskId }),
     getTaskCustomFields({ taskId }),
+    // The choices the relations section offers: labels and the project's tasks.
+    listLabels({}),
+    listProjectTasks({ limit: 200, offset: 0, projectId }),
   ]);
   return {
     approvals,
@@ -61,6 +70,8 @@ export const readTaskBundle = async (
     comments,
     customFields,
     files,
+    labels,
+    projectTasks,
     pulls,
     subtasks,
     task,

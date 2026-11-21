@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -15,99 +15,38 @@ import type {
   TaskLabelOption,
   TaskRelationOption,
 } from "@/features/tasks/components/task-relations-section";
-import {
-  listLabelsAction,
-  listProjectTasksAction,
-  setTaskRelationsAction,
-} from "@/features/tasks/tasks-actions";
+import { setTaskRelationsAction } from "@/features/tasks/tasks-actions";
+
+// The labels and the project's other tasks a task can be linked to. The task
+// panel reads them with the rest of the task, so this editor only displays them.
+export interface RelationChoices {
+  readonly dependencies: readonly TaskRelationOption[];
+  readonly labels: readonly TaskLabelOption[];
+}
 
 export const TaskRelationsEditor = ({
   taskId,
-  projectId,
   version,
   onReload,
   labelIds,
   dependencyIds,
   editable,
+  choices,
+  loading,
   onVersionChange,
 }: {
   readonly taskId: string;
-  readonly projectId: string;
   readonly version: number;
   readonly labelIds: readonly string[];
   readonly dependencyIds: readonly string[];
   readonly editable: boolean;
+  // Null until the panel has read them, or when that read failed.
+  readonly choices: RelationChoices | null;
+  readonly loading: boolean;
   readonly onVersionChange: (version: number) => void;
   readonly onReload: () => Promise<void>;
 }) => {
   const [pending, startTransition] = useTransition();
-  const [loaded, setLoaded] = useState(false);
-  const [labels, setLabels] = useState<readonly TaskLabelOption[]>([]);
-  const [dependencies, setDependencies] = useState<
-    readonly TaskRelationOption[]
-  >([]);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const loadSequence = useRef(0);
-
-  const load = useCallback(() => {
-    loadSequence.current += 1;
-    const requestId = loadSequence.current;
-    startTransition(async () => {
-      setLoaded(false);
-      setLoadFailed(false);
-      try {
-        const [labelResult, taskResult] = await Promise.all([
-          listLabelsAction({}),
-          listProjectTasksAction({ limit: 200, offset: 0, projectId }),
-        ]);
-        if (requestId !== loadSequence.current) {
-          return;
-        }
-        if (labelResult.ok && taskResult.ok) {
-          setLabels(labelResult.data);
-          const options: TaskRelationOption[] = [];
-          for (const task of taskResult.data) {
-            if (task.id !== taskId) {
-              options.push({
-                id: task.id,
-                name: `${task.title} · ${task.status}`,
-              });
-            }
-          }
-          setDependencies(options);
-          setLoaded(true);
-          return;
-        }
-        const messages = [labelResult, taskResult].flatMap((result) =>
-          result.ok ? [] : [result.error.message]
-        );
-        setLoadFailed(true);
-        toast.error(
-          [...new Set(messages)].join(" ") ||
-            "Labels and dependencies could not be loaded."
-        );
-      } catch {
-        if (requestId !== loadSequence.current) {
-          return;
-        }
-        setLoadFailed(true);
-        toast.error("Labels and dependencies could not be loaded. Try again.");
-      }
-    });
-  }, [projectId, taskId]);
-
-  // Labels and dependencies load as soon as the section appears, so there is no
-  // extra button to press before the choices show. The web app has no query
-  // cache yet; bumping the sequence on cleanup drops a stale response.
-  useEffect(
-    function loadRelationChoices() {
-      load();
-      return function ignoreStaleRelationChoices() {
-        loadSequence.current += 1;
-      };
-    },
-    [load]
-  );
 
   const save = (formData: FormData) => {
     if (pending || !editable) {
@@ -136,24 +75,30 @@ export const TaskRelationsEditor = ({
     });
   };
 
+  const retry = () => {
+    startTransition(async () => {
+      await onReload();
+    });
+  };
+
   let content = <TaskRelationsSkeleton editable={editable} />;
-  if (loaded) {
+  if (choices) {
     content = (
       <TaskRelationsSection
-        dependencies={dependencies}
+        dependencies={choices.dependencies}
         editable={editable}
-        labels={labels}
+        labels={choices.labels}
         onSave={save}
         pending={pending}
         selectedDependencyIds={dependencyIds}
         selectedLabelIds={labelIds}
       />
     );
-  } else if (loadFailed) {
+  } else if (!loading) {
     content = (
       <WorkspaceButton
         disabled={pending}
-        onClick={load}
+        onClick={retry}
         type="button"
         workspace
       >

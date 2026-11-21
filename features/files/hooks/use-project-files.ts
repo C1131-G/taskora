@@ -86,13 +86,18 @@ export const useProjectFiles = ({
       // The next poll tries again.
     }
   });
-  useEffect(() => {
-    if (!hasPendingCopy) {
-      return;
-    }
-    const timer = window.setInterval(pollPendingCopies, COPY_POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [hasPendingCopy]);
+  useEffect(
+    function pollWhileCopyPending() {
+      if (!hasPendingCopy) {
+        return;
+      }
+      const timer = window.setInterval(pollPendingCopies, COPY_POLL_MS);
+      return function stopCopyPolling() {
+        window.clearInterval(timer);
+      };
+    },
+    [hasPendingCopy]
+  );
 
   // Each file settles on its own, so the list refreshes as uploads finish.
   const queue = useUploadQueue(async () => {

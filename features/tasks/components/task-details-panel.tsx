@@ -67,9 +67,11 @@ export const TaskDetailsPanel = ({
     comments,
     bugHistory,
     customFields,
+    dependencyChoices,
     error,
     errorRevision,
     files,
+    labelChoices,
     loading,
     pulls,
     refresh,
@@ -138,7 +140,12 @@ export const TaskDetailsPanel = ({
       onSaved={handleSaved}
       onVersionChange={recordVersionChange}
       part={part}
-      projectId={projectId}
+      relationChoices={
+        labelChoices && dependencyChoices
+          ? { dependencies: dependencyChoices, labels: labelChoices }
+          : null
+      }
+      relationChoicesLoading={loading}
       subtaskActions={subtaskActions}
       subtasks={subtasks}
       task={task}
