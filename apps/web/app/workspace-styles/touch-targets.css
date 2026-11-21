@@ -59,3 +59,32 @@
     inset-block: -12px;
   }
 }
+
+/* Tiny controls keep their look but get a hit area of at least 24px, for
+   mouse and touch alike: the milestone diamond (12px) and the calendar chip's
+   Move control (20px tall). */
+.workspace-app .tl-milestone::after,
+.workspace-app .cal-chip .cal-chip-move::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+/* Text links in table rows and lists are about 18px tall. On touch they get
+   4px more hit area above and below; the matching negative margin keeps the
+   layout as it is, and it works for links that truncate with overflow hidden. */
+@media (pointer: coarse) {
+  .workspace-app
+    :is(
+      .mtt-project,
+      .clients-company-link,
+      .timeline-row-link,
+      .bug-back-link,
+      .member-profile-back,
+      .time-table td a,
+      td a.row
+    ) {
+    margin-block: -4px;
+    padding-block: 4px;
+  }
+}
