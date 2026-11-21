@@ -7,13 +7,9 @@ import { setTaskSubtaskStatus } from "@/src/server/api/tasks/task-subtasks";
 import { AuthSessionLive } from "@/src/server/auth/session";
 import { IdempotencyLive } from "@/src/server/core/idempotency";
 
-interface SubtaskStatusRouteContext {
-  params: Promise<{ subtaskId: string; taskId: string }>;
-}
-
 export const POST = async (
   request: Request,
-  context: SubtaskStatusRouteContext
+  context: RouteContext<"/api/v1/workspace/tasks/[taskId]/subtasks/[subtaskId]/status">
 ): Promise<Response> => {
   const params = await context.params;
   return respondWith(

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 
 import { PageTransition } from "@/components/ui/page-transition";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
-import { IntakeFormSkeleton } from "@/features/intake/components/intake-form";
-import { IntakeFormSection } from "@/features/intake/components/intake-form-section";
+import {
+  IntakeFormSection,
+  IntakeFormSkeleton,
+} from "@/features/intake/components/intake-form-section";
 import { AuthCard } from "@/features/user/components/auth-card";
 
 // The link is a capability: keep it out of search results and referrers.

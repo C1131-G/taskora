@@ -38,7 +38,7 @@ const attachmentField = async (form: FormData) => {
 // eslint-disable-next-line func-style -- Next route handler remains a named export.
 export async function POST(
   request: Request,
-  context: { readonly params: Promise<{ readonly slug: string }> }
+  context: RouteContext<"/api/intake/[slug]">
 ): Promise<Response> {
   const [{ slug }, bytes] = await Promise.all([
     context.params,

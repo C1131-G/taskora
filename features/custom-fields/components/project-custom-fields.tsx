@@ -12,7 +12,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import { CustomFieldManager } from "@/features/custom-fields/components/custom-field-manager";
-import { listProjectCustomFields } from "@/features/custom-fields/custom-field-queries";
+import { listProjectCustomFields } from "@/features/custom-fields/custom-fields-queries";
 import { getProject } from "@/features/projects/projects-queries";
 import { readOrThrow } from "@/lib/read-result";
 import { getPageSession } from "@/src/server/auth/page-session";

@@ -2,6 +2,7 @@ import "server-only";
 import { Effect } from "effect";
 import { notFound } from "next/navigation";
 
+import { isPlausibleIntakeSlug } from "@/features/intake/intake-form-url";
 import { issueFormTokenFor } from "@/src/server/intake/intake-config";
 import { IntakeRuntimeLive } from "@/src/server/intake/intake-http";
 import { IntakeSubmissions } from "@/src/server/intake/intake-submissions";
@@ -13,6 +14,9 @@ import { IntakeSubmissions } from "@/src/server/intake/intake-submissions";
 
 // An unknown slug and a disabled form are the same missing page.
 export const getPublicIntakeForm = async (slug: string) => {
+  if (!isPlausibleIntakeSlug(slug)) {
+    notFound();
+  }
   const outcome = await Effect.runPromise(
     Effect.provide(
       Effect.gen(function* describe() {

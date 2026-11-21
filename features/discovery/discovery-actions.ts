@@ -136,6 +136,7 @@ export async function searchWorkspaceAction(input: unknown) {
 
 // eslint-disable-next-line func-style -- Next Server Actions stay named declarations.
 export async function recordRecentSearchAction(input: unknown) {
+  // Recent searches are read only when the search palette opens; refreshing on every search would re-render the page for nothing.
   return await runServerAction(
     input,
     Schema.Struct({

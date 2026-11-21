@@ -3,9 +3,9 @@ import type { ActionEntry } from "./action-permissions-shared";
 import { ids, nextKey } from "./support/action-harness";
 
 const automationActions =
-  await import("../../features/projects/automation-actions");
+  await import("../../features/projects/projects-automation-actions");
 const automationQueries =
-  await import("../../features/projects/automation-queries");
+  await import("../../features/projects/projects-automation-queries");
 
 const rule = () => ({
   actions: [{ priority: "high", type: "set_priority" }],

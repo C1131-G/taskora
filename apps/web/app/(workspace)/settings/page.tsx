@@ -6,8 +6,10 @@ import { PageTransition } from "@/components/ui/page-transition";
 import { SectionErrorBoundary } from "@/components/ui/section-error-boundary";
 import { SuspenseReveal } from "@/components/ui/suspense-reveal";
 import { SearchParamFallback } from "@/features/projects/components/search-param-fallback";
-import { SettingsPanel } from "@/features/settings/components/settings-panel";
-import { SettingsPanelSkeleton } from "@/features/settings/components/settings-panel-skeleton";
+import {
+  SettingsPanel,
+  SettingsPanelSkeleton,
+} from "@/features/settings/components/settings-panel";
 import { parseSettingsSection } from "@/features/settings/settings-section";
 
 export const metadata: Metadata = { title: "Settings | Taskora" };

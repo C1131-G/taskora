@@ -3,11 +3,11 @@ import type { ActionEntry } from "./action-permissions-shared";
 import { ids, nextKey } from "./support/action-harness";
 
 const fieldActions =
-  await import("../../features/custom-fields/custom-field-actions");
+  await import("../../features/custom-fields/custom-fields-actions");
 const fieldQueries =
-  await import("../../features/custom-fields/custom-field-queries");
+  await import("../../features/custom-fields/custom-fields-queries");
 const valueActions =
-  await import("../../features/custom-fields/custom-field-value-actions");
+  await import("../../features/custom-fields/custom-fields-value-actions");
 
 // Defining fields is administrator-only. Reading them is open to staff, and
 // setting a value needs the right to edit the task. Clients reach none of it;

@@ -12,9 +12,9 @@ import {
 } from "./support/action-harness";
 
 const actions =
-  await import("../../features/custom-fields/custom-field-actions");
+  await import("../../features/custom-fields/custom-fields-actions");
 const queries =
-  await import("../../features/custom-fields/custom-field-queries");
+  await import("../../features/custom-fields/custom-fields-queries");
 
 const projectId = randomUUID();
 const suffix = projectId.replaceAll("-", "").slice(0, 5).toUpperCase();

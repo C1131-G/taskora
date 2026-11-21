@@ -19,11 +19,11 @@ import {
   WorkspaceSelect,
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
+import { fieldTypeLabel } from "@/features/custom-fields/custom-field-labels";
 import {
   createCustomFieldAction,
   updateCustomFieldAction,
-} from "@/features/custom-fields/custom-field-actions";
-import { fieldTypeLabel } from "@/features/custom-fields/custom-field-labels";
+} from "@/features/custom-fields/custom-fields-actions";
 import type { CustomFieldView } from "@/src/server/custom-fields/custom-field-contracts";
 import {
   MAX_FIELD_NAME_LENGTH,

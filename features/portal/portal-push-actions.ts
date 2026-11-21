@@ -21,6 +21,7 @@ import { PushTransportLive } from "@/src/server/notifications/push-transport";
 
 // eslint-disable-next-line func-style -- Next Server Actions stay named declarations.
 export async function registerPortalPushAction(input: unknown) {
+  // Only the browser push subscription changes; no rendered page reads it, so a refresh would re-render for nothing.
   return await runServerAction(
     input,
     Schema.Struct({
@@ -61,6 +62,7 @@ export async function registerPortalPushAction(input: unknown) {
 
 // eslint-disable-next-line func-style -- Next Server Actions stay named declarations.
 export async function removePortalPushAction(input: unknown) {
+  // Only the browser push subscription changes; no rendered page reads it, so a refresh would re-render for nothing.
   return await runServerAction(
     input,
     Schema.Struct({

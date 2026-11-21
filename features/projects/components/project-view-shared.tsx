@@ -11,7 +11,7 @@ import type { listProjectFiles } from "@/features/files/files-queries";
 import type {
   listAutomationRules,
   listAutomationRuns,
-} from "@/features/projects/automation-queries";
+} from "@/features/projects/projects-automation-queries";
 import type { listProjects } from "@/features/projects/projects-queries";
 import type {
   listLabels,

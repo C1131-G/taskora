@@ -14,10 +14,6 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import {
-  createAutomationRuleAction,
-  updateAutomationRuleAction,
-} from "@/features/projects/automation-actions";
-import {
   draftToRuleInput,
   emptyActionDraft,
   emptyConditionDraft,
@@ -28,6 +24,10 @@ import {
   ActionRow,
   ConditionRow,
 } from "@/features/projects/components/automation-rule-fields";
+import {
+  createAutomationRuleAction,
+  updateAutomationRuleAction,
+} from "@/features/projects/projects-automation-actions";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 import {
   MAX_ACTIONS_PER_RULE,
