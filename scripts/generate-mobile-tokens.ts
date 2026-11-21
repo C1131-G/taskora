@@ -23,12 +23,16 @@ import type { CssBlock } from "./mobile-token-parser";
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const LIGHT_CSS = path.join(
   repoRoot,
+  "apps",
+  "web",
   "app",
   "workspace-styles",
   "tokens-light.css"
 );
 const DARK_CSS = path.join(
   repoRoot,
+  "apps",
+  "web",
   "app",
   "workspace-styles",
   "tokens-dark-accents.css"
