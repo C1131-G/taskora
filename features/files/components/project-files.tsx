@@ -12,7 +12,10 @@ import {
   ProjectFilesToolbar,
 } from "@/features/files/components/project-file-parts";
 import { UploadProgressList } from "@/features/files/components/upload-progress-list";
-import { filterProjectFiles } from "@/features/files/filter-project-files";
+import {
+  filterProjectFiles,
+  listFileTypes,
+} from "@/features/files/filter-project-files";
 import { useProjectFiles } from "@/features/files/hooks/use-project-files";
 import { FILE_SORTS } from "@/features/files/types/project-file-types";
 import type {
@@ -43,7 +46,6 @@ const ProjectFiles = ({
   readonly isAdmin: boolean;
 }) => {
   const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
   const [sort, setSort] = useSearchParamState<FileSort>(
     "fileSort",
     FILE_SORTS,
@@ -72,6 +74,13 @@ const ProjectFiles = ({
     ...(setControlledFiles ? { setControlledFiles } : {}),
   });
 
+  // The type filter is kept in the URL like the sort; only types the files
+  // really have are accepted, so a stale link falls back to "all".
+  const [typeFilter, setTypeFilter] = useSearchParamState(
+    "fileType",
+    ["all", ...listFileTypes(files)],
+    "all"
+  );
   const { fileTypes, filteredFiles } = filterProjectFiles(
     files,
     query,

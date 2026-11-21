@@ -7,6 +7,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
+import { WorkspaceConfirmDialog } from "@/components/workspace/workspace-confirm-dialog";
 import { TimeEntryForm } from "@/features/time/components/time-entry-form";
 import { deleteTimeEntryAction } from "@/features/time/time-actions";
 import { formatMinutes } from "@/features/time/time-format";
@@ -113,14 +114,20 @@ export const TimeEntryList = ({
                 >
                   Edit
                 </WorkspaceButton>
-                <WorkspaceButton
-                  aria-label={`Delete ${formatMinutes(entry.minutes)} entry on ${entry.workDate}`}
-                  className="btn btn-danger-ghost btn-xs"
-                  onClick={() => remove(entry.id)}
-                  type="button"
+                <WorkspaceConfirmDialog
+                  confirmLabel="Delete entry"
+                  description="The time entry is removed from the task and from totals."
+                  onConfirm={() => remove(entry.id)}
+                  title={`Delete ${formatMinutes(entry.minutes)} on ${entry.workDate}?`}
                 >
-                  Delete
-                </WorkspaceButton>
+                  <WorkspaceButton
+                    aria-label={`Delete ${formatMinutes(entry.minutes)} entry on ${entry.workDate}`}
+                    className="btn btn-danger-ghost btn-xs"
+                    type="button"
+                  >
+                    Delete
+                  </WorkspaceButton>
+                </WorkspaceConfirmDialog>
               </span>
             ) : null}
           </li>

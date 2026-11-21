@@ -3,15 +3,19 @@ import type {
   ProjectFile,
 } from "@/features/files/types/project-file-types";
 
+// The content types present in the files, sorted, for the type filter.
+export const listFileTypes = (files: readonly ProjectFile[]): string[] =>
+  [...new Set(files.map(({ contentType }) => contentType))].toSorted(
+    (left, right) => left.localeCompare(right)
+  );
+
 export const filterProjectFiles = (
   files: readonly ProjectFile[],
   query: string,
   typeFilter: string,
   sort: FileSort
 ) => {
-  const fileTypes = [
-    ...new Set(files.map(({ contentType }) => contentType)),
-  ].toSorted((left, right) => left.localeCompare(right));
+  const fileTypes = listFileTypes(files);
   const filteredFiles = files
     .filter((file) => {
       const matchesQuery = `${file.originalName} ${file.contentType}`
