@@ -18,11 +18,27 @@ import type { ThemePreferences } from "@/services/theme-preferences";
 import { ThemePreferencesServiceLive } from "@/services/theme-preferences";
 import { KeyValueStoreLive } from "@/services/key-value-store";
 
-/** The app origin; Android emulator 10.0.2.2 reaches the host machine. */
-const resolveBaseUrl = (): string =>
-  process.env.EXPO_PUBLIC_API_URL === undefined || process.env.EXPO_PUBLIC_API_URL.length === 0
-    ? "http://10.0.2.2:3000"
-    : process.env.EXPO_PUBLIC_API_URL;
+/**
+ * The app origin. Development builds, and hybrid builds that still use mocks for
+ * pending routes, fall back to 10.0.2.2, which the Android emulator uses to
+ * reach the host machine. A live release build has no such host: it needs
+ * EXPO_PUBLIC_API_URL (an EAS environment variable). Without it the app points
+ * at a reserved .invalid address, so requests fail as "unavailable" instead of
+ * trying an emulator-only cleartext address, and the problem is logged.
+ */
+const UNCONFIGURED_ORIGIN = "https://api.invalid";
+
+const resolveBaseUrl = (): string => {
+  const configured = process.env.EXPO_PUBLIC_API_URL;
+  if (configured !== undefined && configured.length > 0) {
+    return configured;
+  }
+  if (__DEV__ || resolveApiMode(process.env.EXPO_PUBLIC_API_MODE) !== "live") {
+    return "http://10.0.2.2:3000";
+  }
+  console.error("EXPO_PUBLIC_API_URL is not set for this build profile; API calls will fail.");
+  return UNCONFIGURED_ORIGIN;
+};
 
 const SessionLive = Layer.provide(
   makeSessionLayer({ baseUrl: resolveBaseUrl() }),
