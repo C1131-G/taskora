@@ -1,6 +1,12 @@
 import { Cause, Effect, Exit, Option } from "effect";
 import { createContext, useContext } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 
 import { Unavailable, type AppFailure } from "@/errors";
 import type { MobileApi } from "@/services/mobile-api";
@@ -50,12 +56,81 @@ export const useApiQuery = <A>({ enabled, program, queryKey }: ApiQueryInput<A>)
     queryKey,
   });
 
+export interface ApiInfiniteQueryInput<Page> {
+  readonly enabled?: boolean;
+  /** Loads one page; `cursor` is undefined for the first. */
+  readonly program: (cursor: string | undefined) => Effect.Effect<Page, AppFailure>;
+  readonly queryKey: readonly unknown[];
+}
+
+/**
+ * Cursor-paged variant of useApiQuery: each page runs as an Effect with the
+ * query's abort signal, and the next cursor is the last page's `nextCursor`.
+ */
+export const useApiInfiniteQuery = <Page extends { readonly nextCursor: string | null }>({
+  enabled,
+  program,
+  queryKey,
+}: ApiInfiniteQueryInput<Page>) =>
+  useInfiniteQuery<Page, AppFailure, InfiniteData<Page, string | undefined>, readonly unknown[], string | undefined>({
+    enabled: enabled ?? true,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    initialPageParam: undefined,
+    queryFn: async ({ pageParam, signal }) => {
+      const exit = await Effect.runPromiseExit(program(pageParam), { signal });
+      if (Exit.isSuccess(exit)) return exit.value;
+      return Promise.reject(failureOf(exit) ?? new Unavailable({ requestId: "" }));
+    },
+    queryKey,
+  });
+
 export interface ApiMutationInput<V, A> {
+  /**
+   * Query key prefixes refreshed after a successful write. The mutation stays
+   * pending until they settle, so a screen never reads stale data on success.
+   */
+  readonly invalidates?: readonly (readonly unknown[])[];
+  readonly mutationKey?: readonly unknown[];
+  /**
+   * Called once per failed write, even when several writes of one screen are
+   * in flight (per-call `mutate` callbacks only fire for the latest call).
+   * `failure` is undefined when the program died instead of failing.
+   */
+  readonly onError?: (failure: AppFailure | undefined, variables: V) => void;
+  /** Called once per write after success or failure, once any refresh has settled. */
+  readonly onSettled?: (variables: V) => void;
+  /** Called once per successful write, after the invalidations settle. */
+  readonly onSuccess?: (data: A, variables: V) => void;
   readonly program: (variables: V) => Effect.Effect<A, AppFailure>;
 }
 
-/** Runs one Effect program as a TanStack mutation; data is the Exit. */
-export const useApiMutation = <V, A>({ program }: ApiMutationInput<V, A>) =>
-  useMutation({
-    mutationFn: (variables: V) => Effect.runPromiseExit(program(variables)),
+/**
+ * Runs one Effect program as a TanStack mutation; rejections are the
+ * AppFailure (undefined for a defect). Success invalidates `invalidates`
+ * before it resolves; haptics, toasts and navigation belong to the callers.
+ */
+export const useApiMutation = <V, A>({
+  invalidates,
+  mutationKey,
+  onError,
+  onSettled,
+  onSuccess,
+  program,
+}: ApiMutationInput<V, A>) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<A, AppFailure | undefined, V>({
+    ...(mutationKey === undefined ? {} : { mutationKey }),
+    mutationFn: async (variables) => {
+      const exit = await Effect.runPromiseExit(program(variables));
+      if (Exit.isSuccess(exit)) return exit.value;
+      return Promise.reject(failureOf(exit));
+    },
+    onError: (failure, variables) => onError?.(failure, variables),
+    onSettled: (_data, _failure, variables) => onSettled?.(variables),
+    onSuccess: async (data, variables) => {
+      await Promise.all((invalidates ?? []).map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+      onSuccess?.(data, variables);
+    },
   });
+};

@@ -1,10 +1,9 @@
-import { Effect, Exit } from "effect";
+import type { Effect } from "effect";
 import { withSkeleton } from "react-zero-skeleton";
-import { useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import type { AppFailure } from "@/errors";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View, type ListRenderItem } from "react-native";
 import { CheckCircle, CircleIcon } from "phosphor-react-native";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
@@ -12,7 +11,7 @@ import { failureMessage } from "@/components/workspace/workspace-error-state";
 import { useErrorToast } from "@/components/workspace/error-toast-context";
 import { WorkspaceListGroup, WorkspaceListRow } from "@/components/workspace/workspace-list-row";
 import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
-import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
+import { WorkspaceListScreen, WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { TaskStatusTrigger } from "@/features/tasks/task-status-sheet";
 import { TASK_STATUS_ORDER, taskStatusLabel } from "@api/task-statuses";
 import {
@@ -21,7 +20,7 @@ import {
   type TaskPriority,
   type TaskStatus,
 } from "@/features/tasks/queries";
-import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
+import { useApiMutation, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
 import { taskKeys } from "@/runtime/query-keys";
 import { useHapticFeedback } from "@/runtime/haptics-hooks";
 import { useTheme } from "@/theme/theme-provider";
@@ -50,63 +49,121 @@ interface MyTasksContentProps {
   readonly tasks: readonly TaskRowModel[];
 }
 
-/** The My Tasks body: status chips and the open task rows. */
-const MyTasksContent = ({ onOpenTask, tasks }: MyTasksContentProps) => {
+/** The status chips; shared by the loaded header and the loading bones. */
+const StatusFilters = ({
+  filter,
+  onChange,
+}: {
+  readonly filter: TaskStatus | "all";
+  readonly onChange: (status: TaskStatus | "all") => void;
+}) => (
+  <ScrollView
+    contentContainerStyle={styles.filters}
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    style={styles.filterStrip}
+  >
+    {STATUS_FILTERS.map((status) => (
+      <WorkspaceChip
+        color={status === "all" ? "gray" : "green"}
+        key={status}
+        label={status === "all" ? "All" : taskStatusLabel(status)}
+        onPress={() => onChange(status)}
+        selected={filter === status}
+      />
+    ))}
+  </ScrollView>
+);
+
+/** The loading body only: Skelter measures it, so it mirrors the real chips and rows. */
+const MyTasksPlaceholder = ({ tasks }: { readonly tasks: readonly TaskRowModel[] }) => (
+  <View style={styles.content}>
+    <StatusFilters filter="all" onChange={noopFilter} />
+    <WorkspaceListGroup>
+      {tasks.map((task) => (
+        <WorkspaceListRow
+          key={task.id}
+          subtitle={`${task.projectName} · ${task.priority}`}
+          title={task.title}
+        />
+      ))}
+    </WorkspaceListGroup>
+  </View>
+);
+
+const noopFilter = (): void => undefined;
+
+const SkelterMyTasksPlaceholder = withSkeleton(MyTasksPlaceholder);
+
+const keyOfTask = (task: TaskRowModel): string => task.id;
+
+/** One virtualized task row; the open handler takes the id so its identity stays stable. */
+const TaskRow = memo(function TaskRow({
+  onOpen,
+  task,
+}: {
+  readonly onOpen: (id: string) => void;
+  readonly task: TaskRowModel;
+}) {
+  const open = useCallback(() => onOpen(task.id), [onOpen, task.id]);
+
+  return (
+    <WorkspaceListGroup>
+      <WorkspaceListRow
+        accessibilityLabel={`Open task ${task.title}`}
+        onPress={open}
+        subtitle={`${task.projectName} · ${task.priority}`}
+        title={task.title}
+      />
+    </WorkspaceListGroup>
+  );
+});
+
+/** The My Tasks screen; the title stays real while the rows load. */
+export const MyTasksScreen = ({ isLoading, onOpenTask, tasks }: MyTasksContentProps & { readonly isLoading: boolean }) => {
   const [filter, setFilter] = useState<TaskStatus | "all">("all");
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
-  const visible = filterTasks(tasks, filter);
+  const visible = useMemo(() => filterTasks(tasks, filter), [tasks, filter]);
+  const renderItem = useCallback<ListRenderItem<TaskRowModel>>(
+    ({ item }) => <TaskRow onOpen={onOpenTask} task={item} />,
+    [onOpenTask],
+  );
+
+  if (isLoading) {
+    return (
+      <WorkspaceListScreen
+        data={NO_TASKS}
+        empty={
+          <WorkspaceLoadingRegion isLoading label="Loading my tasks">
+            <SkelterMyTasksPlaceholder hasSkeleton isLoading tasks={tasks} />
+          </WorkspaceLoadingRegion>
+        }
+        keyExtractor={keyOfTask}
+        renderItem={renderItem}
+        title="My Tasks"
+      />
+    );
+  }
 
   return (
-    <View style={styles.content}>
-      <ScrollView
-        contentContainerStyle={styles.filters}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterStrip}
-      >
-        {STATUS_FILTERS.map((status) => (
-          <WorkspaceChip
-            color={status === "all" ? "gray" : "green"}
-            key={status}
-            label={status === "all" ? "All" : taskStatusLabel(status)}
-            onPress={() => setFilter(status)}
-            selected={filter === status}
-          />
-        ))}
-      </ScrollView>
-      {visible.length === 0 ? (
-        <WorkspaceEmptyState message="No tasks in this view." title="Nothing here" />
-      ) : (
-        <WorkspaceListGroup>
-          {visible.map((task) => (
-            <WorkspaceListRow
-              accessibilityLabel={`Open task ${task.title}`}
-              key={task.id}
-              onPress={() => onOpenTask(task.id)}
-              subtitle={`${task.projectName} · ${task.priority}`}
-              title={task.title}
-            />
-          ))}
-        </WorkspaceListGroup>
-      )}
-      <Text style={[typeStyle("xs"), styles.count, { color: palette.text3 }]}>
-        {visible.length} of {tasks.length} tasks
-      </Text>
-    </View>
+    <WorkspaceListScreen
+      data={visible}
+      empty={<WorkspaceEmptyState message="No tasks in this view." title="Nothing here" />}
+      footer={
+        <Text style={[typeStyle("xs"), styles.count, { color: palette.text3 }]}>
+          {visible.length} of {tasks.length} tasks
+        </Text>
+      }
+      header={<StatusFilters filter={filter} onChange={setFilter} />}
+      keyExtractor={keyOfTask}
+      renderItem={renderItem}
+      title="My Tasks"
+    />
   );
 };
 
-const SkelterMyTasksContent = withSkeleton(MyTasksContent);
-
-/** The My Tasks screen; the frame and title stay real while the rows load. */
-export const MyTasksScreen = ({ isLoading, ...props }: MyTasksContentProps & { readonly isLoading: boolean }) => (
-  <WorkspaceScreen title="My Tasks">
-    <WorkspaceLoadingRegion isLoading={isLoading} label="Loading my tasks">
-      <SkelterMyTasksContent hasSkeleton={isLoading} isLoading={isLoading} {...props} />
-    </WorkspaceLoadingRegion>
-  </WorkspaceScreen>
-);
+const NO_TASKS: readonly TaskRowModel[] = [];
 
 export interface TaskDetailModel {
   readonly projectName: string;
@@ -114,6 +171,13 @@ export interface TaskDetailModel {
   readonly subtasks: readonly { readonly completed: boolean; readonly id: string; readonly title: string }[];
   readonly title: string;
   readonly version: number;
+}
+
+/** One task write: its intent key, the program, and how to drop its optimistic override. */
+interface TaskWrite {
+  readonly intent: string;
+  readonly settle: () => void;
+  readonly write: Effect.Effect<unknown, AppFailure>;
 }
 
 interface TaskDetailContentProps {
@@ -130,7 +194,6 @@ interface TaskDetailContentProps {
  * server refuses the change.
  */
 const TaskDetailContent = ({ api, keys, task, taskId }: TaskDetailContentProps) => {
-  const queryClient = useQueryClient();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const showError = useErrorToast();
@@ -144,24 +207,24 @@ const TaskDetailContent = ({ api, keys, task, taskId }: TaskDetailContentProps) 
 
   // Every write refreshes the task on success or reports the failure, then
   // drops its optimistic override so the screen shows the server's value.
-  const run = (
-    intent: string,
-    write: Effect.Effect<unknown, AppFailure>,
-    settle: () => void,
-  ): void => {
-    void (async () => {
-      const result = await Effect.runPromiseExit(write);
-      if (Exit.isSuccess(result)) {
-        await queryClient.invalidateQueries({ queryKey: taskKeys.all });
-      } else {
-        const failure = failureOf(result);
-        haptic("error");
-        showError(failure === undefined ? "Could not update the task." : failureMessage(failure));
-      }
+  // The callbacks live on the hook, not on `mutate`: two writes can be in
+  // flight (a subtask and the status), and per-call callbacks only fire for
+  // the latest call.
+  const { mutate } = useApiMutation<TaskWrite, unknown>({
+    invalidates: [taskKeys.all],
+    mutationKey: [...taskKeys.all, "write"],
+    onError: (failure) => {
+      haptic("error");
+      showError(failure === undefined ? "Could not update the task." : failureMessage(failure));
+    },
+    onSettled: ({ intent, settle }) => {
       pendingIntents.current.delete(intent);
       settle();
-    })();
-  };
+    },
+    program: ({ write }) => write,
+  });
+  const run = (intent: string, write: Effect.Effect<unknown, AppFailure>, settle: () => void): void =>
+    mutate({ intent, settle, write });
 
   const claimIntent = (intent: string): boolean => {
     if (pendingIntents.current.has(intent)) return false;

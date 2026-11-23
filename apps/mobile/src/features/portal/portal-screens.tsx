@@ -1,8 +1,7 @@
-import { Effect, Exit } from "effect";
+import { Effect } from "effect";
 import { useRef, useState } from "react";
 import { withSkeleton } from "react-zero-skeleton";
 import { StyleSheet, Text, View } from "react-native";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceChip } from "@/components/workspace/workspace-chip";
 import { failureMessage } from "@/components/workspace/workspace-error-state";
@@ -20,24 +19,34 @@ import {
   REPORT_IMPACTS,
   type ReportDraft,
 } from "@/features/portal/report-form";
-import { failureOf, useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
+import { useApi, useApiMutation, useApiQuery, useKeys } from "@/runtime/api-hooks";
 import { portalKeys } from "@/runtime/query-keys";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { spacing, theme } from "@/theme/tokens.generated";
 
+interface ReportSubmission {
+  readonly api: NonNullable<ReturnType<typeof useApi>>;
+  readonly body: Parameters<typeof submitPortalBug>[2];
+  readonly keys: NonNullable<ReturnType<typeof useKeys>>;
+}
+
 /** The report-a-bug form: what the client saw, where, and how bad it is. */
 export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) => {
   const api = useApi();
   const keys = useKeys();
-  const queryClient = useQueryClient();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [draft, setDraft] = useState<ReportDraft>(EMPTY_REPORT_DRAFT);
-  // The ref blocks a second press in the same frame; the state disables the button.
+  // The ref blocks a second press in the same frame, before isPending renders.
   const sendingRef = useRef(false);
-  const [isSending, setIsSending] = useState(false);
   const showError = useErrorToast();
+  const report = useApiMutation({
+    invalidates: [portalKeys.bugs()],
+    mutationKey: [...portalKeys.bugs(), "report"],
+    program: ({ api: client, body, keys: idempotency }: ReportSubmission) =>
+      idempotency.run("portal-new-bug", (key) => submitPortalBug(client, key, body)),
+  });
 
   const projects = useApiQuery({
     enabled: api !== null,
@@ -62,21 +71,17 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
       return;
     }
     sendingRef.current = true;
-    setIsSending(true);
-    void (async () => {
-      const exit = await Effect.runPromiseExit(
-        keys.run("portal-new-bug", (key) => submitPortalBug(api, key, result.body)),
-      );
-      if (Exit.isSuccess(exit)) {
-        await queryClient.invalidateQueries({ queryKey: portalKeys.bugs() });
-        onDone();
-      } else {
-        const failure = failureOf(exit);
-        showError(failure === undefined ? "Could not send the report." : failureMessage(failure));
-      }
-      sendingRef.current = false;
-      setIsSending(false);
-    })();
+    report.mutate(
+      { api, body: result.body, keys },
+      {
+        onError: (failure) =>
+          showError(failure === undefined ? "Could not send the report." : failureMessage(failure)),
+        onSettled: () => {
+          sendingRef.current = false;
+        },
+        onSuccess: onDone,
+      },
+    );
   };
 
   return (
@@ -134,7 +139,7 @@ export const PortalNewBugScreen = ({ onDone }: { readonly onDone: () => void }) 
             selectedId={projectId}
           />
         </WorkspaceLoadingRegion>
-        <WorkspaceButton disabled={isSending} onPress={submit} size="lg">
+        <WorkspaceButton disabled={report.isPending} onPress={submit} size="lg">
           Send report
         </WorkspaceButton>
       </View>

@@ -9,10 +9,24 @@ export type InboxPage = typeof WorkspaceInboxSchema.Type;
 
 type Api = MobileApi["Service"];
 
+export interface ListInboxOptions {
+  /** The previous page's `nextCursor`; omit for the first page. */
+  readonly cursor?: string | undefined;
+  readonly unreadOnly?: boolean;
+}
+
 /** One page of the caller's notifications, newest first, with the unread counts. */
-export const listInbox = (api: Api, unreadOnly = false): Effect.Effect<InboxPage, AppFailure> =>
+export const listInbox = (
+  api: Api,
+  { cursor, unreadOnly = false }: ListInboxOptions = {},
+): Effect.Effect<InboxPage, AppFailure> =>
   api.call((client) =>
-    client.listWorkspaceNotifications({ query: unreadOnly ? { unreadOnly: "true" } : {} }),
+    client.listWorkspaceNotifications({
+      query: {
+        ...(cursor === undefined ? {} : { cursor }),
+        ...(unreadOnly ? { unreadOnly: "true" as const } : {}),
+      },
+    }),
   );
 
 export const markInboxItemRead = (
@@ -37,3 +51,9 @@ export const splitInbox = (
   all: items,
   unread: items.filter((entry) => entry.readAt === null),
 });
+
+/** Flattens loaded pages into one list, keeping the first copy of an id seen twice. */
+export const flattenInboxPages = (pages: readonly InboxPage[]): readonly InboxItem[] => {
+  const seen = new Set<string>();
+  return pages.flatMap((page) => page.items).filter((entry) => !seen.has(entry.id) && seen.add(entry.id));
+};

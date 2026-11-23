@@ -1,8 +1,7 @@
-import { Effect, Exit } from "effect";
+import { Effect } from "effect";
 import { useRef, useState } from "react";
 import { withSkeleton } from "react-zero-skeleton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { WorkspaceEmptyState } from "@/components/workspace/workspace-empty-state";
 import { WorkspaceListGroup } from "@/components/workspace/workspace-list-row";
@@ -18,7 +17,7 @@ import {
   type Preference,
   type PreferenceAudience,
 } from "@/features/preferences/queries";
-import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
+import { useApiMutation, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
 import { preferenceKeys } from "@/runtime/query-keys";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -32,6 +31,12 @@ export interface PreferencesScreenProps {
   readonly preferences: readonly Preference[];
 }
 
+interface PreferenceWrite {
+  readonly cell: string;
+  readonly next: boolean;
+  readonly preference: Preference;
+}
+
 const cellOf = (preference: Preference): string => `${preference.eventType}:${preference.channel}`;
 
 /**
@@ -41,13 +46,34 @@ const cellOf = (preference: Preference): string => `${preference.eventType}:${pr
  * are ignored, so writes cannot land out of order or share an intent key.
  */
 const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScreenProps) => {
-  const queryClient = useQueryClient();
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const [shown, setShown] = useState<Readonly<Record<string, boolean>>>({});
   // The guard is a ref so two taps inside one render cannot both pass it.
   const inFlight = useRef(new Set<string>());
   const showError = useErrorToast();
+  // Hook-level callbacks: switches write independently, and per-call `mutate`
+  // callbacks only fire for the latest call. The cell is released and its
+  // optimistic state dropped only after the refresh, so a switch never stays locked.
+  const { mutate } = useApiMutation<PreferenceWrite, unknown>({
+    invalidates: [preferenceKeys.forAudience(audience)],
+    mutationKey: [...preferenceKeys.forAudience(audience), "write"],
+    onError: (failure) =>
+      showError(failure === undefined ? "Could not save notification settings." : failureMessage(failure)),
+    onSettled: ({ cell }) => {
+      inFlight.current.delete(cell);
+      setShown((current) => {
+        const { [cell]: _settled, ...rest } = current;
+        return rest;
+      });
+    },
+    program: ({ next, preference }) =>
+      keys === null || api === null
+        ? Effect.void
+        : keys.run(`preference-${cellOf(preference)}-${String(next)}`, (key) =>
+            setPreference(api, key, audience, { ...preference, enabled: next }),
+          ),
+  });
 
   const toggle = (preference: Preference): void => {
     if (api === null || keys === null) return;
@@ -56,34 +82,7 @@ const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScr
     inFlight.current.add(cell);
     const next = !(shown[cell] ?? preference.enabled);
     setShown((current) => ({ ...current, [cell]: next }));
-    void Effect.runPromise(
-      Effect.gen(function* settle() {
-        const exit = yield* Effect.exit(
-          keys.run(`preference-${cell}-${String(next)}`, (key) =>
-            setPreference(api, key, audience, { ...preference, enabled: next }),
-          ),
-        );
-        if (Exit.isSuccess(exit)) {
-          yield* Effect.promise(() =>
-            queryClient.invalidateQueries({ queryKey: preferenceKeys.forAudience(audience) }),
-          );
-        } else {
-          const failure = failureOf(exit);
-          yield* Effect.sync(() => showError(failure === undefined ? "Could not save notification settings." : failureMessage(failure)));
-        }
-      }).pipe(
-        // Runs even if the refresh fails, so a switch never stays locked.
-        Effect.ensuring(
-          Effect.sync(() => {
-            inFlight.current.delete(cell);
-            setShown((current) => {
-              const { [cell]: _settled, ...rest } = current;
-              return rest;
-            });
-          }),
-        ),
-      ),
-    );
+    mutate({ cell, next, preference });
   };
 
   const groups = groupByEvent(preferences);

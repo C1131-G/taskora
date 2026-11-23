@@ -40,13 +40,15 @@ const resolveBaseUrl = (): string => {
   return UNCONFIGURED_ORIGIN;
 };
 
+const BASE_URL = resolveBaseUrl();
+
 const SessionLive = Layer.provide(
-  makeSessionLayer({ baseUrl: resolveBaseUrl() }),
+  makeSessionLayer({ baseUrl: BASE_URL }),
   SecureStorageLive,
 );
 const TokenSourceLive = Layer.provide(TokenSourceFromSession, SessionLive);
 const MobileApiLive = Layer.provide(
-  makeApiLayer(resolveApiMode(process.env.EXPO_PUBLIC_API_MODE), resolveBaseUrl()),
+  makeApiLayer(resolveApiMode(process.env.EXPO_PUBLIC_API_MODE), BASE_URL),
   TokenSourceLive,
 );
 const IdempotencyKeysLive = makeIdempotencyKeys();

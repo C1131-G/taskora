@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import { useRouter } from "expo-router";
+import { useCallback } from "react";
 
 import { WorkspaceErrorState } from "@/components/workspace/workspace-error-state";
 import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
@@ -65,6 +66,8 @@ export default function MyTasksRoute() {
     queryKey: taskKeys.mine(),
   });
 
+  const onOpenTask = useCallback((id: string) => router.push(`/tasks/${id}`), [router]);
+
   const isLoading = api === null || tasks.isPending;
   // Cached tasks stay on screen when a background refresh fails.
   if (tasks.error !== null && tasks.data === undefined) {
@@ -75,7 +78,7 @@ export default function MyTasksRoute() {
     <WorkspaceTabShell>
       <MyTasksScreen
         isLoading={isLoading}
-        onOpenTask={(id) => router.push(`/tasks/${id}`)}
+        onOpenTask={onOpenTask}
         tasks={tasks.data?.tasks ?? PLACEHOLDER_TASKS}
       />
     </WorkspaceTabShell>
