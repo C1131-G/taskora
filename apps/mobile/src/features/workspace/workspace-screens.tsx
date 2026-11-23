@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { withSkeleton } from "react-zero-skeleton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, SignOut } from "phosphor-react-native";
@@ -8,7 +9,7 @@ import { WorkspaceListGroup, WorkspaceListRow } from "@/components/workspace/wor
 import { WorkspaceLoadingRegion } from "@/components/workspace/workspace-loading";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
-import { DomainListBody } from "@/features/workspace/domain-list-screen";
+import { DomainListView } from "@/features/workspace/domain-list-screen";
 import { listBugs, listProjects, type BugSummary, type ProjectSummary } from "@/features/workspace/queries";
 import { useApi, useApiQuery, type ApiContextValue } from "@/runtime/api-hooks";
 import { bugKeys, projectKeys } from "@/runtime/query-keys";
@@ -125,26 +126,27 @@ export const BugsScreen = () => {
     program: api === null ? Effect.succeed({ bugs: [] }) : listBugs(api),
     queryKey: bugKeys.list(),
   });
-  const rows = (bugs.data?.bugs ?? []).map((bug) => ({
-    id: bug.id,
-    subtitle: `${bug.reference} · ${bug.priority}`,
-    title: bug.title,
-  }));
+  const rows = useMemo(
+    () =>
+      (bugs.data?.bugs ?? []).map((bug) => ({
+        id: bug.id,
+        subtitle: `${bug.reference} · ${bug.priority}`,
+        title: bug.title,
+      })),
+    [bugs.data],
+  );
 
   return (
-    <WorkspaceTabShell>
-      <WorkspaceScreen title="Bugs">
-        <DomainListBody
-          emptyMessage="No open bugs."
-          emptyTitle="Bugs"
-          failure={bugs.data === undefined ? bugs.error : null}
-          isLoading={bugs.isPending}
-          label="Loading bugs"
-          onRetry={() => void bugs.refetch()}
-          rows={rows}
-        />
-      </WorkspaceScreen>
-    </WorkspaceTabShell>
+    <DomainListView
+      emptyMessage="No open bugs."
+      emptyTitle="Bugs"
+      failure={bugs.data === undefined ? bugs.error : null}
+      isLoading={bugs.isPending}
+      label="Loading bugs"
+      onRetry={() => void bugs.refetch()}
+      rows={rows}
+      title="Bugs"
+    />
   );
 };
 
@@ -156,26 +158,27 @@ export const ProjectsScreen = () => {
     program: api === null ? Effect.succeed({ projects: [] }) : listProjects(api),
     queryKey: projectKeys.list(),
   });
-  const rows = (projects.data?.projects ?? []).map((project) => ({
-    id: project.id,
-    subtitle: `${project.openTasks} open tasks · ${project.progress}%`,
-    title: `${project.key} ${project.name}`,
-  }));
+  const rows = useMemo(
+    () =>
+      (projects.data?.projects ?? []).map((project) => ({
+        id: project.id,
+        subtitle: `${project.openTasks} open tasks · ${project.progress}%`,
+        title: `${project.key} ${project.name}`,
+      })),
+    [projects.data],
+  );
 
   return (
-    <WorkspaceTabShell>
-      <WorkspaceScreen title="Projects">
-        <DomainListBody
-          emptyMessage="No projects yet."
-          emptyTitle="Projects"
-          failure={projects.data === undefined ? projects.error : null}
-          isLoading={projects.isPending}
-          label="Loading projects"
-          onRetry={() => void projects.refetch()}
-          rows={rows}
-        />
-      </WorkspaceScreen>
-    </WorkspaceTabShell>
+    <DomainListView
+      emptyMessage="No projects yet."
+      emptyTitle="Projects"
+      failure={projects.data === undefined ? projects.error : null}
+      isLoading={projects.isPending}
+      label="Loading projects"
+      onRetry={() => void projects.refetch()}
+      rows={rows}
+      title="Projects"
+    />
   );
 };
 

@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CaretRight } from "phosphor-react-native";
 
@@ -18,15 +18,19 @@ export interface WorkspaceListRowProps {
   readonly trailing?: ReactNode;
 }
 
-/** A list row with title, optional subtitle and slots; 44pt minimum height. */
-export const WorkspaceListRow = ({
+/**
+ * A list row with title, optional subtitle and slots; 44pt minimum height.
+ * Memoized: pass primitives and stable callbacks (and a stable `leading` or
+ * `trailing` element) so virtualized rows skip re-rendering.
+ */
+export const WorkspaceListRow = memo(function WorkspaceListRow({
   accessibilityLabel,
   leading,
   onPress,
   subtitle,
   title,
   trailing,
-}: WorkspaceListRowProps) => {
+}: WorkspaceListRowProps) {
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
   const trailingSlot =
@@ -65,7 +69,7 @@ export const WorkspaceListRow = ({
       {body}
     </Pressable>
   );
-};
+});
 
 export interface WorkspaceListGroupProps {
   readonly children: ReactNode;
