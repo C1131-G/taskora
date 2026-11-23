@@ -9,6 +9,7 @@ import {
   type PreferenceAudience,
 } from "@/features/preferences/queries";
 import { useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
+import { preferenceKeys } from "@/runtime/query-keys";
 
 const SKELETON_PREFERENCES: readonly Preference[] = [
   { channel: "in-app", enabled: true, eventType: "assignment" },
@@ -30,11 +31,12 @@ export const PreferencesRoute = ({ audience }: { readonly audience: PreferenceAu
   const loaded = useApiQuery({
     enabled: api !== null,
     program,
-    queryKey: ["notification-preferences", audience],
+    queryKey: preferenceKeys.forAudience(audience),
   });
 
   const isLoading = api === null || keys === null || loaded.isPending;
-  if (loaded.error !== null) {
+  // Cached settings stay on screen when a background refresh fails.
+  if (loaded.error !== null && loaded.data === undefined) {
     return <WorkspaceErrorState failure={loaded.error} onRetry={() => void loaded.refetch()} />;
   }
 

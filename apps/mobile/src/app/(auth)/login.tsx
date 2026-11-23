@@ -6,8 +6,8 @@ export default function LoginRoute() {
   const session = useGateSession();
 
   return (
-    <SessionContext.Provider value={session}>
+    <SessionContext value={session}>
       <LoginScreen />
-    </SessionContext.Provider>
+    </SessionContext>
   );
 }

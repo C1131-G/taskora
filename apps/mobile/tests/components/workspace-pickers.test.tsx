@@ -111,3 +111,23 @@ it("clears the date", async () => {
 
   expect(committed).toBeNull();
 });
+
+it("marks the picked combobox option as selected", async () => {
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <WorkspaceCombobox
+      label="Assignee"
+      onChange={() => undefined}
+      options={[
+        { label: "Ada Lovelace", value: "ada" },
+        { label: "Grace Hopper", value: "grace" },
+      ]}
+      value="grace"
+    />,
+  );
+
+  await user.press(screen.getByRole("button", { name: "Assignee" }));
+
+  expect((await screen.findByRole("option", { name: "Grace Hopper" })).props.accessibilityState.selected).toBe(true);
+  expect(screen.getByRole("option", { name: "Ada Lovelace" }).props.accessibilityState.selected).toBe(false);
+});

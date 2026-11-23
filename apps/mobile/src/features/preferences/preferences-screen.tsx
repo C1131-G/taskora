@@ -19,6 +19,7 @@ import {
   type PreferenceAudience,
 } from "@/features/preferences/queries";
 import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
+import { preferenceKeys } from "@/runtime/query-keys";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
@@ -64,7 +65,7 @@ const PreferencesContent = ({ api, audience, keys, preferences }: PreferencesScr
         );
         if (Exit.isSuccess(exit)) {
           yield* Effect.promise(() =>
-            queryClient.invalidateQueries({ queryKey: ["notification-preferences", audience] }),
+            queryClient.invalidateQueries({ queryKey: preferenceKeys.forAudience(audience) }),
           );
         } else {
           const failure = failureOf(exit);

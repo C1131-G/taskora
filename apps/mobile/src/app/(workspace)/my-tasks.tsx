@@ -6,6 +6,7 @@ import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
 import { MyTasksScreen, type TaskRowModel } from "@/features/tasks/task-screens";
 import { getMyWork } from "@/features/tasks/queries";
 import { useApi, useApiQuery } from "@/runtime/api-hooks";
+import { taskKeys } from "@/runtime/query-keys";
 import type { AppFailure } from "@/errors";
 
 interface PageModel {
@@ -61,11 +62,12 @@ export default function MyTasksRoute() {
   const tasks = useApiQuery({
     enabled: api !== null,
     program,
-    queryKey: ["tasks", "mine"],
+    queryKey: taskKeys.mine(),
   });
 
   const isLoading = api === null || tasks.isPending;
-  if (tasks.error !== null) {
+  // Cached tasks stay on screen when a background refresh fails.
+  if (tasks.error !== null && tasks.data === undefined) {
     return <WorkspaceErrorState failure={tasks.error} onRetry={() => void tasks.refetch()} />;
   }
 

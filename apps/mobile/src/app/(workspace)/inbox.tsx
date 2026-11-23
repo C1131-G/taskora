@@ -6,6 +6,7 @@ import { WorkspaceTabShell } from "@/features/navigation/workspace-tabs";
 import { InboxScreen } from "@/features/inbox/inbox-screen";
 import { listInbox, type InboxItem } from "@/features/inbox/queries";
 import { useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
+import { inboxKeys } from "@/runtime/query-keys";
 import type { AppFailure } from "@/errors";
 import type { InboxPage } from "@/features/inbox/queries";
 
@@ -38,10 +39,11 @@ export default function InboxRoute() {
   const program: Effect.Effect<InboxPage, AppFailure> =
     api === null ? Effect.succeed({ items: [], nextCursor: null, unreadCount: 0, unreadInboxCount: 0 }) : listInbox(api);
 
-  const inbox = useApiQuery({ enabled: api !== null, program, queryKey: ["inbox"] });
+  const inbox = useApiQuery({ enabled: api !== null, program, queryKey: inboxKeys.list() });
 
   const isLoading = api === null || keys === null || inbox.isPending;
-  if (inbox.error !== null) {
+  // Cached items stay on screen when a background refresh fails.
+  if (inbox.error !== null && inbox.data === undefined) {
     return <WorkspaceErrorState failure={inbox.error} onRetry={() => void inbox.refetch()} />;
   }
 

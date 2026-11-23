@@ -4,6 +4,7 @@ import { Effect, Layer, ManagedRuntime } from "effect";
 
 import { SessionGate, useSessionState } from "@/features/auth/session-gate";
 import { AppLifecycle, makeAppLifecycleTest } from "@/services/app-lifecycle";
+import { Connectivity, makeConnectivityTest } from "@/services/connectivity";
 import { makeHapticsStub } from "@/services/haptics";
 import { makeIdempotencyKeys } from "@/services/idempotency-keys";
 import { makeMobileApiLayer } from "@/services/mobile-api";
@@ -54,6 +55,7 @@ const mockRuntime = ManagedRuntime.make(
     tokenLayer,
     Layer.provide(makeMobileApiLayer({ baseUrl: "https://unit.test" }), tokenLayer),
     Layer.effect(AppLifecycle, Effect.map(makeAppLifecycleTest(), (service) => service)),
+    Layer.effect(Connectivity, Effect.map(makeConnectivityTest(), (service) => service)),
   ),
 );
 

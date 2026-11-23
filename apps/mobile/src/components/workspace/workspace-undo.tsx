@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text } from "react-native";
 import { X } from "phosphor-react-native";
 
+import { useBottomInset } from "@/components/workspace/use-bottom-inset";
 import { usePrefersReducedMotion } from "@/components/workspace/workspace-reveal-gate";
 import { appMotion } from "@/theme/motion";
 import { useTheme } from "@/theme/theme-provider";
@@ -23,6 +24,14 @@ const EXIT_DURATION = 150;
 const SWAP_DURATION = 150;
 const ENTER_OFFSET = 16;
 const TOAST_EASING = Easing.bezier(...appMotion.bezier.standard);
+/** Gap between the toast and the bottom safe area (home indicator). */
+const TOAST_BOTTOM_GAP = 24;
+const MIN_TOUCH_TARGET = 44;
+const DISMISS_ICON_SIZE = 16;
+/** Grows the 16pt dismiss icon's touch area to 44pt. */
+const DISMISS_HIT_SLOP = (MIN_TOUCH_TARGET - DISMISS_ICON_SIZE) / 2;
+/** The Undo label is ~20pt tall; this lifts its touch area past 44pt. */
+const ACTION_HIT_SLOP = { bottom: 12, left: 8, right: 8, top: 12 };
 
 /** Mounts the toast, runs its enter/exit and keeps the last text through the exit. */
 const useToastMotion = (message: string, visible: boolean) => {
@@ -88,6 +97,7 @@ export const WorkspaceUndoToast = ({
 }: WorkspaceUndoToastProps) => {
   const { isDark } = useTheme();
   const reducedMotion = usePrefersReducedMotion();
+  const bottomInset = useBottomInset();
   const { progress, rendered, shownMessage, textOpacity } = useToastMotion(message, visible);
 
   // Reduced motion keeps the fade and drops the rise.
@@ -123,6 +133,7 @@ export const WorkspaceUndoToast = ({
         styles.toast,
         {
           backgroundColor: isDark ? theme.dark.surface3 : theme.light.text,
+          bottom: bottomInset + TOAST_BOTTOM_GAP,
           boxShadow: (isDark ? shadows.dark : shadows.light).pop,
         },
         toastMotion,
@@ -140,7 +151,7 @@ export const WorkspaceUndoToast = ({
       {onAction === undefined ? null : (
         <Pressable
           accessibilityRole="button"
-          hitSlop={8}
+          hitSlop={ACTION_HIT_SLOP}
           onPress={onAction}
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         >
@@ -154,8 +165,14 @@ export const WorkspaceUndoToast = ({
           </Text>
         </Pressable>
       )}
-      <Pressable accessibilityLabel="Dismiss" accessibilityRole="button" hitSlop={8} onPress={onClose}>
-        <X color={isDark ? theme.dark.text3 : theme.light.textInv} size={16} weight="bold" />
+      <Pressable
+        accessibilityLabel="Dismiss"
+        accessibilityRole="button"
+        hitSlop={DISMISS_HIT_SLOP}
+        onPress={onClose}
+        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      >
+        <X color={isDark ? theme.dark.text3 : theme.light.textInv} size={DISMISS_ICON_SIZE} weight="bold" />
       </Pressable>
     </Animated.View>
   );
@@ -166,7 +183,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     borderRadius: radii.lg,
-    bottom: 24,
     flexDirection: "row",
     gap: spacing.s3,
     paddingHorizontal: spacing.s4,
@@ -174,6 +190,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "92%",
     zIndex: 100,
-    elevation: 20,
   },
 });

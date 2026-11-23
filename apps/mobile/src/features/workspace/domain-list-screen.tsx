@@ -53,28 +53,62 @@ export const DomainListScreen = ({
     program: api === null ? Effect.succeed({ rows: [] }) : program([]),
     queryKey,
   });
-  const rows = list.data?.rows ?? [];
-  const displayRows = list.isPending ? SKELETON_ROWS : rows;
 
   return (
     <WorkspaceTabShell>
       <WorkspaceScreen title={screenTitle}>
-        {list.error !== null && list.error !== undefined ? (
-          <WorkspaceErrorState failure={list.error} onRetry={() => void list.refetch()} />
-        ) : displayRows.length === 0 ? (
-          <WorkspaceEmptyState message={emptyMessage} title={emptyTitle} />
-        ) : (
-          <WorkspaceLoadingRegion isLoading={list.isPending} label={`Loading ${screenTitle}`}>
-            <SkelterListRows
-              hasSkeleton={list.isPending}
-              isLoading={list.isPending}
-              rows={displayRows}
-              {...(trailing === undefined ? {} : { trailing })}
-            />
-          </WorkspaceLoadingRegion>
-        )}
+        <DomainListBody
+          emptyMessage={emptyMessage}
+          emptyTitle={emptyTitle}
+          // Cached rows stay on screen when a background refresh fails.
+          failure={list.data === undefined ? list.error : null}
+          isLoading={list.isPending}
+          label={`Loading ${screenTitle}`}
+          onRetry={() => void list.refetch()}
+          rows={list.data?.rows ?? []}
+          {...(trailing === undefined ? {} : { trailing })}
+        />
       </WorkspaceScreen>
     </WorkspaceTabShell>
+  );
+};
+
+/** The four list states: error with retry, loading bones, empty, rows. */
+export const DomainListBody = ({
+  emptyMessage,
+  emptyTitle,
+  failure,
+  isLoading,
+  label,
+  onRetry,
+  rows,
+  trailing,
+}: {
+  readonly emptyMessage: string;
+  readonly emptyTitle: string;
+  /** Set only when there is nothing cached to show. */
+  readonly failure: AppFailure | null;
+  readonly isLoading: boolean;
+  readonly label: string;
+  readonly onRetry: () => void;
+  readonly rows: readonly ListRow[];
+  readonly trailing?: (row: ListRow) => string | null;
+}) => {
+  if (failure !== null) {
+    return <WorkspaceErrorState failure={failure} onRetry={onRetry} />;
+  }
+  if (!isLoading && rows.length === 0) {
+    return <WorkspaceEmptyState message={emptyMessage} title={emptyTitle} />;
+  }
+  return (
+    <WorkspaceLoadingRegion isLoading={isLoading} label={label}>
+      <SkelterListRows
+        hasSkeleton={isLoading}
+        isLoading={isLoading}
+        rows={isLoading ? SKELETON_ROWS : rows}
+        {...(trailing === undefined ? {} : { trailing })}
+      />
+    </WorkspaceLoadingRegion>
   );
 };
 

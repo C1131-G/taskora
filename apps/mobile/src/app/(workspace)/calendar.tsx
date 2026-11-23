@@ -1,4 +1,5 @@
 import { DomainRoute } from "@/features/workspace/domain-route";
+import { domainKeys } from "@/runtime/query-keys";
 import { calendarProgram } from "@/features/workspace/more-queries";
 
 export default function Route() {
@@ -7,7 +8,7 @@ export default function Route() {
       emptyMessage="Nothing here yet."
       emptyTitle="Calendar"
       makeProgram={(api) => calendarProgram(api)}
-      queryKey={["calendar"]}
+      queryKey={domainKeys.list("calendar")}
       screenTitle="Calendar"
     />
   );

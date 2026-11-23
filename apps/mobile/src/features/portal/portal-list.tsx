@@ -32,7 +32,8 @@ export const PortalListBody = ({
   });
   const rows = list.data?.rows ?? [];
 
-  if (list.error !== null && list.error !== undefined) {
+  // Cached rows stay on screen when a background refresh fails.
+  if (list.error !== null && list.data === undefined) {
     return <WorkspaceErrorState failure={list.error} onRetry={() => void list.refetch()} />;
   }
   const displayRows = list.isPending ? SKELETON_ROWS : rows;

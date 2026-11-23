@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { WorkspaceScreen } from "@/components/workspace/workspace-screen";
 import { PortalListBody } from "@/features/portal/portal-list";
 import { listPortalBugs } from "@/features/portal/queries";
+import { portalKeys } from "@/runtime/query-keys";
 
 export default function Route() {
   return (
@@ -18,7 +19,7 @@ export default function Route() {
             })),
           }))
         }
-        queryKey={["portal", "bugs"]}
+        queryKey={portalKeys.bugRows()}
       />
     </WorkspaceScreen>
   );

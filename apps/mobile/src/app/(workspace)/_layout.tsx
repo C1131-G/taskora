@@ -2,7 +2,7 @@ import { Redirect, Stack } from "expo-router";
 
 import { usePrefersReducedMotion } from "@/components/workspace/workspace-reveal-gate";
 import { WorkspaceLoadingSurface } from "@/components/workspace/workspace-loading";
-import { routeFor } from "@/features/auth/route-for";
+import { AREA_HREFS, routeFor } from "@/features/auth/route-for";
 import { useSessionState } from "@/features/auth/session-gate";
 
 /** The bottom-tab routes (navigation-data mobileTabs): peers, so they never slide. */
@@ -18,7 +18,7 @@ export default function WorkspaceLayout() {
     return <WorkspaceLoadingSurface />;
   }
   if (area !== "workspace") {
-    return <Redirect href={area === "portal" ? "/portal" : "/login"} />;
+    return <Redirect href={AREA_HREFS[area]} />;
   }
 
   // Detail routes keep the platform push; reduced motion swaps it for a fade.

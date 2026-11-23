@@ -6,6 +6,7 @@ import { WorkspaceErrorState } from "@/components/workspace/workspace-error-stat
 import { TaskDetailScreen, type TaskDetailModel } from "@/features/tasks/task-screens";
 import { getTaskContext, type MobileTaskContext } from "@/features/tasks/queries";
 import { useApi, useApiQuery, useKeys } from "@/runtime/api-hooks";
+import { taskKeys } from "@/runtime/query-keys";
 import type { AppFailure } from "@/errors";
 
 /** Typical-length detail so Skelter sizes its bones like a real task. */
@@ -48,14 +49,15 @@ export default function TaskDetailRoute() {
   const task = useApiQuery({
     enabled: api !== null && id.length > 0,
     program,
-    queryKey: ["tasks", id, "detail"],
+    queryKey: taskKeys.detail(id),
   });
 
   // Only a missing id is an incomplete link; a null api/keys is a session still restoring.
   if (id.length === 0) {
     return <WorkspaceEmptyState message="This task link is incomplete." title="No task" />;
   }
-  if (task.error !== null) {
+  // A cached task stays on screen when a background refresh fails.
+  if (task.error !== null && task.data === undefined) {
     return <WorkspaceErrorState failure={task.error} onRetry={() => void task.refetch()} />;
   }
 

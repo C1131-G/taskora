@@ -15,7 +15,8 @@ pre-push:
   jobs:
     - name: check changed files
       files: git diff --name-only --diff-filter=ACMRT origin/main..HEAD
-      run: bunx ultracite check {files}
+      # A push that only touches lint-ignored paths (apps/mobile) lints no files.
+      run: bunx ultracite check --no-error-on-unmatched-pattern {files}
       glob:
         - "*.js"
         - "*.jsx"

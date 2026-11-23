@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/theme/theme-provider";
-import { typeStyle } from "@/theme/type-scale";
+import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
 import { radii, theme } from "@/theme/tokens.generated";
 
 export interface BottomTab {
@@ -35,10 +35,13 @@ export const WorkspaceBottomNavigation = ({
     >
       {items.map((item) => {
         const active = item.label === activeLabel;
+        const hasBadge = item.badge !== undefined && item.badge > 0;
+        // The badge is decorative inside the tab, so its count joins the tab's name.
+        const accessibilityLabel = hasBadge ? `${item.label}, ${item.badge} unread` : item.label;
         return (
           <Pressable
             accessible
-            accessibilityLabel={item.label}
+            accessibilityLabel={accessibilityLabel}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             key={item.label}
@@ -50,18 +53,19 @@ export const WorkspaceBottomNavigation = ({
           >
             <View style={styles.iconStack}>
               {item.icon}
-              {item.badge === undefined || item.badge === 0 ? null : (
+              {item.badge === undefined || !hasBadge ? null : (
                 <View
-                  accessibilityLabel={`${item.badge} unread`}
+                  importantForAccessibility="no-hide-descendants"
                   style={[styles.badge, { backgroundColor: palette.red, borderColor: palette.surface }]}
                 >
-                  <Text style={[typeStyle("2xs"), { color: palette.onAccent }]}>
+                  <Text maxFontSizeMultiplier={FONT_SCALE_CAP} style={[typeStyle("2xs"), { color: palette.onAccent }]}>
                     {item.badge > 99 ? "99+" : item.badge}
                   </Text>
                 </View>
               )}
             </View>
             <Text
+              maxFontSizeMultiplier={FONT_SCALE_CAP}
               style={[
                 typeStyle("2xs", { weight: active ? 600 : 400 }),
                 { color: active ? palette.accent : palette.text3 },

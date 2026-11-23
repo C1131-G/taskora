@@ -15,6 +15,8 @@ export class Haptics extends Context.Service<
     readonly success: Effect.Effect<void>;
     /** A warning notification: a conflict or refused action. */
     readonly warning: Effect.Effect<void>;
+    /** An error notification: a write that failed. */
+    readonly error: Effect.Effect<void>;
   }
 >()("taskora/mobile/Haptics") {}
 
@@ -38,6 +40,7 @@ export const makeHapticsStub = (): Layer.Layer<Haptics> =>
         medium: fire("medium"),
         success: fire("success"),
         warning: fire("warning"),
+        error: fire("error"),
       });
     }),
   );
@@ -54,6 +57,7 @@ export const HapticsLive: Layer.Layer<Haptics> = Layer.effect(
       medium: fire(() => native.impactAsync(native.ImpactFeedbackStyle.Medium)),
       success: fire(() => native.notificationAsync(native.NotificationFeedbackType.Success)),
       warning: fire(() => native.notificationAsync(native.NotificationFeedbackType.Warning)),
+      error: fire(() => native.notificationAsync(native.NotificationFeedbackType.Error)),
     });
   }),
 );

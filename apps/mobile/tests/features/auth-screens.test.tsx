@@ -225,3 +225,77 @@ it("refuses a new password shorter than the server's 12 characters", async () =>
   expect(await screen.findByText("New password needs at least 12 characters")).toBeTruthy();
   expect(changed).toEqual([]);
 });
+
+it("gives the sign-in fields autofill hints and signs in from the keyboard's return key", async () => {
+  const attempts: string[] = [];
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <LoginScreen
+      session={stubSession({
+        signIn: (input) => {
+          attempts.push(input.email);
+          return Effect.succeed(authenticatedState);
+        },
+      })}
+    />,
+  );
+
+  const email = screen.getByLabelText("Email");
+  expect(email.props).toMatchObject({
+    autoCapitalize: "none",
+    autoComplete: "email",
+    autoCorrect: false,
+    keyboardType: "email-address",
+    returnKeyType: "next",
+    textContentType: "username",
+  });
+  const password = screen.getByLabelText("Password");
+  expect(password.props).toMatchObject({
+    autoComplete: "current-password",
+    returnKeyType: "done",
+    textContentType: "password",
+  });
+
+  await user.type(email, "ada@taskora.test");
+  await user.type(password, "longenough", { submitEditing: true });
+
+  await waitFor(() => expect(attempts).toEqual(["ada@taskora.test"]));
+});
+
+it("marks the change-password fields as current and new passwords and submits on done", async () => {
+  const changed: string[] = [];
+  const user = userEvent.setup();
+  await renderWithTheme(
+    <ChangePasswordScreen
+      onDone={() => changed.push("done")}
+      session={stubSession({
+        changeOwnPassword: (input) => {
+          changed.push(input.newPassword);
+          return Effect.void;
+        },
+      })}
+    />,
+  );
+
+  expect(screen.getByLabelText("Current password").props).toMatchObject({
+    autoComplete: "current-password",
+    returnKeyType: "next",
+    textContentType: "password",
+  });
+  expect(screen.getByLabelText("New password").props).toMatchObject({
+    autoComplete: "new-password",
+    returnKeyType: "next",
+    textContentType: "newPassword",
+  });
+  expect(screen.getByLabelText("Repeat new password").props).toMatchObject({
+    autoComplete: "new-password",
+    returnKeyType: "done",
+    textContentType: "newPassword",
+  });
+
+  await user.type(screen.getByLabelText("Current password"), "old-pass");
+  await user.type(screen.getByLabelText("New password"), "brand-new-pass");
+  await user.type(screen.getByLabelText("Repeat new password"), "brand-new-pass", { submitEditing: true });
+
+  await waitFor(() => expect(changed).toEqual(["brand-new-pass", "done"]));
+});

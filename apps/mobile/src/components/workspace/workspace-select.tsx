@@ -39,9 +39,9 @@ export const WorkspaceSelect = ({
         accessibilityRole="button"
         accessibilityValue={{ text: selected?.label ?? placeholder }}
         onPress={() => setOpen(true)}
-        style={[
+        style={({ pressed }) => [
           styles.trigger,
-          { backgroundColor: palette.sunken, borderColor: palette.border },
+          { backgroundColor: palette.sunken, borderColor: palette.border, opacity: pressed ? 0.7 : 1 },
         ]}
       >
         <Text style={[typeStyle("md"), { color: selected === null ? palette.text3 : palette.text }]}>

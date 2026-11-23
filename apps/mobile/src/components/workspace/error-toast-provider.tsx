@@ -35,14 +35,14 @@ export const ErrorToastProvider = ({ children, renderViewport = true }: { readon
   );
 
   return (
-    <ErrorToastContext.Provider value={showError}>
-      <ErrorToastDisplayContext.Provider value={{ message, dismiss }}>
+    <ErrorToastContext value={showError}>
+      <ErrorToastDisplayContext value={{ message, dismiss }}>
         <View style={styles.root}>
           {children}
           {renderViewport ? <ErrorToastViewport /> : null}
         </View>
-      </ErrorToastDisplayContext.Provider>
-    </ErrorToastContext.Provider>
+      </ErrorToastDisplayContext>
+    </ErrorToastContext>
   );
 };
 

@@ -3,8 +3,6 @@ import { createContext, useContext } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Unavailable, type AppFailure } from "@/errors";
-import { useErrorToast } from "@/components/workspace/error-toast-context";
-import { failureMessage } from "@/components/workspace/workspace-error-state";
 import type { MobileApi } from "@/services/mobile-api";
 import type { IdempotencyKeys } from "@/services/idempotency-keys";
 
@@ -35,21 +33,22 @@ export interface ApiQueryInput<A> {
   readonly queryKey: readonly unknown[];
 }
 
-/** Runs one Effect program as a TanStack query; rejections are AppFailure. */
-export const useApiQuery = <A>({ enabled, program, queryKey }: ApiQueryInput<A>) => {
-  const showError = useErrorToast();
-  return useQuery<A, AppFailure>({
+/**
+ * Runs one Effect program as a TanStack query; rejections are AppFailure.
+ * TanStack's abort signal interrupts the program when the query is
+ * cancelled. Failures are not toasted here: screens show first-load
+ * failures inline and the QueryClient toasts failed background refreshes.
+ */
+export const useApiQuery = <A>({ enabled, program, queryKey }: ApiQueryInput<A>) =>
+  useQuery<A, AppFailure>({
     enabled: enabled ?? true,
-    queryFn: async () => {
-      const exit = await Effect.runPromiseExit(program);
+    queryFn: async ({ signal }) => {
+      const exit = await Effect.runPromiseExit(program, { signal });
       if (Exit.isSuccess(exit)) return exit.value;
-      const failure = failureOf(exit) ?? new Unavailable({ requestId: "" });
-      showError(failureMessage(failure));
-      return Promise.reject(failure);
+      return Promise.reject(failureOf(exit) ?? new Unavailable({ requestId: "" }));
     },
     queryKey,
   });
-};
 
 export interface ApiMutationInput<V, A> {
   readonly program: (variables: V) => Effect.Effect<A, AppFailure>;

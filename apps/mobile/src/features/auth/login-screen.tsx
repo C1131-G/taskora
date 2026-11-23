@@ -1,6 +1,6 @@
 import { Cause, Effect, Exit, Option } from "effect";
-import { createContext, useContext, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { createContext, useContext, useRef, useState } from "react";
+import { StyleSheet, type TextInputInstance, View } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -63,6 +63,7 @@ export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const passwordRef = useRef<TextInputInstance>(null);
 
   const signIn = useMutation({
     mutationFn: ({ service, credentials }: SignInRequest) =>
@@ -76,6 +77,10 @@ export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
   });
 
   const submit = (): void => {
+    // The keyboard's return key can submit while the button is disabled.
+    if (signIn.isPending) {
+      return;
+    }
     const validated = validateCredentials({ email, password });
     if (!validated.ok) {
       setFieldErrors(validated.errors);
@@ -94,18 +99,32 @@ export const LoginScreen = ({ session: sessionProp }: LoginScreenProps) => {
       <View style={styles.form}>
         <WorkspaceField label="Email">
           <WorkspaceTextInput
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect={false}
             invalid={fieldErrors.email !== undefined}
             keyboardType="email-address"
             onChangeText={setEmail}
+            onSubmitEditing={() => passwordRef.current?.focus()}
             placeholder="you@taskora.test"
+            returnKeyType="next"
+            submitBehavior="submit"
+            textContentType="username"
             value={email}
           />
         </WorkspaceField>
         <WorkspaceField label="Password">
           <WorkspaceTextInput
+            autoCapitalize="none"
+            autoComplete="current-password"
+            autoCorrect={false}
             invalid={fieldErrors.password !== undefined}
             onChangeText={setPassword}
+            onSubmitEditing={submit}
+            ref={passwordRef}
+            returnKeyType="done"
             secureTextEntry
+            textContentType="password"
             value={password}
           />
         </WorkspaceField>

@@ -1,3 +1,5 @@
+import type { Href } from "expo-router";
+
 import type { SessionState } from "@/services/session";
 
 export type RouteArea = "login" | "change-password" | "workspace" | "portal";
@@ -13,9 +15,10 @@ export const routeFor = (state: SessionState): RouteArea => {
   return state.me.role === "client" ? "portal" : "workspace";
 };
 
-export const AREA_HREFS: Record<RouteArea, `/${string}`> = {
+/** Where each area starts. */
+export const AREA_HREFS = {
   "change-password": "/change-password",
   login: "/login",
   portal: "/portal",
   workspace: "/",
-};
+} as const satisfies Record<RouteArea, Href>;

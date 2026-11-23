@@ -1,13 +1,17 @@
 import { Effect, Exit, Fiber, Stream } from "effect";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { AppLifecycle } from "@/services/app-lifecycle";
+import { Connectivity } from "@/services/connectivity";
 import { Haptics } from "@/services/haptics";
 import { MobileApi } from "@/services/mobile-api";
 import { ApiContext, KeysContext, failureOf } from "@/runtime/api-hooks";
 import { IdempotencyKeys } from "@/services/idempotency-keys";
 import { Session, type SessionService, type SessionState } from "@/services/session";
 import { HapticsContext } from "@/runtime/haptics-hooks";
+import { useBackgroundRefreshToasts } from "@/runtime/query-client";
+import { queryManagerWiring } from "@/runtime/query-managers";
 import { appRuntime } from "@/runtime/runtime";
 import { useErrorToast } from "@/components/workspace/error-toast-context";
 import { failureMessage } from "@/components/workspace/workspace-error-state";
@@ -28,9 +32,15 @@ export const useSessionState = (): SessionGateValue => useContext(SessionStateCo
 
 export const SessionGateContext = createContext<SessionService | null>(null);
 
+// Who the cached reads belong to: a different user or token must not see them.
+const sessionIdentity = (state: SessionState): string | null =>
+  state.kind === "authenticated" ? `${state.me.id}:${state.token}` : null;
+
 /**
- * Restores the session once, forks the client idle watch, mirrors the
- * session state for the group layouts and exposes the session to screens.
+ * Restores the session once, forks the client idle watch and the TanStack
+ * focus/online wiring, mirrors the session state for the group layouts,
+ * clears the query cache whenever the signed-in identity changes and
+ * exposes the session to screens.
  */
 export const SessionGate = ({ children }: { children: ReactNode }) => {
   // `restored` turns true only when the restore has finished, so the layouts
@@ -43,6 +53,8 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
   const [keys, setKeys] = useState<IdempotencyKeys["Service"] | null>(null);
   const [haptics, setHaptics] = useState<Haptics["Service"] | undefined>(undefined);
   const showError = useErrorToast();
+  const queryClient = useQueryClient();
+  useBackgroundRefreshToasts();
 
   useEffect(function startSessionServices() {
     const runtime = appRuntime();
@@ -52,16 +64,26 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
     const fibers: Fiber.Fiber<unknown, unknown>[] = [];
     const setup = Effect.gen(function* () {
       const api = yield* Effect.service(MobileApi);
+      const connectivity = yield* Effect.service(Connectivity);
       const keys = yield* Effect.service(IdempotencyKeys);
       const lifecycle = yield* Effect.service(AppLifecycle);
       const sessionService = yield* Effect.service(Session);
       const hapticsService = yield* Effect.service(Haptics);
-      return { api, hapticsService, keys, lifecycle, sessionService };
+      return { api, connectivity, hapticsService, keys, lifecycle, sessionService };
     });
+    // undefined until the first emission, so the first state never clears.
+    let identity: string | null | undefined = undefined;
+    const followSession = (next: SessionState): void => {
+      const nextIdentity = sessionIdentity(next);
+      // Cleared before the state lands, so no render shows the old user's data.
+      if (identity !== undefined && identity !== nextIdentity) queryClient.clear();
+      identity = nextIdentity;
+      setState(next);
+    };
 
     void (async () => {
       const result = await runtime.runPromiseExit(Effect.gen(function* () {
-        const { api, hapticsService, keys, lifecycle, sessionService } = yield* setup;
+        const { api, connectivity, hapticsService, keys, lifecycle, sessionService } = yield* setup;
         if (disposed) return;
         yield* Effect.sync(() => setSession(sessionService));
         yield* Effect.sync(() => setApi(api));
@@ -70,10 +92,13 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
         fibers.push(runtime.runFork(
           Stream.runDrain(
             Stream.tap(sessionService.changes, (state) =>
-              Effect.sync(() => setState(state)),
+              Effect.sync(() => followSession(state)),
             ),
           ),
         ));
+        // Foreground and reconnect refetches: feeds AppState and NetInfo
+        // into TanStack's focus and online managers.
+        fibers.push(runtime.runFork(queryManagerWiring({ connectivity, lifecycle })));
         fibers.push(runtime.runFork(Effect.forever(Effect.catchEager(
           sessionService.watchClientIdle(lifecycle.changes, "2 hours"),
           (failure) => Effect.sync(() => showError("_tag" in failure ? failureMessage(failure) : failure.message)),
@@ -82,7 +107,7 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
         // `restored`, so the first restored render already has the result.
         const markRestored = Effect.flatMap(sessionService.current, (current) =>
           Effect.sync(() => {
-            setState(current);
+            followSession(current);
             setRestored(true);
           }),
         );
@@ -104,18 +129,18 @@ export const SessionGate = ({ children }: { children: ReactNode }) => {
         void runtime.runFork(Fiber.interrupt(fiber));
       }
     };
-  }, [showError]);
+  }, [queryClient, showError]);
 
   return (
-    <SessionStateContext.Provider value={value}>
-      <SessionGateContext.Provider value={session}>
-        <ApiContext.Provider value={api}>
-          <KeysContext.Provider value={keys}>
-            <HapticsContext.Provider value={haptics}>{children}</HapticsContext.Provider>
-          </KeysContext.Provider>
-        </ApiContext.Provider>
-      </SessionGateContext.Provider>
-    </SessionStateContext.Provider>
+    <SessionStateContext value={value}>
+      <SessionGateContext value={session}>
+        <ApiContext value={api}>
+          <KeysContext value={keys}>
+            <HapticsContext value={haptics}>{children}</HapticsContext>
+          </KeysContext>
+        </ApiContext>
+      </SessionGateContext>
+    </SessionStateContext>
   );
 };
 

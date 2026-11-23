@@ -2,7 +2,7 @@ import { Effect, Exit } from "effect";
 import { withSkeleton } from "react-zero-skeleton";
 import { useRef, useState } from "react";
 import type { AppFailure } from "@/errors";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { CheckCircle, CircleIcon } from "phosphor-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -22,6 +22,7 @@ import {
   type TaskStatus,
 } from "@/features/tasks/queries";
 import { failureOf, type ApiContextValue, type KeysContextValue } from "@/runtime/api-hooks";
+import { taskKeys } from "@/runtime/query-keys";
 import { useHapticFeedback } from "@/runtime/haptics-hooks";
 import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
@@ -65,18 +66,13 @@ const MyTasksContent = ({ onOpenTask, tasks }: MyTasksContentProps) => {
         style={styles.filterStrip}
       >
         {STATUS_FILTERS.map((status) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: filter === status }}
+          <WorkspaceChip
+            color={status === "all" ? "gray" : "green"}
             key={status}
+            label={status === "all" ? "All" : taskStatusLabel(status)}
             onPress={() => setFilter(status)}
-          >
-            <WorkspaceChip
-              color={status === "all" ? "gray" : "green"}
-              label={status === "all" ? "All" : taskStatusLabel(status)}
-              selected={filter === status}
-            />
-          </Pressable>
+            selected={filter === status}
+          />
         ))}
       </ScrollView>
       {visible.length === 0 ? (
@@ -156,10 +152,10 @@ const TaskDetailContent = ({ api, keys, task, taskId }: TaskDetailContentProps) 
     void (async () => {
       const result = await Effect.runPromiseExit(write);
       if (Exit.isSuccess(result)) {
-        await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        await queryClient.invalidateQueries({ queryKey: taskKeys.all });
       } else {
         const failure = failureOf(result);
-        haptic("warning");
+        haptic("error");
         showError(failure === undefined ? "Could not update the task." : failureMessage(failure));
       }
       pendingIntents.current.delete(intent);
