@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -17,6 +17,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import { requestApprovalAction } from "@/features/approvals/approval-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import type { ProjectApprovals } from "@/src/server/approvals/approval-contracts";
 import { MAX_APPROVAL_TEXT } from "@/src/server/approvals/approval-contracts";
 
@@ -32,7 +33,7 @@ export const ProjectApprovalForm = ({
     "companies" | "files" | "milestones"
   >;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const [chosen, setChosen] = useState<readonly string[]>([]);
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(FIELDS);

@@ -5,7 +5,7 @@
 
 import { Plus } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
@@ -26,6 +26,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import { createTaskAction } from "@/features/tasks/tasks-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 interface ProjectOption {
   readonly id: string;
@@ -59,7 +60,7 @@ export const QuickTaskForm = ({
   readonly trigger?: ReactNode | null;
 }) => {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const {
     clearErrors,
     errors,

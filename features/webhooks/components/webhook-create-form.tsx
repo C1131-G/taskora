@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -18,6 +18,7 @@ import {
 } from "@/components/workspace/workspace-select";
 import { parseSelectedEvents } from "@/features/webhooks/webhook-format";
 import { createWebhookEndpointAction } from "@/features/webhooks/webhooks-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 import { WebhookEventFields } from "./webhook-event-fields";
 import { WebhookSecretNotice } from "./webhook-secret-notice";
@@ -30,7 +31,7 @@ interface Revealed {
 }
 
 export const WebhookCreateForm = () => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const [kind, setKind] = useState<"generic" | "slack">("generic");
   const [revealed, setRevealed] = useState<Revealed | null>(null);
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =

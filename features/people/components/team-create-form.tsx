@@ -3,8 +3,6 @@
 
 "use client";
 
-import { useTransition } from "react";
-
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -14,11 +12,12 @@ import {
   WorkspaceFormError,
 } from "@/components/workspace/workspace-field-error";
 import { createTeamAction } from "@/features/people/people-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 const TEAM_FIELDS = ["name", "color", "description"] as const;
 
 const TeamCreateForm = () => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const {
     clearErrors,
     errors,

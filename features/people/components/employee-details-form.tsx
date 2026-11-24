@@ -3,8 +3,6 @@
 
 "use client";
 
-import { useTransition } from "react";
-
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
 import { WorkspaceInput } from "@/components/workspace/workspace-controls";
@@ -18,6 +16,7 @@ import {
 } from "@/components/workspace/workspace-select";
 import { useWorkspaceUndo } from "@/components/workspace/workspace-undo";
 import { updateEmployeeDetailsAction } from "@/features/people/people-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 const DETAIL_FIELDS = ["email", "jobTitle", "teamId"] as const;
 
@@ -35,7 +34,7 @@ const EmployeeDetailsForm = ({
   readonly employee: EmployeeDetails;
   readonly teams: readonly { readonly id: string; readonly name: string }[];
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const { notifySaved } = useWorkspaceUndo();
   const {
     clearErrors,

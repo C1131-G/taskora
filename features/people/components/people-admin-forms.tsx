@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -19,6 +19,7 @@ import {
 } from "@/components/workspace/workspace-select";
 import { TemporaryPasswordReveal } from "@/features/people/components/temporary-password-reveal";
 import { createEmployeeAction } from "@/features/people/people-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 interface TeamOption {
   readonly id: string;
@@ -36,7 +37,7 @@ const EmployeeCreateForm = ({
   readonly triggerLabel?: string;
   readonly teams: readonly TeamOption[];
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const {
     clearErrors,
     errors,

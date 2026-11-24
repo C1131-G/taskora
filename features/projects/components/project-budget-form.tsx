@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFormErrors } from "@/components/workspace/use-form-errors";
@@ -26,6 +26,7 @@ import {
   clearProjectBudgetAction,
   saveProjectBudgetAction,
 } from "@/features/projects/projects-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import type { ProjectBudgetView } from "@/src/server/budgets/budget-support";
 
 const FORM_FIELDS = [
@@ -50,7 +51,7 @@ export const ProjectBudgetForm = ({
   readonly onDone?: () => void;
   readonly projectId: string;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(FORM_FIELDS);
   // One key per attempt, so a retried submit cannot save twice.

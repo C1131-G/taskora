@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
@@ -23,6 +23,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import { createTaskAction } from "@/features/tasks/tasks-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 const TASK_FIELDS = ["title", "description", "priority", "dueDate"] as const;
 
@@ -39,7 +40,7 @@ const TaskCreateForm = ({
   readonly onOpenChange?: (open: boolean) => void;
   readonly trigger?: ReactNode | null;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const {
     clearErrors,
     errors,

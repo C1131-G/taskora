@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -22,6 +22,7 @@ import {
   deleteCalendarEventAction,
   updateCalendarEventAction,
 } from "@/features/calendar/calendar-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import type { CalendarEventSummary } from "@/src/server/calendar/calendar-contracts";
 
 const EVENT_FIELDS = [
@@ -44,7 +45,7 @@ const CalendarEventEditForm = ({
 }: {
   readonly event: CalendarEventSummary;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   // Which button started the pending request, so only that one says so.
   const [pendingAction, setPendingAction] = useState<"delete" | "save">("save");
   const { notifySaved } = useWorkspaceUndo();
