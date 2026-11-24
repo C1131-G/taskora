@@ -1,7 +1,5 @@
 # Local development ports. `docker compose` loads this file automatically, so
-# `bun run db:up` and `docker compose up` keep publishing Postgres, MinIO and the
-# app to the host. Production runs with `-f docker-compose.yml -f
-# docker-compose.prod.yml`, which skips this file.
+# `bun run db:up` publishes Postgres and MinIO to the host.
 services:
   postgres:
     ports:
@@ -11,7 +9,3 @@ services:
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
-
-  app:
-    ports:
-      - "${APP_PORT:-3000}:3000"
