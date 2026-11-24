@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -19,6 +19,7 @@ import {
   rotateWebhookSecretAction,
   updateWebhookEndpointAction,
 } from "@/features/webhooks/webhooks-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import type {
   WebhookDeliverySummary,
   WebhookEndpointSummary,
@@ -35,7 +36,7 @@ export const WebhookEndpointCard = ({
   readonly deliveries: readonly WebhookDeliverySummary[];
   readonly endpoint: WebhookEndpointSummary;
 }) => {
-  const [pending, beginTransition] = useTransition();
+  const [pending, beginTransition] = useActionTransition();
   const startTransition = (action: () => Promise<void>) => {
     beginTransition(async () => {
       try {

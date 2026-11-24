@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -18,6 +18,7 @@ import {
 } from "@/components/workspace/workspace-select";
 import { createGithubConnectionAction } from "@/features/github/github-actions";
 import { WebhookSecretNotice } from "@/features/webhooks/components/webhook-secret-notice";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 import { GithubWebhookUrl } from "./github-webhook-url";
 
@@ -38,7 +39,7 @@ export const GithubConnectionForm = ({
 }: {
   readonly projects: readonly ProjectChoice[];
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const [revealed, setRevealed] = useState<Revealed | null>(null);
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(FIELDS);

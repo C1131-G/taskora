@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -15,6 +15,7 @@ import {
 } from "@/components/workspace/workspace-field-error";
 import { WorkspaceModal } from "@/components/workspace/workspace-modal";
 import { createCalendarEventAction } from "@/features/calendar/calendar-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 const EVENT_FIELDS = [
   "title",
@@ -25,7 +26,7 @@ const EVENT_FIELDS = [
 ] as const;
 
 const CalendarEventForm = () => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const {
     clearErrors,
     errors,

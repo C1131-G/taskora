@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFormErrors } from "@/components/workspace/use-form-errors";
@@ -22,6 +22,7 @@ import {
   updateTimeEntryAction,
 } from "@/features/time/time-actions";
 import { formatMinutes, parseDuration } from "@/features/time/time-format";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import type { TimeEntryView } from "@/src/server/time/time-report";
 
 export interface TaskChoice {
@@ -54,7 +55,7 @@ export const TimeEntryForm = ({
   readonly taskChoices?: readonly TaskChoice[];
   readonly today: string;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(FORM_FIELDS);
   // One key per attempt, so a retried submit cannot log the time twice.

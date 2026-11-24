@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -24,6 +24,7 @@ import {
   createCustomFieldAction,
   updateCustomFieldAction,
 } from "@/features/custom-fields/custom-fields-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import type { CustomFieldView } from "@/src/server/custom-fields/custom-field-contracts";
 import {
   MAX_FIELD_NAME_LENGTH,
@@ -52,7 +53,7 @@ export const CustomFieldForm = ({
   readonly onDone: () => void;
   readonly projectId: string;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const [type, setType] = useState<FieldType>(existing?.type ?? "text");
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(FIELDS);

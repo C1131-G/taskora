@@ -4,7 +4,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
@@ -22,6 +21,7 @@ import {
   reactivateClientCompanyAction,
   updateClientCompanyAction,
 } from "@/features/clients/clients-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 import { useToastTransition } from "@/hooks/use-toast-transition";
 
 interface CompanyRef {
@@ -39,7 +39,7 @@ const COMPANY_FIELDS = ["name"] as const;
 
 const ClientCompanyCreateForm = () => {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(COMPANY_FIELDS);
   const create = (formData: FormData) =>
@@ -114,7 +114,7 @@ const ClientCompanyRenameForm = ({
   readonly onVersion: VersionSink;
   readonly version: number;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const { clearErrors, errors, fieldProps, formId, formRef, showFailure } =
     useFormErrors(COMPANY_FIELDS);
   const rename = (formData: FormData, close: () => void) =>

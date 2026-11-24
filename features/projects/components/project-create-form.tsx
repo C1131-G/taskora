@@ -4,7 +4,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useFormErrors } from "@/components/workspace/use-form-errors";
 import { WorkspaceButton } from "@/components/workspace/workspace-button";
@@ -22,6 +22,7 @@ import {
   WorkspaceSelectItem,
 } from "@/components/workspace/workspace-select";
 import { createProjectAction } from "@/features/projects/projects-actions";
+import { useActionTransition } from "@/hooks/use-action-transition";
 
 const templates = [
   ["blank", "Blank project"],
@@ -42,7 +43,7 @@ const ProjectCreateForm = ({
   readonly triggerLabel?: string;
 }) => {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionTransition();
   const {
     clearErrors,
     errors,
