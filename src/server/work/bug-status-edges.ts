@@ -29,7 +29,7 @@ const EDGES: Readonly<Record<Status, readonly Status[]>> = {
   withdrawn: [],
 };
 
-export const isBugStatus = (value: string): value is Status =>
+const isBugStatus = (value: string): value is Status =>
   Object.hasOwn(EDGES, value);
 
 export const BUG_STATUSES: readonly Status[] =

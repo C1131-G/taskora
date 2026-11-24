@@ -12,7 +12,7 @@ const Uuid = Schema.String.check(Schema.isUUID());
 
 // The web lets any file up to 50 MB through for staff. Clients are held to a
 // smaller size and a short list of types by the upload service itself.
-export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 const MEDIA_TYPE = /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/iu;
 const MAX_FILE_NAME_LENGTH = 180;
 const MAX_MEDIA_TYPE_LENGTH = 255;
@@ -34,7 +34,7 @@ const UploadFields = {
 
 // The app PUTs the bytes to `uploadUrl` with these headers, before
 // `expiresAt`, then finalizes the intent.
-export const UploadTicketSchema = Schema.Struct({
+const UploadTicketSchema = Schema.Struct({
   expiresAt: Schema.String,
   requiredHeaders: Schema.Struct({
     "content-type": Schema.String,
@@ -57,7 +57,7 @@ export const AttachmentFileSchema = Schema.Struct({
   uploadedBy: Schema.Struct({ id: Schema.String, name: Schema.String }),
 });
 
-export const AttachmentListSchema = Schema.Struct({
+const AttachmentListSchema = Schema.Struct({
   items: Schema.Array(AttachmentFileSchema),
 });
 
@@ -154,7 +154,7 @@ export const PortalAttachmentSchema = Schema.Struct({
   uploaderName: Schema.String,
 });
 
-export const PortalAttachmentListSchema = Schema.Struct({
+const PortalAttachmentListSchema = Schema.Struct({
   items: Schema.Array(PortalAttachmentSchema),
 });
 

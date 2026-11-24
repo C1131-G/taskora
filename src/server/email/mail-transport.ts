@@ -35,7 +35,7 @@ export interface MailConfig {
   readonly auth: { readonly user: string; readonly pass: string } | null;
 }
 
-export interface SmtpEnvelope extends MailMessage {
+interface SmtpEnvelope extends MailMessage {
   readonly from: string;
 }
 

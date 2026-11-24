@@ -20,10 +20,10 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 const SECRET_KEY = /pass|secret|token|hash|key|cookie|authorization|session/iu;
 const MAX_VALUE_LENGTH = 80;
 
-export const single = (value: string | string[] | undefined): string =>
+const single = (value: string | string[] | undefined): string =>
   (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 
-export const validDate = (value: string): string | undefined =>
+const validDate = (value: string): string | undefined =>
   DATE_PATTERN.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`))
     ? value
     : undefined;
@@ -68,9 +68,7 @@ export const shortenUserAgent = (userAgent: string | null): string => {
   return parts.length ? parts.join(" · ") : userAgent.slice(0, 40);
 };
 
-export const isPlainObject = (
-  value: unknown
-): value is Record<string, unknown> =>
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 export const detailPairs = (

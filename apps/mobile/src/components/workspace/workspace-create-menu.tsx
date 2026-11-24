@@ -9,7 +9,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, shadows, spacing, theme } from "@/theme/tokens.generated";
 
-export interface CreateAction {
+interface CreateAction {
   readonly label: string;
   readonly onPress: () => void;
 }

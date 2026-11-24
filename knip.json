@@ -1,0 +1,30 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts", "tests/**/*.{ts,tsx}", "migrations/**/*.ts"],
+      "project": ["**/*.{ts,tsx}", "!apps/**"],
+      "ignoreDependencies": [
+        "shadcn",
+        "tw-animate-css",
+        "tailwindcss",
+        "@tanstack/intent"
+      ],
+      "ignoreUnresolved": ["scripts/e2e-advance-bug.ts"]
+    },
+    "apps/web": {
+      "entry": ["app/**/*.{ts,tsx}"],
+      "project": ["**/*.{ts,tsx}"]
+    },
+    "apps/mobile": {
+      "entry": ["src/app/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+      "project": ["**/*.{ts,tsx}"],
+      "ignoreDependencies": ["expo-updates"]
+    }
+  },
+  "ignore": [
+    "apps/mobile/src/theme/tokens.generated.ts",
+    "apps/mobile/tests/components/support/svg-mock.tsx",
+    "components/ui/**"
+  ]
+}

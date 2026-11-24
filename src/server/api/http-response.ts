@@ -7,7 +7,7 @@ import type { AppErrorCode } from "../core/action-result";
 import { logger } from "../core/logger";
 import { withRequestRecord } from "./request-log";
 
-export const REQUEST_ID_HEADER = "x-request-id";
+const REQUEST_ID_HEADER = "x-request-id";
 
 const STATUS_BY_CODE: Readonly<Record<AppErrorCode, number>> = {
   CONFLICT: 409,

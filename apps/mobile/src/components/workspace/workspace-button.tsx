@@ -7,7 +7,7 @@ import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
-export type ButtonSize = "sm" | "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg";
 
 const MIN_TOUCH_TARGET = 44;
 /** Optical nudge: the icon side of a button takes 2pt less padding. */

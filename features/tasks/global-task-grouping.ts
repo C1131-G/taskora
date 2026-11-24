@@ -10,7 +10,7 @@ import type {
 } from "./types/global-task-view-contracts";
 
 // Shape the filter and grouping functions need from a task row.
-export const GLOBAL_TASK_PRIORITY_ORDER: Readonly<Record<string, number>> = {
+const GLOBAL_TASK_PRIORITY_ORDER: Readonly<Record<string, number>> = {
   high: 1,
   low: 3,
   medium: 2,

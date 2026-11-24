@@ -39,7 +39,7 @@ export const CreatedCommentSchema = Schema.Struct({
   visibility: CommentVisibilitySchema,
 });
 
-export const CommentViewSchema = Schema.Struct({
+const CommentViewSchema = Schema.Struct({
   ...CreatedCommentSchema.fields,
   authorName: Schema.String,
   reactions: Schema.Array(

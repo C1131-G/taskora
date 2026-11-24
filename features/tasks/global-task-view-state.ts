@@ -20,19 +20,11 @@ import type {
 } from "./types/global-task-view-contracts";
 
 export {
-  CALENDAR_MODES,
-  GLOBAL_TASK_GROUPS,
-  GLOBAL_TASK_PRIORITIES,
-  GLOBAL_TASK_SORTS,
-  GLOBAL_TASK_STATUSES,
   GLOBAL_TASK_VIEWS,
   MY_TASK_VIEWS,
 } from "./types/global-task-view-contracts";
 export type {
-  GlobalTaskGroup,
-  GlobalTaskLike,
   GlobalTaskSearch,
-  GlobalTaskSort,
   NormalizedGlobalTaskSearch,
 } from "./types/global-task-view-contracts";
 
@@ -163,4 +155,4 @@ export {
   groupTasksByDueDate,
   sortGlobalTasks,
 } from "./global-task-grouping";
-export type { DueGroup, GlobalTaskGroupOf } from "./global-task-grouping";
+export type { DueGroup } from "./global-task-grouping";

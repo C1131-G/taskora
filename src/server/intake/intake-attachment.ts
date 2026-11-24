@@ -9,15 +9,6 @@ export interface IntakeAttachment {
 }
 
 // Only formats the workspace can show safely: no SVG, HTML or scripts.
-export const ALLOWED_ATTACHMENT_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "application/pdf",
-  "text/plain",
-] as const;
-
 const startsWith = (bytes: Uint8Array, signature: readonly number[], at = 0) =>
   signature.every((value, index) => bytes[at + index] === value);
 

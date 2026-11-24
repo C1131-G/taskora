@@ -19,7 +19,7 @@ export const ClientImpact = Schema.Literals([
   "high",
   "urgent",
 ]);
-export const ClientStatus = Schema.Literals([
+const ClientStatus = Schema.Literals([
   "submitted",
   "acknowledged",
   "in_progress",
@@ -36,7 +36,7 @@ export const Satisfaction = Schema.Literals(["up", "down"]);
 
 // What a client describes. Attachments will join this list in their own
 // branch, so keep it a plain struct that is easy to extend.
-export const PortalReportBody = Schema.Struct({
+const PortalReportBody = Schema.Struct({
   actualBehavior: Text,
   browser: ShortText,
   description: Schema.NullOr(Schema.String.check(Schema.isMaxLength(10_000))),
@@ -53,7 +53,7 @@ export const PortalReportBody = Schema.Struct({
   title: Text.check(Schema.isMaxLength(300)),
 });
 
-export const PortalReceipt = Schema.Struct({
+const PortalReceipt = Schema.Struct({
   bugId: Uuid,
   version: Version,
 });
@@ -72,7 +72,7 @@ export const PortalBugSummary = Schema.Struct({
   updatedAt: Schema.String,
 });
 
-export const PortalBugPage = Schema.Struct({
+const PortalBugPage = Schema.Struct({
   items: Schema.Array(PortalBugSummary),
   nextCursor: NextCursorSchema,
 });
@@ -131,7 +131,7 @@ const PortalLifecycle = Schema.Struct({
   ),
 });
 
-export const PortalBugDetail = Schema.Struct({
+const PortalBugDetail = Schema.Struct({
   ...PortalBugSummary.fields,
   actualBehavior: Schema.String,
   attachments: Schema.Array(PortalAttachment),

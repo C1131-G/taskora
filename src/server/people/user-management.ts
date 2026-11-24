@@ -22,13 +22,6 @@ export {
   TemporaryPasswordResultSchema,
   UserManagement,
 } from "./user-contracts";
-export type {
-  CreateEmployeeInput,
-  CreatedEmployee,
-  EmployeeDirectoryEntry,
-  TemporaryPasswordResult,
-  UpdateOwnProfileInput,
-} from "./user-contracts";
 
 export const UserManagementLive = Layer.succeed(
   UserManagement,

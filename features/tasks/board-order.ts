@@ -1,6 +1,6 @@
 // Manual order inside one board column. The server orders tasks by position and
 // then task number, so a move rewrites positions to match the new visual order.
-export const MAX_REORDER_TASKS = 100;
+const MAX_REORDER_TASKS = 100;
 
 export interface OrderableTask {
   readonly id: string;

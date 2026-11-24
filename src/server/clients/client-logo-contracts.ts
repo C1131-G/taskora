@@ -7,7 +7,7 @@ import type { UploadTicket } from "../storage/uploads-contracts";
 import type { ClientCompanyReceipt } from "./client-company-contracts";
 
 export const MAX_CLIENT_LOGO_BYTES = 2 * 1024 * 1024;
-export const CLIENT_LOGO_PREFIX = "company/client-logos/";
+const CLIENT_LOGO_PREFIX = "company/client-logos/";
 
 export const clientLogoObjectPrefix = (companyId: string): string =>
   `${CLIENT_LOGO_PREFIX}${companyId}/`;

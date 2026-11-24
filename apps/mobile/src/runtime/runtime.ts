@@ -5,7 +5,7 @@ import { AppLive, type AppServices } from "./app-layer";
 
 export type AppRuntime = ManagedRuntime.ManagedRuntime<AppServices, never>;
 
-export const makeAppRuntime = (): AppRuntime => ManagedRuntime.make(AppLive);
+const makeAppRuntime = (): AppRuntime => ManagedRuntime.make(AppLive);
 
 let runtimeRef: AppRuntime | undefined;
 let bridgeRef: Bridge | undefined;
@@ -17,7 +17,7 @@ export const appRuntime = (): AppRuntime => {
 };
 
 /** The app's single React bridge, bound to the app runtime. */
-export const bridge = (): Bridge => {
+const bridge = (): Bridge => {
   bridgeRef ??= makeBridge(appRuntime());
   return bridgeRef;
 };

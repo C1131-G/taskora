@@ -7,7 +7,7 @@ import type { MobileApi } from "@/services/mobile-api";
 
 type Api = MobileApi["Service"];
 
-export interface ApprovalItem {
+interface ApprovalItem {
   readonly id: string;
   readonly projectName: string;
   readonly requestedBy: string;
@@ -15,7 +15,7 @@ export interface ApprovalItem {
   readonly title: string;
 }
 
-export interface PortalNotificationItem {
+interface PortalNotificationItem {
   readonly createdAt: string;
   readonly id: string;
   readonly readAt: string | null;

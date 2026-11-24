@@ -26,7 +26,7 @@ const initialGateValue: SessionGateValue = {
   state: { kind: "anonymous" },
 };
 
-export const SessionStateContext = createContext<SessionGateValue>(initialGateValue);
+const SessionStateContext = createContext<SessionGateValue>(initialGateValue);
 
 export const useSessionState = (): SessionGateValue => useContext(SessionStateContext);
 

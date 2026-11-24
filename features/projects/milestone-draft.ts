@@ -5,7 +5,7 @@ export interface MilestoneDraftItem {
   readonly completed: boolean;
 }
 
-export interface MilestoneDraftItemWithKey extends MilestoneDraftItem {
+interface MilestoneDraftItemWithKey extends MilestoneDraftItem {
   readonly key: string;
 }
 

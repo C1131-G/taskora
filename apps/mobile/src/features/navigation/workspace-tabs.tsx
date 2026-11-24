@@ -59,7 +59,7 @@ const ICONS: Record<string, ComponentType<{ color: string; size: number; weight?
 };
 
 /** One nav icon: outline by default, filled in the accent color when active. */
-export const NavIcon = ({
+const NavIcon = ({
   active = false,
   name,
   size = 22,
@@ -80,7 +80,7 @@ export const NavIcon = ({
 };
 
 /** The workspace bottom tabs wired to the router. */
-export const WorkspaceTabs = () => {
+const WorkspaceTabs = () => {
   const router = useRouter();
   const pathname = usePathname();
   const activeLabel = mobileTabs.find((tab) => isActiveHref(pathname, tab.href))?.label ?? "";
@@ -103,13 +103,13 @@ export const WorkspaceTabs = () => {
   );
 };
 
-export interface MoreMenuProps {
+interface MoreMenuProps {
   readonly onClose: () => void;
   readonly visible: boolean;
 }
 
 /** The More sheet: every sidebar entry the role may see. */
-export const MoreMenu = ({ onClose, visible }: MoreMenuProps) => {
+const MoreMenu = ({ onClose, visible }: MoreMenuProps) => {
   const router = useRouter();
   const { isDark } = useTheme();
   const { state } = useSessionState();

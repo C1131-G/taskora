@@ -83,7 +83,7 @@ const headValue = <A>(stream: Stream.Stream<A>): Effect.Effect<A, never> =>
     head._tag === "Some" ? Effect.succeed(head.value) : Effect.never,
   );
 
-export const makeSession = (deps: SessionDeps) =>
+const makeSession = (deps: SessionDeps) =>
   Effect.gen(function* () {
     const storage = yield* Effect.service(SecureStorage);
     const ref = yield* SubscriptionRef.make<SessionState>(ANONYMOUS);

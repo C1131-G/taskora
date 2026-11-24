@@ -120,14 +120,14 @@ const smtpCredentialPair = Schema.makeFilter(
       : "SMTP_USER and SMTP_PASSWORD must be configured together"
 );
 
-export const DatabaseEnvSchema = Schema.Struct(databaseFields);
-export const RetentionEnvSchema = Schema.Struct(retentionFields);
-export const EmailEnvSchema = Schema.Struct(emailFields).check(
+const DatabaseEnvSchema = Schema.Struct(databaseFields);
+const RetentionEnvSchema = Schema.Struct(retentionFields);
+const EmailEnvSchema = Schema.Struct(emailFields).check(
   smtpHostWithSender,
   smtpCredentialPair
 );
 
-export const ServerEnvSchema = Schema.Struct(serverFields).check(
+const ServerEnvSchema = Schema.Struct(serverFields).check(
   Schema.makeFilter((env) =>
     configuredTogether([env.S3_ACCESS_KEY_ID, env.S3_SECRET_ACCESS_KEY])
       ? undefined

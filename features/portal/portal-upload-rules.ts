@@ -1,6 +1,6 @@
 // Mirrors the server's client upload limits so people get a friendly message
 // before anything is sent. The server still enforces them.
-export const PORTAL_ALLOWED_TYPES = [
+const PORTAL_ALLOWED_TYPES = [
   "image/png",
   "image/jpeg",
   "image/gif",
@@ -23,7 +23,7 @@ export const formatFileSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const fileProblem = (file: File): string | null => {
+const fileProblem = (file: File): string | null => {
   if (!PORTAL_ALLOWED_TYPES.some((type) => type === file.type)) {
     return `${file.name} is not supported. Attach images, PDF files, or MP4 videos.`;
   }

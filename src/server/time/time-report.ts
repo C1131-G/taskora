@@ -28,12 +28,12 @@ export interface TimeTotals {
   readonly totalMinutes: number;
 }
 
-export interface PersonTotals extends TimeTotals {
+interface PersonTotals extends TimeTotals {
   readonly name: string;
   readonly userId: string;
 }
 
-export interface TaskTotals extends TimeTotals {
+interface TaskTotals extends TimeTotals {
   readonly taskId: string;
   readonly taskReference: string;
   readonly taskTitle: string;

@@ -55,7 +55,7 @@ export const ACTION_TYPE_LABELS: Readonly<Record<ActionType, string>> = {
 
 let draftCounter = 0;
 
-export const nextDraftKey = (prefix: string): string => {
+const nextDraftKey = (prefix: string): string => {
   draftCounter += 1;
   return `${prefix}-${draftCounter}`;
 };

@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "employee" | "client";
+type UserRole = "admin" | "employee" | "client";
 
 export interface AuthenticatedUser {
   readonly id: string;

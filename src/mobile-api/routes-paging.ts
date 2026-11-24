@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
 export const PAGE_DEFAULT_SIZE = 50;
-export const PAGE_MAX_SIZE = 100;
+const PAGE_MAX_SIZE = 100;
 
 // The query every paged list takes. `nextCursor` in a response is passed back
 // as `cursor` to get the rows after it; `null` means the list has ended.

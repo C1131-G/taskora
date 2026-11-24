@@ -5,7 +5,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
 import { radii, theme } from "@/theme/tokens.generated";
 
-export interface BottomTab {
+interface BottomTab {
   readonly badge?: number;
   readonly icon: ReactNode;
   readonly label: string;

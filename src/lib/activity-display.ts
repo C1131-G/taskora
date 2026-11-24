@@ -47,7 +47,7 @@ const isSameDay = (first: Date, second: Date): boolean =>
   first.getMonth() === second.getMonth() &&
   first.getDate() === second.getDate();
 
-export const getActivityGroup = (createdAt: string): string => {
+const getActivityGroup = (createdAt: string): string => {
   const date = new Date(createdAt);
   const today = new Date();
   const yesterday = new Date(today);

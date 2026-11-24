@@ -6,7 +6,7 @@ import { db } from "@/src/prisma/db";
 import type { AppError } from "../core/action-result";
 import { databaseError } from "./work-internal";
 
-export const ARCHIVED_TASK_WINDOW = 500;
+const ARCHIVED_TASK_WINDOW = 500;
 
 export interface ArchivedItem {
   readonly archivedAt: string;

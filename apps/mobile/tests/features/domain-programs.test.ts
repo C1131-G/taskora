@@ -26,7 +26,7 @@ import {
   portalApprovalsProgram,
   portalNotificationsProgram,
 } from "@/features/portal/portal-queries";
-import { overviewProgram } from "@/features/workspace/overview-program";
+import { projectsOverviewProgram } from "@/features/workspace/overview-program";
 import {
   bugApprovalsProgram,
   calendarProgram,
@@ -124,7 +124,7 @@ it.effect("searches the workspace by text", () =>
 );
 
 it.effect("aggregates the overview from projects", () =>
-  runWithMock((api) => overviewProgram(api), (page) => {
+  runWithMock((api) => projectsOverviewProgram(api), (page) => {
     expect(page.rows[0]?.title).toContain("Website relaunch");
   }),
 );

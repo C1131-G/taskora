@@ -21,7 +21,7 @@ const MemberRow = Schema.Struct({
   teamName: Schema.NullOr(Schema.String),
 });
 
-export const MemberPage = Schema.Struct({
+const MemberPage = Schema.Struct({
   items: Schema.Array(MemberRow),
   nextCursor: NextCursorSchema,
 });
@@ -47,7 +47,7 @@ const TeamRow = Schema.Struct({
   name: Schema.String,
 });
 
-export const TeamPage = Schema.Struct({
+const TeamPage = Schema.Struct({
   items: Schema.Array(TeamRow),
   nextCursor: NextCursorSchema,
 });
@@ -72,7 +72,7 @@ const ClientCompanyRow = Schema.Struct({
   version: Schema.Number,
 });
 
-export const ClientCompanyPage = Schema.Struct({
+const ClientCompanyPage = Schema.Struct({
   items: Schema.Array(ClientCompanyRow),
   nextCursor: NextCursorSchema,
 });

@@ -8,7 +8,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
 
-export interface ComboboxOption {
+interface ComboboxOption {
   readonly label: string;
   readonly value: string;
 }

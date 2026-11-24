@@ -92,14 +92,14 @@ export interface WorkloadPerson {
   readonly name: string;
 }
 
-export interface WorkloadWeek {
+interface WorkloadWeek {
   readonly loadHours: number;
   readonly overloaded: boolean;
   readonly taskCount: number;
   readonly weekStart: string;
 }
 
-export interface WorkloadPersonRow {
+interface WorkloadPersonRow {
   readonly name: string;
   readonly overdueCount: number;
   readonly overloadedWeekCount: number;

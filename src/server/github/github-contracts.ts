@@ -65,7 +65,7 @@ export type GithubConnectionCreated = typeof GithubConnectionCreatedSchema.Type;
 
 export const GithubSecretSchema = Schema.Struct({ secret: Schema.String });
 
-export const LinkedPullSchema = Schema.Struct({
+const LinkedPullSchema = Schema.Struct({
   authorLogin: Schema.NullOr(Schema.String),
   id: Schema.String,
   number: Schema.Number,

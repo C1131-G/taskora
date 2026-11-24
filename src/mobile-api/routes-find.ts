@@ -24,7 +24,7 @@ const TimeEntry = Schema.Struct({
   workDate: Schema.String,
 });
 
-export const MyTimeWeek = Schema.Struct({
+const MyTimeWeek = Schema.Struct({
   billableMinutes: Schema.Number,
   days: Schema.Array(
     Schema.Struct({ date: Schema.String, minutes: Schema.Number })
@@ -44,7 +44,7 @@ export const myTimeRoute = {
     "The caller's own time entries for the week that holds `date` (today when left out), with totals per day.",
 } as const satisfies RouteDefinition;
 
-export const SearchResults = Schema.Struct({
+const SearchResults = Schema.Struct({
   projects: Schema.Array(
     Schema.Struct({ id: Schema.String, name: Schema.String })
   ),
@@ -77,7 +77,7 @@ const KindRow = Schema.Struct({
   title: Schema.String,
 });
 
-export const FavoritePage = Schema.Struct({
+const FavoritePage = Schema.Struct({
   items: Schema.Array(KindRow),
   nextCursor: NextCursorSchema,
 });
@@ -101,7 +101,7 @@ const ArchivedRow = Schema.Struct({
   version: Schema.Number,
 });
 
-export const ArchivePage = Schema.Struct({
+const ArchivePage = Schema.Struct({
   items: Schema.Array(ArchivedRow),
   nextCursor: NextCursorSchema,
 });
@@ -129,7 +129,7 @@ const FileRow = Schema.Struct({
   uploadedById: Schema.String,
 });
 
-export const FilePage = Schema.Struct({
+const FilePage = Schema.Struct({
   items: Schema.Array(FileRow),
   nextCursor: NextCursorSchema,
 });

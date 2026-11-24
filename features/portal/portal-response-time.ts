@@ -9,7 +9,7 @@ const trimmed = (value: number): string => String(Math.round(value * 10) / 10);
 
 // A first-response target in business minutes as natural text: business days
 // from one full business day up, otherwise business hours or minutes.
-export const formatResponseTarget = (
+const formatResponseTarget = (
   minutes: number,
   times: Pick<PortalResponseTimes, "businessEndMinute" | "businessStartMinute">
 ): string => {

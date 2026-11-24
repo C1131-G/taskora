@@ -12,7 +12,7 @@ import { formatCsv } from "./csv";
 import { parseTaskImport } from "./task-import-parse";
 import type { ImportRowError, ImportedTaskRow } from "./task-import-parse";
 
-export const MAX_EXPORT_ROWS = 10_000;
+const MAX_EXPORT_ROWS = 10_000;
 const EXPORT_HEADER = [
   "project",
   "number",

@@ -33,7 +33,7 @@ export const CreateProjectInputSchema = Schema.Struct({
   ),
 });
 export type CreateProjectInput = typeof CreateProjectInputSchema.Type;
-export const UpdateProjectInputSchema = Schema.Struct({
+const UpdateProjectInputSchema = Schema.Struct({
   color: Schema.optional(Schema.String.check(Schema.isMaxLength(40))),
   description: Schema.NullOr(Schema.String),
   dueDate: Schema.optional(Schema.NullOr(CalendarDateSchema)),

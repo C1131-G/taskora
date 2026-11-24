@@ -1,7 +1,7 @@
 import type { SlaSettingsValues } from "@/src/server/company/sla-settings";
 
 export const UNITS = ["minutes", "hours", "days"] as const;
-export type Unit = (typeof UNITS)[number];
+type Unit = (typeof UNITS)[number];
 export type ImpactKey = "low" | "medium" | "high" | "urgent";
 export type TargetField = "firstResponseMinutes" | "resolutionMinutes";
 
@@ -42,8 +42,8 @@ export const FIELDS: readonly {
 ];
 
 export const SAME_ZONE = "__company__";
-export const MAX_MINUTES = 525_600;
-export const END_OF_DAY = 1440;
+const MAX_MINUTES = 525_600;
+const END_OF_DAY = 1440;
 
 export const minutesToTime = (minutes: number) => {
   const wrapped = minutes >= END_OF_DAY ? 0 : minutes;
@@ -58,7 +58,7 @@ export const timeToMinutes = (time: string, isEnd: boolean) => {
   return isEnd && total === 0 ? END_OF_DAY : total;
 };
 
-export const toDraft = (minutes: number, dayMinutes: number): TargetDraft => {
+const toDraft = (minutes: number, dayMinutes: number): TargetDraft => {
   if (dayMinutes > 0 && minutes >= dayMinutes && minutes % dayMinutes === 0) {
     return { unit: "days", value: String(minutes / dayMinutes) };
   }
@@ -68,7 +68,7 @@ export const toDraft = (minutes: number, dayMinutes: number): TargetDraft => {
   return { unit: "minutes", value: String(minutes) };
 };
 
-export const unitMinutes = (unit: Unit, dayMinutes: number) => {
+const unitMinutes = (unit: Unit, dayMinutes: number) => {
   if (unit === "days") {
     return dayMinutes;
   }

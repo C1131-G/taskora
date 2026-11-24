@@ -153,7 +153,7 @@ export const writeActivity = async (
   });
 };
 
-export const taskStatusByBugStage = {
+const taskStatusByBugStage = {
   approved_for_release: "review",
   awaiting_admin_approval: "review",
   awaiting_client: "review",

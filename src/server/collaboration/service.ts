@@ -13,15 +13,8 @@ export {
   CommentReactionResultSchema,
   CommentVisibilitySchema,
   CommentUndoneResultSchema,
-  CommentViewSchema,
   CreatedCommentSchema,
   UndoReceiptSchema,
-} from "./contracts";
-export type {
-  CommentView,
-  CommentVisibility,
-  CreatedComment,
-  UndoReceipt,
 } from "./contracts";
 
 export const CollaborationLive = Layer.succeed(

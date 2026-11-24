@@ -79,7 +79,7 @@ export const appErrorResponse = (error: AppError): Response => {
   }
 };
 
-export const declaredLength = (request: Request): number | null => {
+const declaredLength = (request: Request): number | null => {
   const header = request.headers.get("content-length");
   if (!header || !/^\d+$/u.test(header)) {
     return null;

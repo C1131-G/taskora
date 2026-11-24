@@ -40,7 +40,7 @@ export interface DeadJobSummary {
   readonly deadAt: string | null;
 }
 
-export const DeadJobSummarySchema = Schema.Struct({
+const DeadJobSummarySchema = Schema.Struct({
   attempts: Schema.Number,
   createdAt: Schema.String,
   deadAt: Schema.NullOr(Schema.String),

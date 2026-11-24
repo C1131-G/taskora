@@ -47,4 +47,3 @@ const EmptyState = ({
 };
 
 export { EmptyState };
-export type { EmptyStateSize };

@@ -31,7 +31,7 @@ import {
   removeLogo,
 } from "./client-logo-support";
 
-export const makeClientLogos = (storage: StorageApi) => {
+const makeClientLogos = (storage: StorageApi) => {
   const requestLogoUpload = (
     actorId: string,
     input: RequestClientLogoUploadInput

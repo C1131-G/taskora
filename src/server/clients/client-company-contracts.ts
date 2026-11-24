@@ -70,7 +70,7 @@ export type ClientCompanyVersionInput =
   typeof ClientCompanyVersionInputSchema.Type;
 export type CreateClientUserInput = typeof CreateClientUserInputSchema.Type;
 
-export const ClientCompanySummarySchema = Schema.Struct({
+const ClientCompanySummarySchema = Schema.Struct({
   active: Schema.Boolean,
   handlerCount: Schema.Number,
   id: UUIDSchema,
@@ -85,7 +85,7 @@ export const ClientCompanySummaryListSchema = Schema.Array(
   ClientCompanySummarySchema
 );
 
-export const ClientCompanyUserSchema = Schema.Struct({
+const ClientCompanyUserSchema = Schema.Struct({
   active: Schema.Boolean,
   email: Schema.String,
   id: Schema.String,

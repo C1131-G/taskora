@@ -10,12 +10,6 @@ import type { PortalActor } from "../../portal/portal-contracts";
 import { BugHistory } from "../../work/bug-history";
 import { getTaskContext } from "../../work/work-task-context";
 
-export interface OpenedTarget {
-  readonly id: string;
-  readonly summary: { readonly status: string; readonly title: string };
-  readonly type: "task" | "bug" | "approval";
-}
-
 // "Not yours" and "no access any more" share one answer, so a notification id
 // never confirms that something exists.
 const cannotOpen = () =>

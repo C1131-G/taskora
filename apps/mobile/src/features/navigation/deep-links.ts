@@ -8,7 +8,7 @@ import { NotFound } from "@/errors";
  * NotFound and the caller renders the not-found screen.
  */
 
-export const DeepLinkSchema = Schema.Struct({
+const DeepLinkSchema = Schema.Struct({
   id: Schema.optional(Schema.String),
   path: Schema.Literals([
     "/bugs",

@@ -29,24 +29,6 @@ const SkeletonBone = ({
   </span>
 );
 
-const SkeletonToolbar = ({ count = 4 }: { readonly count?: number }) => (
-  <div className="toolbar skeleton-toolbar">
-    {SKELETON_KEYS.slice(0, count).map((key) => (
-      <SkeletonBone key={key} shape="control" />
-    ))}
-  </div>
-);
-
-const SkeletonTabs = ({ count = 3 }: { readonly count?: number }) => (
-  <div className="tabs skeleton-tabs">
-    {SKELETON_KEYS.slice(0, count).map((key) => (
-      <span className="tab" key={key}>
-        <SkeletonBone shape="short" />
-      </span>
-    ))}
-  </div>
-);
-
 const SkeletonRows = ({
   rows = 5,
   avatar = false,
@@ -63,24 +45,6 @@ const SkeletonRows = ({
           <SkeletonBone shape="short" />
         </div>
         <SkeletonBone shape="short" />
-      </div>
-    ))}
-  </div>
-);
-
-const SkeletonStats = ({ count = 4 }: { readonly count?: number }) => (
-  <div className="stats skeleton-stats">
-    {SKELETON_KEYS.slice(0, count).map((key) => (
-      <div className="stat" key={key}>
-        <span className="k">
-          <SkeletonBone shape="short" />
-        </span>
-        <span className="v">
-          <SkeletonBone shape="title" />
-        </span>
-        <span className="d">
-          <SkeletonBone />
-        </span>
       </div>
     ))}
   </div>
@@ -119,12 +83,4 @@ const SkeletonDataGrid = ({
   </div>
 );
 
-export {
-  SkeletonDataGrid,
-  SKELETON_KEYS,
-  SkeletonBone,
-  SkeletonRows,
-  SkeletonStats,
-  SkeletonTabs,
-  SkeletonToolbar,
-};
+export { SkeletonDataGrid, SKELETON_KEYS, SkeletonBone, SkeletonRows };

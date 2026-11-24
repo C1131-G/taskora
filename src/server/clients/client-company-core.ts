@@ -7,7 +7,7 @@ import type { DbTransaction } from "../people/user-internal";
 import { databaseError, serializeAdminChanges } from "../people/user-internal";
 import type { ClientCompanyReceipt } from "./client-company-contracts";
 
-export const companyError = (error: unknown): AppError => {
+const companyError = (error: unknown): AppError => {
   if (error instanceof AppError) {
     return error;
   }
@@ -23,7 +23,7 @@ export const companyError = (error: unknown): AppError => {
       });
 };
 
-export const conflict = (): never => {
+const conflict = (): never => {
   throw new AppError({
     code: "CONFLICT",
     message: "The client company changed. Refresh and try again.",

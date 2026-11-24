@@ -111,5 +111,5 @@ export const makeIdempotencyKeys = (): Layer.Layer<IdempotencyKeys> =>
   );
 
 // Pinned by the retry contract tests; kept importable for screens matching on tags.
-export const NON_RETRYABLE = { Conflict, Forbidden, NotFound, Unauthenticated };
+const NON_RETRYABLE = { Conflict, Forbidden, NotFound, Unauthenticated };
 

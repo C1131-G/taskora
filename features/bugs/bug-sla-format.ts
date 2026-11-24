@@ -8,7 +8,7 @@ const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 
 // Business minutes as "2d 4h", "3h 20m" or "45m". Days only from 24 hours up.
-export const formatBusinessMinutes = (minutes: number): string => {
+const formatBusinessMinutes = (minutes: number): string => {
   const total = Math.max(0, Math.round(Math.abs(minutes)));
   const hours = Math.floor(total / MINUTES_PER_HOUR);
   const mins = total % MINUTES_PER_HOUR;

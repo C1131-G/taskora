@@ -6,7 +6,7 @@ import { db } from "@/src/prisma/db";
 import { AppError } from "../core/action-result";
 import { resolveClientIp } from "../core/client-ip";
 
-export const AUDIT_EVENT_TYPES = [
+const AUDIT_EVENT_TYPES = [
   "login_succeeded",
   "login_failed",
   "login_blocked",
@@ -22,9 +22,9 @@ export const AUDIT_EVENT_TYPES = [
   "preview_ended",
 ] as const;
 
-export type AuditEventType = (typeof AUDIT_EVENT_TYPES)[number];
+type AuditEventType = (typeof AUDIT_EVENT_TYPES)[number];
 
-export const AuditEventTypeSchema = Schema.Literals(AUDIT_EVENT_TYPES);
+const AuditEventTypeSchema = Schema.Literals(AUDIT_EVENT_TYPES);
 
 type Writer = Pick<typeof db, "orm">;
 
@@ -77,7 +77,7 @@ export const recordAuditEvent = async (
 };
 
 // The trail must never break the action it records.
-export const recordAuditEventSafely = async (
+const recordAuditEventSafely = async (
   writer: Writer,
   input: AuditInput
 ): Promise<void> => {
@@ -109,7 +109,7 @@ export const AuditFilterSchema = Schema.Struct({
 
 export type AuditFilter = typeof AuditFilterSchema.Type;
 
-export const AuditEntrySchema = Schema.Struct({
+const AuditEntrySchema = Schema.Struct({
   actorName: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
   details: Schema.Json,
@@ -123,7 +123,7 @@ export const AuditEntrySchema = Schema.Struct({
 
 export const AuditListSchema = Schema.Array(AuditEntrySchema);
 
-export const LockedAccountSchema = Schema.Struct({
+const LockedAccountSchema = Schema.Struct({
   clientCompanyName: Schema.NullOr(Schema.String),
   email: Schema.String,
   failedLoginCount: Schema.Number,

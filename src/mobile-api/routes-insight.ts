@@ -20,7 +20,7 @@ const ActivityRow = Schema.Struct({
   taskTitle: Schema.NullOr(Schema.String),
 });
 
-export const ActivityPage = Schema.Struct({
+const ActivityPage = Schema.Struct({
   items: Schema.Array(ActivityRow),
   nextCursor: NextCursorSchema,
 });
@@ -55,7 +55,7 @@ const WorkloadPerson = Schema.Struct({
   weeks: Schema.Array(WorkloadWeek),
 });
 
-export const WorkloadView = Schema.Struct({
+const WorkloadView = Schema.Struct({
   capacityHours: Schema.Number,
   people: Schema.Array(WorkloadPerson),
   weeks: Schema.Array(Schema.String),

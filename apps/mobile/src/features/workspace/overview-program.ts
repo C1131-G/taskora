@@ -14,4 +14,3 @@ export const projectsOverviewProgram = (api: MobileApi["Service"]) =>
   }));
 
 /** Alias for the route files and tests. */
-export const overviewProgram = projectsOverviewProgram;

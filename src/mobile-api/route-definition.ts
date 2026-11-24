@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export type HttpMethod = "get" | "post" | "patch" | "delete";
+type HttpMethod = "get" | "post" | "patch" | "delete";
 
 // A route's schemas need no services, so the client and server can encode and
 // decode with them directly.
@@ -60,7 +60,7 @@ export const ERROR_CODES = [
 
 export type AppErrorCode = (typeof ERROR_CODES)[number];
 
-export const UNAUTHENTICATED_REASONS = [
+const UNAUTHENTICATED_REASONS = [
   "session_ended",
   "deactivated",
   "inactivity",

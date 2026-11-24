@@ -15,7 +15,7 @@ export const MS_PER_MINUTE = 60_000;
 export const MAX_REPORT_ROWS = 20_000;
 export const MAX_TASK_OPTIONS = 100;
 export const MAX_REPORT_DAYS = 366;
-export const DEFAULT_TIME_ZONE = "UTC";
+const DEFAULT_TIME_ZONE = "UTC";
 
 export const isUuid = Schema.is(UUIDSchema);
 export const isCalendarDate = Schema.is(CalendarDateSchema);

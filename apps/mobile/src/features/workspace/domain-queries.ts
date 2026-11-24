@@ -7,7 +7,7 @@ import type { MobileApi } from "@/services/mobile-api";
 
 type Api = MobileApi["Service"];
 
-export interface TimeEntry {
+interface TimeEntry {
   readonly date: string;
   readonly hours: number;
   readonly id: string;
@@ -16,7 +16,7 @@ export interface TimeEntry {
   readonly taskTitle: string | null;
 }
 
-export interface PersonLoad {
+interface PersonLoad {
   readonly id: string;
   readonly loadHours: number;
   readonly name: string;
@@ -24,14 +24,14 @@ export interface PersonLoad {
   readonly overHours: number;
 }
 
-export interface BudgetSummary {
+interface BudgetSummary {
   readonly billedHours: number;
   readonly id: string;
   readonly plannedHours: number;
   readonly projectName: string;
 }
 
-export interface FileSummary {
+interface FileSummary {
   readonly copyStatus: "failed" | "none" | "pending" | "ready";
   readonly id: string;
   readonly name: string;
@@ -41,7 +41,7 @@ export interface FileSummary {
   readonly uploadedBy: string;
 }
 
-export interface MemberSummary {
+interface MemberSummary {
   readonly employeeNumber: string;
   readonly id: string;
   readonly name: string;
@@ -50,20 +50,20 @@ export interface MemberSummary {
   readonly title: string | null;
 }
 
-export interface TeamSummary {
+interface TeamSummary {
   readonly id: string;
   readonly memberCount: number;
   readonly name: string;
 }
 
-export interface ClientCompanySummary {
+interface ClientCompanySummary {
   readonly active: boolean;
   readonly contactEmail: string | null;
   readonly id: string;
   readonly name: string;
 }
 
-export interface ActivityItem {
+interface ActivityItem {
   readonly actorName: string;
   readonly at: string;
   readonly detail: string;
@@ -72,14 +72,14 @@ export interface ActivityItem {
   readonly taskTitle: string | null;
 }
 
-export interface KindItem {
+interface KindItem {
   readonly id: string;
   readonly kind: string;
   readonly subtitle?: string | null;
   readonly title: string;
 }
 
-export interface ArchivedItem {
+interface ArchivedItem {
   readonly archivedAt: string;
   readonly id: string;
   readonly kind: string;

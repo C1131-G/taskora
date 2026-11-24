@@ -234,7 +234,7 @@ export const runSlaSweep = async (
 
 // The sweep runs every five minutes; one job per interval keeps a busy
 // scheduler from queueing it twice.
-export const slaSweepDedupeKey = (at: Date): string =>
+const slaSweepDedupeKey = (at: Date): string =>
   `${SLA_SWEEP_JOB}:${Math.floor(at.getTime() / SLA_SWEEP_INTERVAL_MS)}`;
 
 export const enqueueSlaSweep = async (

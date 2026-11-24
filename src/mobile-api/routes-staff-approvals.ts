@@ -6,7 +6,7 @@ import { NextCursorSchema, PageQuerySchema } from "./routes-paging";
 
 const BugApprovalStatus = Schema.Literals(["pending", "approved", "rejected"]);
 
-export const StaffBugApprovalInbox = Schema.Struct({
+const StaffBugApprovalInbox = Schema.Struct({
   items: Schema.Array(
     Schema.Struct({
       bugTitle: Schema.String,

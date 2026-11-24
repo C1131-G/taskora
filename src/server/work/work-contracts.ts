@@ -14,7 +14,7 @@ export const TaskPrioritySchema = Schema.Literals([
   "low",
   "none",
 ]);
-export const TaskTypeSchema = Schema.Literals(["task", "bug"]);
+const TaskTypeSchema = Schema.Literals(["task", "bug"]);
 
 export const decodeTaskStatus = (status: string): UpdateTaskInput["status"] =>
   Schema.decodeUnknownSync(TaskStatusSchema)(status);
@@ -29,7 +29,7 @@ export const TaskDescriptionSchema = Schema.NullOr(
   Schema.String.check(Schema.isMaxLength(TASK_DESCRIPTION_MAX_LENGTH))
 );
 
-export const UpdateTaskInputSchema = Schema.Struct({
+const UpdateTaskInputSchema = Schema.Struct({
   assigneeIds: Schema.Array(Schema.String.check(Schema.isUUID())),
   description: TaskDescriptionSchema,
   dueDate: Schema.NullOr(CalendarDateSchema),
@@ -44,7 +44,7 @@ export const UpdateTaskInputSchema = Schema.Struct({
 
 export type UpdateTaskInput = typeof UpdateTaskInputSchema.Type;
 
-export const CreateTaskInputSchema = Schema.Struct({
+const CreateTaskInputSchema = Schema.Struct({
   assigneeIds: Schema.Array(Schema.String.check(Schema.isUUID())),
   description: TaskDescriptionSchema,
   dueDate: Schema.NullOr(CalendarDateSchema),

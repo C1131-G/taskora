@@ -39,7 +39,7 @@ export const validateCredentials = (
 export const SessionContext = createContext<SessionService | null>(null);
 
 /** The session from the nearest provider, or null outside one. */
-export const useSession = (): SessionService | null => useContext(SessionContext);
+const useSession = (): SessionService | null => useContext(SessionContext);
 
 const failureOf = (exit: Exit.Exit<unknown, AppFailure> | undefined): AppFailure | undefined =>
   exit === undefined || Exit.isSuccess(exit)

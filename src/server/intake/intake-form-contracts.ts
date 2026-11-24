@@ -35,7 +35,7 @@ export const IntakeFormReceiptSchema = Schema.Struct({
   version: Schema.Number,
 });
 
-export const IntakeFormItemSchema = Schema.Struct({
+const IntakeFormItemSchema = Schema.Struct({
   clientCompanyId: UUIDSchema,
   companyName: Schema.String,
   createdAt: Schema.String,

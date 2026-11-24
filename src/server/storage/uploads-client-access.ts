@@ -7,7 +7,7 @@ import type { UploadIntentState } from "./upload-states";
 import type { Transaction } from "./uploads-internal";
 
 // What a client account may attach to a bug it can see.
-export const CLIENT_UPLOAD_CONTENT_TYPES: ReadonlySet<string> = new Set([
+const CLIENT_UPLOAD_CONTENT_TYPES: ReadonlySet<string> = new Set([
   "application/pdf",
   "image/gif",
   "image/jpeg",
@@ -15,8 +15,8 @@ export const CLIENT_UPLOAD_CONTENT_TYPES: ReadonlySet<string> = new Set([
   "image/webp",
   "video/mp4",
 ]);
-export const CLIENT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-export const CLIENT_MAX_FILES_PER_BUG = 10;
+const CLIENT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const CLIENT_MAX_FILES_PER_BUG = 10;
 
 // A client may reach only the bug tasks of its own company, and only while
 // the bug is still open.
@@ -95,7 +95,7 @@ export const assertClientUploadAllowed = async (
   }
 };
 
-export const fileHidden = () =>
+const fileHidden = () =>
   new AppError({ code: "NOT_FOUND", message: "The file was not found." });
 
 const isCompanyBugFile = async (

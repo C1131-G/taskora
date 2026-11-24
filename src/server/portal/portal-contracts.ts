@@ -27,7 +27,7 @@ export const PortalProjectSchema = Schema.Struct({
   name: Schema.String,
 });
 
-export const PortalBugSummarySchema = Schema.Struct({
+const PortalBugSummarySchema = Schema.Struct({
   createdAt: Schema.String,
   id: UUIDSchema,
   impact: Schema.NullOr(ClientImpactSchema),
@@ -52,12 +52,12 @@ export const PortalCommentSchema = Schema.Struct({
   isTeam: Schema.Boolean,
 });
 
-export const PortalTimelineEntrySchema = Schema.Struct({
+const PortalTimelineEntrySchema = Schema.Struct({
   at: Schema.String,
   status: ClientStatusLabelSchema,
 });
 
-export const PortalAttachmentSchema = Schema.Struct({
+const PortalAttachmentSchema = Schema.Struct({
   contentType: Schema.String,
   createdAt: Schema.String,
   fileId: UUIDSchema,
@@ -67,7 +67,7 @@ export const PortalAttachmentSchema = Schema.Struct({
   uploaderName: Schema.String,
 });
 
-export const PortalLifecycleSchema = Schema.Struct({
+const PortalLifecycleSchema = Schema.Struct({
   canRate: Schema.Boolean,
   canReportAgain: Schema.Boolean,
   // Why a closed bug was closed.
@@ -156,7 +156,7 @@ export const PortalBugReceiptSchema = Schema.Struct({
   version: VersionSchema,
 });
 
-export const PortalNotificationSchema = Schema.Struct({
+const PortalNotificationSchema = Schema.Struct({
   approvalId: Schema.NullOr(UUIDSchema),
   bugId: Schema.NullOr(UUIDSchema),
   createdAt: Schema.String,

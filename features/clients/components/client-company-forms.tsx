@@ -254,4 +254,4 @@ export {
   ClientCompanyRenameForm,
   ClientCompanyStatusControl,
 };
-export type { CompanyRef, VersionSink };
+export type { VersionSink };

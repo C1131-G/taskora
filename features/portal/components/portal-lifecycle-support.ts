@@ -15,7 +15,7 @@ interface ActionFailure {
   readonly error: { readonly code: string; readonly message: string };
 }
 
-export const failureText = (failure: ActionFailure) =>
+const failureText = (failure: ActionFailure) =>
   failure.error.code === "CONFLICT" ? conflictMessage : failure.error.message;
 
 // Shared state for a one-shot action: busy flag, visible error, and an

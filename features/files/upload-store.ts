@@ -140,8 +140,6 @@ export type UploadActions = ReturnType<typeof uploadActions>;
 export const createUploadStore = () =>
   createStore<UploadState, UploadActions>({ uploads: [] }, uploadActions);
 
-export type UploadStore = ReturnType<typeof createUploadStore>;
-
 export const uploadPercent = (upload: UploadItem): number =>
   upload.sizeBytes <= 0
     ? 0

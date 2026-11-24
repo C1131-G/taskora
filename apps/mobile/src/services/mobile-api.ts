@@ -38,7 +38,7 @@ export class MobileApi extends Context.Service<
   }
 >()("taskora/mobile/MobileApi") {}
 
-export const makeMobileApi = (deps: MobileApiDeps) =>
+const makeMobileApi = (deps: MobileApiDeps) =>
   Effect.map(Effect.service(TokenSource), (tokens) =>
     MobileApi.of({
       call: (run) =>
