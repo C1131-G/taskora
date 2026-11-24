@@ -43,7 +43,7 @@ export const sections: readonly NavigationSection[] = [
     items: [
       { Icon: House, href: "/", label: "Home" },
       { Icon: Tray, href: "/inbox", label: "Inbox" },
-      { Icon: CheckCircle, href: "/my-tasks", label: "My Tasks" },
+      { Icon: CheckCircle, href: "/my-tasks", label: "My tasks" },
       { Icon: Clock, href: "/my-time", label: "My Time" },
       { Icon: Star, href: "/favorites", label: "Favorites" },
       { Icon: Bell, href: "/notifications", label: "Notifications" },
@@ -79,7 +79,7 @@ export const sections: readonly NavigationSection[] = [
 
 export const mobileItems: readonly NavigationItem[] = [
   { Icon: House, href: "/", label: "Home" },
-  { Icon: CheckCircle, href: "/my-tasks", label: "My Tasks" },
+  { Icon: CheckCircle, href: "/my-tasks", label: "My tasks" },
   { Icon: Tray, href: "/inbox", label: "Inbox" },
 ];
 

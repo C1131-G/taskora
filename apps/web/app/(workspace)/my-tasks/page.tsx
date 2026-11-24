@@ -12,14 +12,14 @@ import {
 import { MyTasks, MyTasksSkeleton } from "@/features/tasks/components/my-tasks";
 import { parseTaskIdParam } from "@/features/tasks/task-param";
 
-export const metadata: Metadata = { title: "My Tasks | Taskora" };
+export const metadata: Metadata = { title: "My tasks | Taskora" };
 
 const MyTasksPage = ({ searchParams }: PageProps<"/my-tasks">) => (
   <PageTransition>
     <div className="page flush">
       {/* The visible title lives in the loading and loaded frames; this one is
           the page's heading in the static shell, so those are aria-hidden. */}
-      <h1 className="sr-only">My Tasks</h1>
+      <h1 className="sr-only">My tasks</h1>
       <SectionErrorBoundary title="My tasks couldn't load" variant="page">
         <SuspenseReveal fallback={<MyTasksSkeleton />}>
           {/* oxlint-disable-next-line promise/prefer-await-to-then -- The page stays synchronous so its chrome paints in the static shell. */}

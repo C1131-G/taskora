@@ -102,7 +102,7 @@ export const MyTasksWorkspace = ({
     <>
       <div className="ph my-tasks-header">
         <div>
-          <h1 aria-hidden="true">My Tasks</h1>
+          <h1 aria-hidden="true">My tasks</h1>
           <p>{dueSummary || `${visibleTasks.length} assigned tasks`}</p>
         </div>
         {calendarProjects.length > 0 ? (
@@ -110,7 +110,7 @@ export const MyTasksWorkspace = ({
             projects={calendarProjects.map(({ id, name }) => ({ id, name }))}
           />
         ) : null}
-        <nav aria-label="My Tasks view" className="row">
+        <nav aria-label="My tasks view" className="row">
           <WorkspaceButton
             asChild
             size="sm"

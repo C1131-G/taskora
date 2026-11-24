@@ -26,7 +26,7 @@ const MyTasksSkeletonFrame = ({
   <>
     <div className="ph my-tasks-header">
       <div>
-        <h1 aria-hidden="true">My Tasks</h1>
+        <h1 aria-hidden="true">My tasks</h1>
         <p aria-hidden="true" className="min-h-lh">
           <SkeletonBone shape="short" />
         </p>

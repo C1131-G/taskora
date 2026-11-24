@@ -36,8 +36,8 @@ const ROUTES: readonly RouteShell[] = [
     path: "/inbox",
   },
   {
-    heading: "My Tasks",
-    link: /^My Tasks/u,
+    heading: "My tasks",
+    link: /^My tasks/u,
     loading: "Loading your tasks",
     path: "/my-tasks",
   },
