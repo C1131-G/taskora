@@ -18,7 +18,7 @@ export type CommandId =
   | "invite-member"
   | "show-shortcuts";
 
-export type CommandGroup = "Actions" | "Navigate" | "Help";
+type CommandGroup = "Actions" | "Navigate" | "Help";
 
 export interface WorkspaceCommand {
   readonly group: CommandGroup;

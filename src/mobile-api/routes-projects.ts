@@ -29,7 +29,7 @@ const ProjectRow = Schema.Struct({
   taskCount: Schema.Number,
 });
 
-export const ProjectPage = Schema.Struct({
+const ProjectPage = Schema.Struct({
   items: Schema.Array(ProjectRow),
   nextCursor: NextCursorSchema,
 });
@@ -67,7 +67,7 @@ const BudgetRow = Schema.Struct({
   warningPercent: Schema.Number,
 });
 
-export const BudgetPage = Schema.Struct({
+const BudgetPage = Schema.Struct({
   items: Schema.Array(BudgetRow),
   nextCursor: NextCursorSchema,
 });
@@ -88,7 +88,7 @@ const PortalProjectRow = Schema.Struct({
   name: Schema.String,
 });
 
-export const PortalProjectPage = Schema.Struct({
+const PortalProjectPage = Schema.Struct({
   items: Schema.Array(PortalProjectRow),
   nextCursor: NextCursorSchema,
 });

@@ -59,7 +59,7 @@ const T3: Seed = {
   version: 5,
 };
 
-export const TASKS = [T1, T2, T3];
+const TASKS = [T1, T2, T3];
 
 export const SUBTASKS = [
   {

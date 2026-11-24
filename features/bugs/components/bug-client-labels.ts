@@ -15,10 +15,10 @@ export const RESOLUTION_TEXT: Record<string, string> = {
   unconfirmed: "Auto-closed: client did not verify within 7 days",
 };
 
-export const DAY_MS = 86_400_000;
+const DAY_MS = 86_400_000;
 export const MAX_CLIENT_REOPENS = 3;
 
-export const addDays = (value: string, days: number): string =>
+const addDays = (value: string, days: number): string =>
   formatBugDate(
     new Date(new Date(value).getTime() + days * DAY_MS).toISOString()
   );

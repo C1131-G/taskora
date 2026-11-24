@@ -5,10 +5,10 @@
   position: relative;
 }
 .workspace-app .content:focus {
-  outline: none;
+  outline: 2px solid transparent;
 }
 .workspace-app .drawer:focus {
-  outline: none;
+  outline: 2px solid transparent;
 }
 /* Content pages with a max width sit centred in the main area; full-bleed views use .page.flush. */
 .workspace-app .page {

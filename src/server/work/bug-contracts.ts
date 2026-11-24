@@ -92,8 +92,6 @@ export const BugListInputSchema = Schema.Struct({
   view: Schema.optional(Schema.Literal("client_queue")),
 });
 
-export const BugIdInputSchema = Schema.Struct({ bugId: UUIDSchema });
-
 export const BugTriageInputSchema = Schema.Struct({
   assigneeIds: Schema.Array(UUIDSchema).check(Schema.isMaxLength(100)),
   bugId: UUIDSchema,
@@ -191,15 +189,10 @@ export const BugEvidenceInputSchema = Schema.Struct({
   kind: Schema.Literals(["before", "after", "other"]),
 });
 
-export const BugHistoryInputSchema = Schema.Struct({ bugId: UUIDSchema });
 export const BugVersionInputSchema = Schema.Struct({
   bugId: UUIDSchema,
   expectedVersion: Schema.Number.check(Schema.isInt(), Schema.isGreaterThan(0)),
 });
-export const BugApprovalInboxInputSchema = Schema.Struct({
-  status: Schema.optional(Schema.Literals(["pending", "approved", "rejected"])),
-});
-
 export type BugReportInput = typeof BugReportInputSchema.Type;
 export type BugListInput = typeof BugListInputSchema.Type;
 export type BugTriageInput = typeof BugTriageInputSchema.Type;

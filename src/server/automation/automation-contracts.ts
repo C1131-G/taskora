@@ -14,10 +14,10 @@ import type { ConditionField } from "./automation-model";
 export const MAX_RULES_PER_PROJECT = 25;
 export const MAX_ACTIONS_PER_RULE = 5;
 export const MAX_CONDITIONS_PER_RULE = 5;
-export const MAX_CONDITION_VALUES = 20;
-export const MAX_RULE_NAME_LENGTH = 80;
-export const MAX_COMMENT_LENGTH = 1000;
-export const MAX_NOTIFY_MESSAGE_LENGTH = 200;
+const MAX_CONDITION_VALUES = 20;
+const MAX_RULE_NAME_LENGTH = 80;
+const MAX_COMMENT_LENGTH = 1000;
+const MAX_NOTIFY_MESSAGE_LENGTH = 200;
 const MAX_ID_LENGTH = 100;
 
 const trimmedText = (maxLength: number, label: string) =>
@@ -139,7 +139,7 @@ export const AutomationRuleListSchema = Schema.Array(
 export const AUTOMATION_OUTCOMES = ["matched", "skipped", "failed"] as const;
 export type AutomationOutcome = (typeof AUTOMATION_OUTCOMES)[number];
 
-export const AutomationRunSummarySchema = Schema.Struct({
+const AutomationRunSummarySchema = Schema.Struct({
   createdAt: Schema.String,
   depth: Schema.Number,
   id: Schema.String,

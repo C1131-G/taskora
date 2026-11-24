@@ -15,12 +15,6 @@ export {
   NotificationPreferencesSchema,
   Notifications,
 } from "./contracts";
-export type {
-  InboxOptions,
-  InboxPage,
-  NotificationItem,
-  NotificationPreferenceValue,
-} from "./contracts";
 
 export const NotificationsLive = Layer.succeed(
   Notifications,

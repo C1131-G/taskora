@@ -1,6 +1,6 @@
 import { authPool } from "./database";
 
-export const LOGIN_LOCK_THRESHOLD = 5;
+const LOGIN_LOCK_THRESHOLD = 5;
 export const LOGIN_LOCK_MINUTES = 15;
 
 export interface SignInTarget {

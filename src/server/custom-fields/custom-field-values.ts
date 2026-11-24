@@ -32,7 +32,7 @@ const isTextValue = Schema.is(TextValueSchema);
 
 // Doubles are exact for whole numbers up to 2^53; the cap keeps a stored
 // number round-tripping through JSON and a spreadsheet.
-export const MAX_FIELD_NUMBER = 1e15;
+const MAX_FIELD_NUMBER = 1e15;
 const NumberValueSchema = Schema.Number.check(
   Schema.isFinite(),
   Schema.isBetween({

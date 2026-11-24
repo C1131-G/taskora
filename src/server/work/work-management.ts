@@ -14,27 +14,15 @@ import { rescheduleTask } from "./work-task-reschedule";
 import { updateTask } from "./work-task-update";
 
 export {
-  CreateTaskInputSchema,
   CreatedTaskSchema,
   ProjectTaskListItemSchema,
   TaskArchiveUndoReceiptSchema,
   TaskClientVisibilitySchema,
   TaskRecurrenceInputSchema,
   TaskVersionResultSchema,
-  UpdateTaskInputSchema,
   WorkManagement,
 } from "./work-contracts";
-export type {
-  BulkTaskChanges,
-  BulkTaskTarget,
-  CreateTaskInput,
-  CreatedTask,
-  ProjectTaskListItem,
-  TaskArchiveUndoReceipt,
-  TaskRecurrenceInput,
-  UpdateTaskInput,
-} from "./work-contracts";
-export { allocateTaskNumber } from "./work-task-creation";
+export type { CreateTaskInput, TaskRecurrenceInput } from "./work-contracts";
 
 export const WorkManagementLive = Layer.succeed(
   WorkManagement,

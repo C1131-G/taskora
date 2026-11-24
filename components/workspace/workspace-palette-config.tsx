@@ -36,7 +36,7 @@ import type {
 export const pages = [
   { Icon: House, href: "/", label: "Home" },
   { Icon: Tray, href: "/inbox", label: "Inbox" },
-  { Icon: CheckCircle, href: "/my-tasks", label: "My Tasks" },
+  { Icon: CheckCircle, href: "/my-tasks", label: "My tasks" },
   { Icon: Clock, href: "/my-time", label: "My Time" },
   { Icon: Star, href: "/favorites", label: "Favorites" },
   { Icon: SquaresFour, href: "/overview", label: "Overview" },

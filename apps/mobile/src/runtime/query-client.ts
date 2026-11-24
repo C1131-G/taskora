@@ -6,10 +6,10 @@ import { failureMessage } from "@/components/workspace/workspace-error-state";
 import type { AppFailure } from "@/errors";
 
 /** Reads stay fresh this long before a mount, focus or reconnect refetches them. */
-export const QUERY_STALE_TIME = 30_000;
+const QUERY_STALE_TIME = 30_000;
 
 /** Retries after the first failure, for transient failures only. */
-export const MAX_QUERY_RETRIES = 2;
+const MAX_QUERY_RETRIES = 2;
 
 // Only a failure the next attempt can fix is worth retrying; the 4xx-type
 // answers (and local decode or storage faults) fail the same way again.

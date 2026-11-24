@@ -15,10 +15,7 @@ export const ApprovalStatusSchema = Schema.Literals([
 ]);
 export type ApprovalStatus = typeof ApprovalStatusSchema.Type;
 
-export const ApprovalDecisionSchema = Schema.Literals([
-  "approve",
-  "request_changes",
-]);
+const ApprovalDecisionSchema = Schema.Literals(["approve", "request_changes"]);
 export type ApprovalDecision = typeof ApprovalDecisionSchema.Type;
 
 // Exactly one of taskId and milestoneId is given; the service checks it so a
@@ -40,12 +37,12 @@ export const ApprovalReceiptSchema = Schema.Struct({
 });
 export type ApprovalReceipt = typeof ApprovalReceiptSchema.Type;
 
-export const ApprovalFileSchema = Schema.Struct({
+const ApprovalFileSchema = Schema.Struct({
   fileId: UUIDSchema,
   fileName: Schema.String,
 });
 
-export const StaffApprovalSchema = Schema.Struct({
+const StaffApprovalSchema = Schema.Struct({
   // Whether the reader may withdraw it now: still waiting, and they asked or
   // are an administrator.
   canCancel: Schema.Boolean,
@@ -78,7 +75,7 @@ export type TaskApprovals = typeof TaskApprovalsSchema.Type;
 
 // What the project's Approvals view shows: every request for its tasks and
 // milestones, and, for administrators, the choices the milestone form offers.
-export const ProjectApprovalSchema = Schema.Struct({
+const ProjectApprovalSchema = Schema.Struct({
   ...StaffApprovalSchema.fields,
   subjectKind: Schema.Literals(["task", "milestone"]),
   subjectTitle: Schema.String,
@@ -99,7 +96,7 @@ export const ProjectApprovalsSchema = Schema.Struct({
 });
 export type ProjectApprovals = typeof ProjectApprovalsSchema.Type;
 
-export const PortalApprovalSummarySchema = Schema.Struct({
+const PortalApprovalSummarySchema = Schema.Struct({
   decidedAt: Schema.NullOr(Schema.String),
   fileCount: Schema.Number,
   id: UUIDSchema,
@@ -117,7 +114,7 @@ export const PortalApprovalListSchema = Schema.Array(
   PortalApprovalSummarySchema
 );
 
-export const PortalApprovalFileSchema = Schema.Struct({
+const PortalApprovalFileSchema = Schema.Struct({
   contentType: Schema.String,
   fileId: UUIDSchema,
   fileName: Schema.String,
@@ -125,7 +122,7 @@ export const PortalApprovalFileSchema = Schema.Struct({
   sizeBytes: Schema.Number,
 });
 
-export const PortalApprovalHistorySchema = Schema.Struct({
+const PortalApprovalHistorySchema = Schema.Struct({
   decidedAt: Schema.NullOr(Schema.String),
   decidedByName: Schema.NullOr(Schema.String),
   decisionComment: Schema.NullOr(Schema.String),

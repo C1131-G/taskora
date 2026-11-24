@@ -13,10 +13,6 @@ export {
   PersonalWorkspaceSchema,
   WorkspaceSearchResultsSchema,
 } from "./discovery-contracts";
-export type {
-  PersonalWorkspace,
-  WorkspaceSearchResults,
-} from "./discovery-contracts";
 
 export const DiscoveryManagementLive = Layer.succeed(
   DiscoveryManagement,

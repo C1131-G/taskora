@@ -1,8 +1,8 @@
 appId: com.cibi.taskora
 ---
-# My Tasks: open the tab and see the filter chips.
+# My tasks: open the tab and see the filter chips.
 - launchApp
-- assertVisible: "My Tasks"
-- tapOn: "My Tasks"
+- assertVisible: "My tasks"
+- tapOn: "My tasks"
 - assertVisible: "All"
 - assertVisible: "To Do"

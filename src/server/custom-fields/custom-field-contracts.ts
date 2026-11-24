@@ -36,7 +36,7 @@ export const FieldValueSchema = Schema.Union([
   Schema.Boolean,
 ]);
 
-export const CustomFieldSchema = Schema.Struct({
+const CustomFieldSchema = Schema.Struct({
   id: UUIDSchema,
   name: Schema.String,
   options: Schema.Array(Schema.String),
@@ -50,7 +50,7 @@ export type CustomFieldView = typeof CustomFieldSchema.Type;
 export const CustomFieldListSchema = Schema.Array(CustomFieldSchema);
 
 // What the task drawer shows: each active field with this task's value.
-export const TaskCustomFieldSchema = Schema.Struct({
+const TaskCustomFieldSchema = Schema.Struct({
   ...CustomFieldSchema.fields,
   value: Schema.NullOr(FieldValueSchema),
 });

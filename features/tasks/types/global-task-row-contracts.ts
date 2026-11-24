@@ -11,7 +11,7 @@ export type GlobalTask = Omit<
   readonly projectName: string;
 };
 
-export interface TaskGroup {
+interface TaskGroup {
   readonly key: string;
   readonly label: string;
   readonly tasks: readonly GlobalTask[];
@@ -29,7 +29,7 @@ export interface GlobalTaskRowsProps {
   readonly viewSwitch?: ReactNode;
 }
 
-export interface TaskSelectionProps {
+interface TaskSelectionProps {
   readonly selectedIds: ReadonlySet<string>;
   readonly onToggle: (taskId: string, checked: boolean) => void;
 }

@@ -45,8 +45,6 @@ export const TASK_PRIORITIES = [
 export type AutomationTaskPriority = (typeof TASK_PRIORITIES)[number];
 
 export const TASK_TYPES = ["task", "bug"] as const;
-export type AutomationTaskType = (typeof TASK_TYPES)[number];
-
 export const CONDITION_FIELDS = [
   "status",
   "priority",
@@ -116,7 +114,7 @@ export interface TaskSnapshot {
   readonly hasRecurrence: boolean;
 }
 
-export type SkipReason =
+type SkipReason =
   | "conditions_not_met"
   | "loop_protection_depth"
   | "loop_protection_self"

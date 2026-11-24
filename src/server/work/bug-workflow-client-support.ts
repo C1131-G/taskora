@@ -8,7 +8,7 @@ import { notifyUsers } from "../notifications/notify-users";
 import type { loadBug } from "./bug-workflow-internal";
 import type { Transaction } from "./work-internal";
 
-export const DAY_MS = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 export const CLIENT_REOPEN_LIMIT = 3;
 export const NEEDS_INFO_REMINDER_AFTER_MS = 3 * DAY_MS;
 export const NEEDS_INFO_AUTOCLOSE_AFTER_MS = 14 * DAY_MS;

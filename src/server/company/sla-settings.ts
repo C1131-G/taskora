@@ -5,7 +5,7 @@ import { db } from "@/src/prisma/db";
 import { AppError } from "../core/action-result";
 import type { BusinessCalendar } from "../work/business-time";
 
-export const ImpactKeys = ["low", "medium", "high", "urgent"] as const;
+const ImpactKeys = ["low", "medium", "high", "urgent"] as const;
 export type ImpactKey = (typeof ImpactKeys)[number];
 
 const MinutesSchema = Schema.Number.check(
@@ -20,14 +20,14 @@ const TargetSchema = Schema.Struct({
   resolutionMinutes: MinutesSchema,
 });
 
-export const SlaTargetsSchema = Schema.Struct({
+const SlaTargetsSchema = Schema.Struct({
   high: TargetSchema,
   low: TargetSchema,
   medium: TargetSchema,
   urgent: TargetSchema,
 });
 
-export type SlaTargets = typeof SlaTargetsSchema.Type;
+type SlaTargets = typeof SlaTargetsSchema.Type;
 
 const supportedTimezones = new Set([
   ...Intl.supportedValuesOf("timeZone"),
@@ -82,7 +82,7 @@ export interface SlaSettings {
   readonly targets: SlaTargets;
 }
 
-export const DEFAULT_SLA_TARGETS: SlaTargets = {
+const DEFAULT_SLA_TARGETS: SlaTargets = {
   high: { firstResponseMinutes: 240, resolutionMinutes: 1440 },
   low: { firstResponseMinutes: 1440, resolutionMinutes: 14_400 },
   medium: { firstResponseMinutes: 480, resolutionMinutes: 4800 },
@@ -103,7 +103,7 @@ const parseTargets = (value: unknown): SlaTargets => {
   }
 };
 
-export const toSlaSettingsValues = (row: SettingsRow) => {
+const toSlaSettingsValues = (row: SettingsRow) => {
   const businessTimeZone = row.businessTimeZone ?? null;
   return {
     businessDays: [...row.businessDays].toSorted(
@@ -117,7 +117,7 @@ export const toSlaSettingsValues = (row: SettingsRow) => {
   };
 };
 
-export const toSlaSettings = (row: SettingsRow): SlaSettings => {
+const toSlaSettings = (row: SettingsRow): SlaSettings => {
   const values = toSlaSettingsValues(row);
   return {
     calendar: {

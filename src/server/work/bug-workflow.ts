@@ -6,7 +6,7 @@ import { CLOSE_NOT_A_BUG_FROM_STATUSES, canMoveBug } from "./bug-status-edges";
 
 const BugRoleSchema = Schema.Literals(["admin", "employee"]);
 
-export const BugTransitionInputSchema = Schema.Struct({
+const BugTransitionInputSchema = Schema.Struct({
   actorRole: BugRoleSchema,
   // The assignee, not only an admin, may close a client report as not a bug.
   closesClientReportAsNotABug: Schema.optional(Schema.Boolean),

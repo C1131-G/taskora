@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 import type { MobileRouteDefinition } from "./route-definition";
 
-export const ApprovalItemSchema = Schema.Struct({
+const ApprovalItemSchema = Schema.Struct({
   id: Schema.String,
   projectName: Schema.String,
   requestedBy: Schema.String,
@@ -10,7 +10,7 @@ export const ApprovalItemSchema = Schema.Struct({
   title: Schema.String,
 });
 
-export const PortalNotificationSchema = Schema.Struct({
+const PortalNotificationSchema = Schema.Struct({
   createdAt: Schema.String,
   id: Schema.String,
   readAt: Schema.NullOr(Schema.String),

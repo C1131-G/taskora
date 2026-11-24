@@ -78,7 +78,7 @@ const userAgentDataOf = (browser: Navigator): UserAgentDataLike | undefined => {
 };
 
 // Best effort from what the browser volunteers. People can edit the result.
-export const detectEnvironment = (): DetectedEnvironment => {
+const detectEnvironment = (): DetectedEnvironment => {
   const { userAgent } = navigator;
   // userAgentData is Chromium-only and missing from the DOM typings.
   const data = userAgentDataOf(navigator);

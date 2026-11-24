@@ -1,7 +1,7 @@
 import { FONT_FAMILIES, type AppWeight } from "@/theme/fonts";
 import { type } from "@/theme/tokens.generated";
 
-export const FONT_SIZES = {
+const FONT_SIZES = {
   "2xl": type.fs2xl,
   "2xs": type.fs2xs,
   base: type.fs,
@@ -13,7 +13,7 @@ export const FONT_SIZES = {
 } as const;
 
 export type FontSizeName = keyof typeof FONT_SIZES;
-export type FontLeading = "body" | "tight";
+type FontLeading = "body" | "tight";
 
 /** The Dynamic Type ceiling the plan commits to: 200%. */
 export const FONT_SCALE_CAP = 2;

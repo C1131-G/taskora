@@ -48,7 +48,7 @@ const PortalApprovalHistory = Schema.Struct({
   version: Version,
 });
 
-export const PortalApprovalDetail = Schema.Struct({
+const PortalApprovalDetail = Schema.Struct({
   canDecide: Schema.Boolean,
   decidedAt: Schema.NullOr(Schema.String),
   decidedByName: Schema.NullOr(Schema.String),
@@ -73,7 +73,7 @@ const PortalApprovalDecisionBody = Schema.Struct({
   requestId: Uuid,
 });
 
-export const PortalApprovalDecision = Schema.Struct({
+const PortalApprovalDecision = Schema.Struct({
   requestId: Uuid,
   status: PortalApprovalDomainStatus,
 });

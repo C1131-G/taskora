@@ -168,7 +168,7 @@ export const validateProjectTeam = async (
   }
 };
 
-export const validateProjectDetails = (
+const validateProjectDetails = (
   input: Pick<CreateProjectInput, "description" | "name">
 ) => {
   const name = input.name.trim();

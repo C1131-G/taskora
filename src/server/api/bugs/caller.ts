@@ -38,7 +38,7 @@ export type StaffServices =
   | Collaboration
   | Idempotency;
 
-export const toPortalActor = (user: PortalUser): PortalActor => ({
+const toPortalActor = (user: PortalUser): PortalActor => ({
   clientCompanyId: user.clientCompanyId,
   id: user.id,
   name: user.name,

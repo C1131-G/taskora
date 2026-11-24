@@ -2,7 +2,7 @@ import type { db } from "@/src/prisma/db";
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-export type NotificationTargetType = "task" | "bug" | "approval";
+type NotificationTargetType = "task" | "bug" | "approval";
 
 // What a notification is about, kept on the row so it can be opened later.
 export interface NotificationTarget {

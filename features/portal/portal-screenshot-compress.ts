@@ -3,7 +3,7 @@ import type { Size } from "@/features/portal/portal-screenshot-geometry";
 
 // Wider than a normal laptop screen keeps text readable; below the floor a
 // screenshot stops being useful, so compression gives up there.
-export const SCREENSHOT_LONGEST_EDGE = 1920;
+const SCREENSHOT_LONGEST_EDGE = 1920;
 const SHRINK_FACTOR = 0.75;
 const MIN_LONGEST_EDGE = 480;
 

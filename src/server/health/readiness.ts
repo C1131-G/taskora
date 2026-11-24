@@ -6,7 +6,7 @@ import { logger } from "../core/logger";
 // HEALTHCHECK itself gives up after five seconds.
 const DEFAULT_PROBE_TIMEOUT_MS = 2000;
 
-export type ReadinessProbe = (signal: AbortSignal) => Promise<void>;
+type ReadinessProbe = (signal: AbortSignal) => Promise<void>;
 
 export interface ReadinessProbes {
   readonly database: ReadinessProbe;

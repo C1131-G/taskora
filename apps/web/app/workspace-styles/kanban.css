@@ -232,7 +232,7 @@
   border: 0;
   resize: none;
   background: transparent;
-  outline: none;
+  outline: 2px solid transparent;
   font-size: var(--fs);
   min-height: 38px;
   padding: 0;

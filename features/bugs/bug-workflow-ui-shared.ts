@@ -4,9 +4,7 @@ import type { addBugFixAttemptAction } from "@/features/bugs/bugs-actions";
 import type { BugHistorySchema } from "@/src/server/work/bug-history";
 
 export type BugHistory = typeof BugHistorySchema.Type;
-export type BugActionResult = Awaited<
-  ReturnType<typeof addBugFixAttemptAction>
->;
+type BugActionResult = Awaited<ReturnType<typeof addBugFixAttemptAction>>;
 export type BugSubmit = (
   event: FormEvent<HTMLFormElement>,
   action: (formData: FormData) => Promise<BugActionResult>

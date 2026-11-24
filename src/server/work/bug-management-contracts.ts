@@ -45,7 +45,7 @@ export const BugReportItemSchema = Schema.Struct({
 
 export type BugReportItem = typeof BugReportItemSchema.Type;
 
-export const SlaClockViewSchema = Schema.Struct({
+const SlaClockViewSchema = Schema.Struct({
   dueAt: Schema.String,
   // Business minutes to the due time; negative once overdue, null when done.
   minutesLeft: Schema.NullOr(Schema.Number),

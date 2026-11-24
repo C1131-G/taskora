@@ -29,8 +29,8 @@ export const WEBHOOK_EVENT_LABELS: Readonly<Record<WebhookEventType, string>> =
     "task.updated": "Task updated",
   };
 
-export type WebhookValue = string | number | null;
-export type WebhookData = Readonly<Record<string, WebhookValue>>;
+type WebhookValue = string | number | null;
+type WebhookData = Readonly<Record<string, WebhookValue>>;
 
 // A type alias, not an interface, so it is assignable to a JSON column.
 export interface WebhookEvent {

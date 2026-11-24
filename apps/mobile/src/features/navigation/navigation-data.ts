@@ -22,7 +22,7 @@ export interface MobileNavGroup {
 /** The bottom tabs, in order. */
 export const mobileTabs: readonly MobileNavItem[] = [
   { href: "/", icon: "House", label: "Home" },
-  { href: "/my-tasks", icon: "CheckCircle", label: "My Tasks" },
+  { href: "/my-tasks", icon: "CheckCircle", label: "My tasks" },
   { href: "/inbox", icon: "Tray", label: "Inbox" },
 ];
 

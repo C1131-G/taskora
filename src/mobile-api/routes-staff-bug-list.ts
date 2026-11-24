@@ -15,14 +15,14 @@ const BUG_LIST_MAX_PAGE_SIZE = 100;
 
 // What the caller may do with a bug right now, so the app shows only what the
 // services will accept.
-export const StaffBugAction = Schema.Literals([
+const StaffBugAction = Schema.Literals([
   "comment",
   "reply_to_client",
   "pick",
   "request_info",
 ]);
 
-export const StaffBugListItem = Schema.Struct({
+const StaffBugListItem = Schema.Struct({
   clientCompanyName: Schema.NullOr(Schema.String),
   id: Uuid,
   permittedActions: Schema.Array(StaffBugAction),
@@ -36,7 +36,7 @@ export const StaffBugListItem = Schema.Struct({
   version: Version,
 });
 
-export const StaffBugList = Schema.Struct({
+const StaffBugList = Schema.Struct({
   items: Schema.Array(StaffBugListItem),
   nextCursor: Schema.NullOr(Schema.String),
 });
@@ -59,8 +59,6 @@ export const staffBugListRoute = {
   summary:
     "The bugs the caller handles or is assigned to (an admin sees all), most recently changed first, one page at a time.",
 } as const satisfies RouteDefinition;
-
-export const BUG_LIST_DEFAULT_PAGE_SIZE = 30;
 
 const CommentVisibility = Schema.Literals(["internal", "public"]);
 

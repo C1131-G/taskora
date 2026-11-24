@@ -42,7 +42,7 @@ export const invalidLogo = () =>
     message: "Logos must be PNG, JPEG, or WebP images up to 2 MB.",
   });
 
-export const changedRequest = () =>
+const changedRequest = () =>
   new AppError({
     code: "CONFLICT",
     message: "The logo upload request expired or changed.",

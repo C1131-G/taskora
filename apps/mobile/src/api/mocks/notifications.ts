@@ -9,7 +9,7 @@ const IDS = {
 const TASK_ONE = "3f0c2b6e-1d4a-4c8e-9a51-7b2d6e8f0a11";
 const TASK_TWO = "3f0c2b6e-1d4a-4c8e-9a51-7b2d6e8f0a12";
 
-export const INBOX_ITEMS = [
+const INBOX_ITEMS = [
   {
     actorId: null,
     actorName: "Ada Lovelace",

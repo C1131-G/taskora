@@ -7,7 +7,7 @@ import { typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
 import { WorkspaceSheet } from "@/components/workspace/workspace-sheet";
 
-export interface SelectOption {
+interface SelectOption {
   readonly label: string;
   readonly value: string;
 }

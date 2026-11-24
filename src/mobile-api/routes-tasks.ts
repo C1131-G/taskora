@@ -32,7 +32,7 @@ export const TaskPrioritySchema = Schema.Literals([
   "none",
 ]);
 
-export const MY_WORK_MAX_PAGE_SIZE = 50;
+const MY_WORK_MAX_PAGE_SIZE = 50;
 
 const MyWorkItemSchema = Schema.Struct({
   dueDate: Schema.NullOr(Schema.String),
@@ -47,7 +47,7 @@ const MyWorkItemSchema = Schema.Struct({
   version: Schema.Number,
 });
 
-export const MyWorkSchema = Schema.Struct({
+const MyWorkSchema = Schema.Struct({
   items: Schema.Array(MyWorkItemSchema),
   nextOffset: Schema.NullOr(Schema.Number),
 });
@@ -78,14 +78,14 @@ export const myWorkRoute = {
     "Open tasks assigned to the caller: all of them, those due today or earlier, or only the overdue ones.",
 } as const satisfies RouteDefinition;
 
-export const TaskActionSchema = Schema.Literals([
+const TaskActionSchema = Schema.Literals([
   "update",
   "manageSubtasks",
   "comment",
   "trackTime",
 ]);
 
-export const DiscussionEntrySchema = Schema.Struct({
+const DiscussionEntrySchema = Schema.Struct({
   authorId: Schema.String,
   authorName: Schema.String,
   body: Schema.String,
@@ -94,7 +94,7 @@ export const DiscussionEntrySchema = Schema.Struct({
   visibility: Schema.Literals(["public", "internal"]),
 });
 
-export const TaskContextSchema = Schema.Struct({
+const TaskContextSchema = Schema.Struct({
   assignees: Schema.Array(
     Schema.Struct({ id: Schema.String, name: Schema.String })
   ),
@@ -145,7 +145,7 @@ export const TaskChangeSchema = Schema.Struct({
 
 export type MobileTaskChange = typeof TaskChangeSchema.Type;
 
-export const TaskChangeBodySchema = Schema.Struct({
+const TaskChangeBodySchema = Schema.Struct({
   assigneeIds: Schema.optional(
     Schema.Array(IdSchema).check(Schema.isMaxLength(100))
   ),
@@ -168,7 +168,7 @@ export const taskChangeRoute = {
     "Change a task's status, priority, due date or assignees. Needs the version the caller last saw; a stale one answers 409.",
 } as const satisfies RouteDefinition;
 
-export const TaskCreateBodySchema = Schema.Struct({
+const TaskCreateBodySchema = Schema.Struct({
   assigneeIds: Schema.Array(IdSchema).check(Schema.isMaxLength(100)),
   description: Schema.optional(Schema.NullOr(Schema.String)),
   dueDate: Schema.optional(Schema.NullOr(CalendarDayText)),
@@ -189,12 +189,9 @@ export const taskCreateRoute = {
     "Create a task in an active project and assign it. Admins and employees follow the same rules as the web.",
 } as const satisfies RouteDefinition;
 
-export const TaskCommentVisibilitySchema = Schema.Literals([
-  "public",
-  "internal",
-]);
+const TaskCommentVisibilitySchema = Schema.Literals(["public", "internal"]);
 
-export const TaskCommentBodySchema = Schema.Struct({
+const TaskCommentBodySchema = Schema.Struct({
   body: Schema.String,
   visibility: Schema.optional(TaskCommentVisibilitySchema),
 });
@@ -237,7 +234,7 @@ const TaskListItemSchema = Schema.Struct({
   version: Schema.Number,
 });
 
-export const TaskListSchema = Schema.Struct({
+const TaskListSchema = Schema.Struct({
   items: Schema.Array(TaskListItemSchema),
   nextCursor: NextCursorSchema,
 });

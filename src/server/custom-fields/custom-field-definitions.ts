@@ -59,7 +59,7 @@ const lockActiveProject = async (
   }).updateAndCount({ updatedAt: new Date() });
 };
 
-export const assertFreeName = (
+const assertFreeName = (
   existing: readonly { readonly id: string; readonly name: string }[],
   name: string,
   ignoreId?: string

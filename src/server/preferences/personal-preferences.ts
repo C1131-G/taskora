@@ -1,7 +1,6 @@
-import type { Scalars } from "@prisma/orm-postgres/family-contract/types";
 import { Context, Effect, Layer, Schema } from "effect";
 
-import type { CodecTypes, Models } from "@/src/prisma/contract.d";
+import type { CodecTypes } from "@/src/prisma/contract.d";
 import { db } from "@/src/prisma/db";
 
 import { AppError } from "../core/action-result";
@@ -50,9 +49,6 @@ export const PersonalPreferenceSchema = Schema.Struct({
 );
 
 export type PersonalPreferenceValues = typeof PersonalPreferenceSchema.Type;
-export type UserPreferenceModel = Models.public_UserPreference;
-export type UserPreferenceScalars = Scalars<UserPreferenceModel>;
-
 const preferenceKey = "display";
 
 const validationError = () =>

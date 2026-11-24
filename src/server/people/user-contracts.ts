@@ -58,7 +58,7 @@ export const CreatedEmployeeSchema = Schema.Struct({
   temporaryPassword: Schema.String,
 });
 
-export const EmployeeDirectoryEntrySchema = Schema.Struct({
+const EmployeeDirectoryEntrySchema = Schema.Struct({
   activeProjectCount: Schema.Number.check(
     Schema.isInt(),
     Schema.isGreaterThanOrEqualTo(0)

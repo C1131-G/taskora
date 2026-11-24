@@ -18,7 +18,7 @@ export type MobileSubtaskResult = typeof SubtaskResultSchema.Type;
 
 const SubtaskTextSchema = Schema.String.check(Schema.isMaxLength(240));
 
-export const SubtaskAddBodySchema = Schema.Struct({
+const SubtaskAddBodySchema = Schema.Struct({
   assigneeId: Schema.optional(Schema.NullOr(IdSchema)),
   description: Schema.optional(Schema.NullOr(Schema.String)),
   dueDate: Schema.optional(Schema.NullOr(CalendarDayText)),
@@ -39,7 +39,7 @@ export const subtaskAddRoute = {
     "Add a subtask to a task the caller may edit. Answers with the task's new version.",
 } as const satisfies RouteDefinition;
 
-export const SubtaskChangeBodySchema = Schema.Struct({
+const SubtaskChangeBodySchema = Schema.Struct({
   assigneeId: Schema.optional(Schema.NullOr(IdSchema)),
   completed: Schema.optional(Schema.Boolean),
   description: Schema.optional(Schema.NullOr(Schema.String)),
@@ -61,7 +61,7 @@ export const subtaskChangeRoute = {
     "Update or toggle a subtask of a task the caller may edit. Fields left out keep their value.",
 } as const satisfies RouteDefinition;
 
-export const SubtaskStatusBodySchema = Schema.Struct({
+const SubtaskStatusBodySchema = Schema.Struct({
   done: Schema.Boolean,
   expectedVersion: ExpectedVersionSchema,
 });

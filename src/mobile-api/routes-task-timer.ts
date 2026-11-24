@@ -7,7 +7,7 @@ const TimerNoteSchema = Schema.NullOr(
   Schema.String.check(Schema.isMaxLength(500))
 );
 
-export const RunningTimerSchema = Schema.Struct({
+const RunningTimerSchema = Schema.Struct({
   billable: Schema.Boolean,
   note: TimerNoteSchema,
   startedAt: Schema.String,
@@ -38,13 +38,13 @@ export const StartedTimerSchema = Schema.Struct({
 
 export type MobileStartedTimer = typeof StartedTimerSchema.Type;
 
-export const MyTimerSchema = Schema.Struct({
+const MyTimerSchema = Schema.Struct({
   timer: Schema.NullOr(RunningTimerSchema),
 });
 
 export type MobileMyTimer = typeof MyTimerSchema.Type;
 
-export const StartTimerBodySchema = Schema.Struct({
+const StartTimerBodySchema = Schema.Struct({
   billable: Schema.Boolean,
   note: Schema.optional(TimerNoteSchema),
   taskId: IdSchema,

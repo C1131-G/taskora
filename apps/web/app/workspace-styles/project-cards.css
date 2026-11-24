@@ -51,7 +51,7 @@
   --sz: 28px;
   width: var(--sz);
   height: var(--sz);
-  border-radius: 7px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--c) 14%, transparent);
@@ -60,7 +60,7 @@
 }
 .workspace-app .picon.lg {
   --sz: 36px;
-  border-radius: 9px;
+  border-radius: 8px;
 }
 .workspace-app .pcard .more {
   position: absolute;

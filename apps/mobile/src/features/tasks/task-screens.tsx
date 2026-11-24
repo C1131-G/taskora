@@ -119,7 +119,7 @@ const TaskRow = memo(function TaskRow({
   );
 });
 
-/** The My Tasks screen; the title stays real while the rows load. */
+/** The My tasks screen; the title stays real while the rows load. */
 export const MyTasksScreen = ({ isLoading, onOpenTask, tasks }: MyTasksContentProps & { readonly isLoading: boolean }) => {
   const [filter, setFilter] = useState<TaskStatus | "all">("all");
   const { isDark } = useTheme();
@@ -141,7 +141,7 @@ export const MyTasksScreen = ({ isLoading, onOpenTask, tasks }: MyTasksContentPr
         }
         keyExtractor={keyOfTask}
         renderItem={renderItem}
-        title="My Tasks"
+        title="My tasks"
       />
     );
   }
@@ -158,7 +158,7 @@ export const MyTasksScreen = ({ isLoading, onOpenTask, tasks }: MyTasksContentPr
       header={<StatusFilters filter={filter} onChange={setFilter} />}
       keyExtractor={keyOfTask}
       renderItem={renderItem}
-      title="My Tasks"
+      title="My tasks"
     />
   );
 };

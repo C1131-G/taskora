@@ -34,7 +34,7 @@ const channelLuminance = (value: number): number => {
 };
 
 /** WCAG 2.x relative luminance of a color. */
-export const luminance = (color: Rgb): number =>
+const luminance = (color: Rgb): number =>
   0.2126 * channelLuminance(color.red) +
   0.7152 * channelLuminance(color.green) +
   0.0722 * channelLuminance(color.blue);

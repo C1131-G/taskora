@@ -55,4 +55,3 @@ const LocalTime = ({
 };
 
 export { LocalTime };
-export type { LocalTimeFormat };

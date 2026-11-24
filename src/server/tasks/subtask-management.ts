@@ -13,16 +13,7 @@ export {
   RemovedSubtaskSchema,
   ReorderedSubtasksSchema,
   SubtaskEntrySchema,
-  SubtaskFieldsSchema,
   SubtaskManagement,
-  UpdateSubtaskInputSchema,
-} from "./subtask-contracts";
-export type {
-  CreatedSubtask,
-  SubtaskEntry,
-  SubtaskFields,
-  UpdateSubtaskInput,
-  UpdatedSubtask,
 } from "./subtask-contracts";
 
 export const SubtaskManagementLive = Layer.succeed(

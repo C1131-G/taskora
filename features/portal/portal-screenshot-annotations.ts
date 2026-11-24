@@ -11,12 +11,6 @@ export type Annotation =
 
 export type AnnotationTool = Annotation["kind"];
 
-export const ANNOTATION_TOOLS: readonly AnnotationTool[] = [
-  "pen",
-  "rectangle",
-  "arrow",
-];
-
 // The part of a 2D canvas context the marks need, so tests can pass a fake.
 export interface DrawingSurface {
   lineCap: CanvasLineCap;

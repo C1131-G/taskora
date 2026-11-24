@@ -90,7 +90,7 @@ export const TimeEntryChangesSchema = Schema.Struct({
   workDate: CalendarDateSchema,
 });
 
-export const DateRangeSchema = Schema.Struct({
+const DateRangeSchema = Schema.Struct({
   from: CalendarDateSchema,
   to: CalendarDateSchema,
 });

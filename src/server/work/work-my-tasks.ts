@@ -10,7 +10,7 @@ import { decodeTaskPriority, decodeTaskStatus } from "./work-contracts";
 import { databaseError, listActiveProjectIds } from "./work-internal";
 import { isOverdue } from "./work-overdue";
 
-export type MyWorkScope = "assigned" | "due" | "overdue";
+type MyWorkScope = "assigned" | "due" | "overdue";
 
 export interface MyWorkQuery {
   readonly scope: MyWorkScope;

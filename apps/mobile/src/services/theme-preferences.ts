@@ -14,7 +14,7 @@ export interface ThemeValues {
   readonly density: DensityName;
 }
 
-export const DEFAULT_THEME_VALUES: ThemeValues = {
+const DEFAULT_THEME_VALUES: ThemeValues = {
   accent: "default",
   density: "regular",
   mode: "system",
@@ -61,7 +61,7 @@ export const ThemePreferencesServiceLive = Layer.effect(
   Effect.map(Effect.service(KeyValueStore), makePreferences),
 );
 
-export const ThemePreferencesLive = Layer.provide(
+const ThemePreferencesLive = Layer.provide(
   ThemePreferencesServiceLive,
   KeyValueStoreLive,
 );

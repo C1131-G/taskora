@@ -171,7 +171,7 @@ const StaffBugEvidence = Schema.Struct({
   uploadedBy: Schema.Struct({ id: Schema.String, name: Schema.String }),
 });
 
-export const StaffBugHistory = Schema.Struct({
+const StaffBugHistory = Schema.Struct({
   approvals: Schema.Array(StaffBugApproval),
   archived: Schema.Boolean,
   assignees: Schema.Array(

@@ -14,12 +14,12 @@ import { renderWithTheme } from "./support/theme";
 
 it("renders the screen title as a header", async () => {
   await renderWithTheme(
-    <WorkspaceScreen title="My Tasks">
+    <WorkspaceScreen title="My tasks">
       <Text>Body</Text>
     </WorkspaceScreen>,
   );
 
-  expect(screen.getByRole("header", { name: "My Tasks" })).toBeTruthy();
+  expect(screen.getByRole("header", { name: "My tasks" })).toBeTruthy();
 });
 
 it("renders the tab bar with the active tab and badge", async () => {
@@ -30,7 +30,7 @@ it("renders the tab bar with the active tab and badge", async () => {
       activeLabel="Home"
       items={[
         { badge: 3, icon: <View />, label: "Home" },
-        { icon: <View />, label: "My Tasks" },
+        { icon: <View />, label: "My tasks" },
         { icon: <View />, label: "Inbox" },
       ]}
       onSelect={(label: string) => (selected = label)}
@@ -40,7 +40,7 @@ it("renders the tab bar with the active tab and badge", async () => {
   // The badge count is part of the tab's name, not a separate element.
   const home = screen.getByRole("tab", { name: "Home, 3 unread" });
   expect(home.props.accessibilityState.selected).toBe(true);
-  expect(screen.getByRole("tab", { name: "My Tasks" })).toBeTruthy();
+  expect(screen.getByRole("tab", { name: "My tasks" })).toBeTruthy();
 
   await user.press(screen.getByRole("tab", { name: "Inbox" }));
 

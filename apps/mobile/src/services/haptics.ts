@@ -21,7 +21,7 @@ export class Haptics extends Context.Service<
 >()("taskora/mobile/Haptics") {}
 
 /** The recorded calls of the stub layer. */
-export interface HapticsCalls {
+interface HapticsCalls {
   readonly events: readonly string[];
 }
 

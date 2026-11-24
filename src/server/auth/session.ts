@@ -13,7 +13,7 @@ import type {
 
 // Clients are signed out after two idle hours; activity is recorded at most
 // once a minute.
-export const CLIENT_IDLE_LIMIT_MS = 2 * 60 * 60 * 1000;
+const CLIENT_IDLE_LIMIT_MS = 2 * 60 * 60 * 1000;
 const ACTIVITY_THROTTLE_MS = 60 * 1000;
 export const PORTAL_PREVIEW_COOKIE = "taskora_portal_preview";
 

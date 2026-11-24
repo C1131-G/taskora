@@ -10,7 +10,7 @@ import { isUniqueConstraintViolation } from "../core/prisma-errors";
 import { mayEditTaskRow } from "../tasks/task-edit-access";
 import { assertClientBugTask } from "./uploads-client-access";
 
-export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 export const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 export const INTENT_LIFETIME_MS = 15 * 60 * 1000;
 export const UNDO_LIFETIME_MS = 5 * 60 * 1000;

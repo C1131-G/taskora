@@ -4,7 +4,7 @@ import type { RealtimeViewer } from "./access";
 import { encodeRealtimeEvent } from "./events";
 import type { HubMessage, HubSink } from "./hub";
 
-export const RECONNECT_DELAY_MS = 5000;
+const RECONNECT_DELAY_MS = 5000;
 export const HEARTBEAT_INTERVAL_MS = 25_000;
 
 interface StreamOptions {

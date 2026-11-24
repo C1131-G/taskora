@@ -9,7 +9,7 @@ import type { MobileApi } from "@/services/mobile-api";
 
 type Api = MobileApi["Service"];
 
-export interface ApprovalRequest {
+interface ApprovalRequest {
   readonly bugTitle: string;
   readonly id: string;
   readonly projectName: string;

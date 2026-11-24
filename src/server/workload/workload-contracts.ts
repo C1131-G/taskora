@@ -7,7 +7,7 @@ const WorkloadWeekSchema = Schema.Struct({
   weekStart: Schema.String,
 });
 
-export const WorkloadPersonRowSchema = Schema.Struct({
+const WorkloadPersonRowSchema = Schema.Struct({
   name: Schema.String,
   overdueCount: Schema.Number,
   overloadedWeekCount: Schema.Number,

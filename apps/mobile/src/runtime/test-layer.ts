@@ -20,7 +20,7 @@ const SessionTestLive = Layer.provide(
 const TokenSourceTestLive = Layer.provide(TokenSourceFromSession, SessionTestLive);
 
 /** The combined in-memory layers the vitest suites provide instead of AppLive. */
-export const AppTestLive = Layer.mergeAll(
+const AppTestLive = Layer.mergeAll(
   makeHapticsStub(),
   makeIdempotencyKeys(),
   SessionTestLive,

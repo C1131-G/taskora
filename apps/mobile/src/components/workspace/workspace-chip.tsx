@@ -5,7 +5,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { FONT_SCALE_CAP, typeStyle } from "@/theme/type-scale";
 import { radii, spacing, theme } from "@/theme/tokens.generated";
 
-export type ChipColor = "amber" | "accent" | "gray" | "green" | "red";
+type ChipColor = "amber" | "accent" | "gray" | "green" | "red";
 
 export interface WorkspaceChipProps {
   readonly accessibilityLabel?: string;

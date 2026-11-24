@@ -9,7 +9,7 @@ import { NextCursorSchema, PageQuerySchema } from "./routes-paging";
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 100;
 
-export const NotificationPageQuerySchema = Schema.Struct({
+const NotificationPageQuerySchema = Schema.Struct({
   cursor: Schema.optional(Schema.String.check(Schema.isMinLength(1))),
   limit: Schema.optional(
     Schema.FiniteFromString.check(
@@ -115,7 +115,7 @@ export const setWorkspaceNotificationPreferenceRoute = {
 
 // A client's inbox. The row keeps its text, and carries the same string as
 // `title` for the app, which shows a title and ignores the body.
-export const PortalNotificationSchema = Schema.Struct({
+const PortalNotificationSchema = Schema.Struct({
   approvalId: Schema.NullOr(Schema.String),
   bugId: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
@@ -126,7 +126,7 @@ export const PortalNotificationSchema = Schema.Struct({
   title: Schema.String,
 });
 
-export const PortalInboxSchema = Schema.Struct({
+const PortalInboxSchema = Schema.Struct({
   items: Schema.Array(PortalNotificationSchema),
   nextCursor: NextCursorSchema,
   unreadCount: Schema.Number,
@@ -163,7 +163,7 @@ export const markAllPortalNotificationsReadRoute = {
 
 // What a notification opens. The id is the one the task, bug or request
 // endpoints take, and the summary holds only what the caller may see there.
-export const NotificationTargetSchema = Schema.Struct({
+const NotificationTargetSchema = Schema.Struct({
   id: Schema.String,
   summary: Schema.Struct({ status: Schema.String, title: Schema.String }),
   type: Schema.Literals(["task", "bug", "approval"]),
@@ -194,7 +194,7 @@ export const getPortalNotificationTargetRoute = {
 // client app neither lists nor accepts them.
 export const PORTAL_PREFERENCE_EVENTS = ["comment", "status"] as const;
 
-export const PortalNotificationPreferenceSchema = Schema.Struct({
+const PortalNotificationPreferenceSchema = Schema.Struct({
   channel: NotificationPreferenceSchema.fields.channel,
   enabled: Schema.Boolean,
   eventType: Schema.Literals(PORTAL_PREFERENCE_EVENTS),

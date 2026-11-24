@@ -39,7 +39,7 @@ const portalLayer = Layer.mergeAll(
   uploadsLayer
 );
 
-export const toPortalActor = (user: PortalUser): PortalActor => ({
+const toPortalActor = (user: PortalUser): PortalActor => ({
   clientCompanyId: user.clientCompanyId,
   id: user.id,
   name: user.name,

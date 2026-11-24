@@ -8,7 +8,7 @@ import type { UploadEntry, UploadRunner } from "../upload-queue";
 import { uploadActions } from "../upload-store";
 import { putWithProgress } from "../upload-transport";
 
-export type { UploadRunner, UploadTicket } from "../upload-queue";
+export type { UploadRunner } from "../upload-queue";
 
 // Shared by project files, task attachments and the avatar control: progress,
 // cancel and retry live in one TanStack Store per host component.

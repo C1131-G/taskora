@@ -9,20 +9,20 @@ import type { PortalActor } from "./portal-contracts";
 // The read-only view of a project a client company is shown. Every field is
 // listed here on purpose: nothing from staff-side records (comments, people,
 // files, descriptions of tasks) has a place in these shapes.
-export const PortalSharedMilestoneSchema = Schema.Struct({
+const PortalSharedMilestoneSchema = Schema.Struct({
   dueDate: Schema.NullOr(Schema.String),
   id: UUIDSchema,
   name: Schema.String,
 });
 
-export const PortalSharedTaskSchema = Schema.Struct({
+const PortalSharedTaskSchema = Schema.Struct({
   dueDate: Schema.NullOr(Schema.String),
   id: UUIDSchema,
   status: Schema.Literals(["backlog", "todo", "progress", "review", "done"]),
   title: Schema.String,
 });
 
-export const PortalSharedProjectSummarySchema = Schema.Struct({
+const PortalSharedProjectSummarySchema = Schema.Struct({
   description: Schema.NullOr(Schema.String),
   dueDate: Schema.NullOr(Schema.String),
   id: UUIDSchema,

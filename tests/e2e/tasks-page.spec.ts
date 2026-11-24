@@ -70,7 +70,7 @@ test.describe("Tasks (/tasks)", () => {
         });
       }).toPass();
 
-      const viewNav = page.getByRole("navigation", { name: "My Tasks view" });
+      const viewNav = page.getByRole("navigation", { name: "My tasks view" });
       await viewNav.getByRole("link", { name: "Calendar" }).click();
       // The calendar view is a server render, so allow for a cold compile.
       await expect(page).toHaveURL(/[?&]view=calendar(?:&|$)/u, {

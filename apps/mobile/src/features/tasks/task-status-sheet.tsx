@@ -17,7 +17,7 @@ export interface TaskStatusSheetProps {
 }
 
 /** The status mover: lists every status, marks the current one. */
-export const TaskStatusSheet = ({ current, onClose, onMove, open }: TaskStatusSheetProps) => {
+const TaskStatusSheet = ({ current, onClose, onMove, open }: TaskStatusSheetProps) => {
   const { isDark } = useTheme();
   const palette = isDark ? theme.dark : theme.light;
 

@@ -94,6 +94,7 @@ export const WorkspaceTopbarTitleFallback = () => (
 export const WorkspaceTopbarMenuFallback = () => (
   <Button
     aria-hidden="true"
+    aria-label="Open menu"
     data-workspace-mobile-menu=""
     disabled
     size="icon-sm"

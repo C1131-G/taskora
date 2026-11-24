@@ -39,9 +39,9 @@ const UNAUTHENTICATED_REASONS = [
   "inactivity",
 ] as const;
 
-export type UnauthenticatedReason = (typeof UNAUTHENTICATED_REASONS)[number];
+type UnauthenticatedReason = (typeof UNAUTHENTICATED_REASONS)[number];
 
-export interface ActionFailure {
+interface ActionFailure {
   readonly code: AppErrorCode;
   readonly message: string;
   readonly requestId: string;

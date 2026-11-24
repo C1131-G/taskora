@@ -15,27 +15,22 @@ import {
 // listed field still exists is checked where its fields are known.
 const PROJECT_COLUMN_OPTIONS = { customFields: true } as const;
 
-export const PROJECT_VIEW_STATUSES = [
+const PROJECT_VIEW_STATUSES = [
   "backlog",
   "todo",
   "progress",
   "review",
   "done",
 ] as const;
-export const PROJECT_VIEW_PRIORITIES = [
+const PROJECT_VIEW_PRIORITIES = [
   "urgent",
   "high",
   "medium",
   "low",
   "none",
 ] as const;
-export const PROJECT_VIEW_SORTS = [
-  "manual",
-  "name",
-  "due",
-  "priority",
-] as const;
-export const PROJECT_VIEW_GROUPS = ["status", "none"] as const;
+const PROJECT_VIEW_SORTS = ["manual", "name", "due", "priority"] as const;
+const PROJECT_VIEW_GROUPS = ["status", "none"] as const;
 
 type ProjectViewStatus = (typeof PROJECT_VIEW_STATUSES)[number];
 type ProjectViewPriority = (typeof PROJECT_VIEW_PRIORITIES)[number];
@@ -212,12 +207,3 @@ export const isSameProjectViewSearch = (
   first.sort === second.sort &&
   first.status === second.status &&
   first.hidden === second.hidden;
-
-export const isSameNormalizedProjectViewSearch = (
-  first: NormalizedProjectViewSearch,
-  second: NormalizedProjectViewSearch
-): boolean =>
-  isSameProjectViewSearch(
-    toRawProjectViewSearch(first),
-    toRawProjectViewSearch(second)
-  );

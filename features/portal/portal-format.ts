@@ -31,6 +31,3 @@ export const statusTone: Record<ClientStatusLabel, BadgeTone> = {
   waiting_for_reply: "accent",
   withdrawn: "gray",
 };
-
-export const isPortalImpact = (value: string): value is PortalImpact =>
-  portalImpacts.some((impact) => impact === value);

@@ -17,7 +17,7 @@ const RESOLVING_STATUSES = new Set([
   "withdrawn",
 ]);
 
-export type SlaClockState =
+type SlaClockState =
   | "ok"
   | "warning"
   | "breached"

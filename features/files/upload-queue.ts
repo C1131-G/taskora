@@ -2,7 +2,7 @@ import { isUploadActive } from "./upload-store";
 import type { UploadActions, UploadState } from "./upload-store";
 import type { PutResult } from "./upload-transport";
 
-export interface UploadTicket {
+interface UploadTicket {
   readonly uploadUrl: string;
   readonly requiredHeaders: Readonly<Record<string, string>>;
 }

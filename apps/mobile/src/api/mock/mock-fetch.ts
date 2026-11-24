@@ -6,7 +6,7 @@ import type { RouteDefinition } from "@api/route-definition";
 import type { AppErrorCode } from "@api/route-definition";
 import { makeMobileApiLayer, type MobileApi, type TokenSource } from "@/services/mobile-api";
 
-export interface MockFailure {
+interface MockFailure {
   readonly code: AppErrorCode;
   readonly fieldErrors?: Readonly<Record<string, string>>;
   readonly message?: string;
@@ -33,7 +33,7 @@ export interface RegisteredFixture {
  * that drifts from the live contract fails loudly instead of serving stale
  * shapes to screens.
  */
-export const registerFixtures = (
+const registerFixtures = (
   fixtures: readonly MockFixture[],
 ): Effect.Effect<ReadonlyMap<string, RegisteredFixture>> =>
   Effect.forEach(fixtures, (fixture) =>
@@ -90,7 +90,7 @@ const pathMatches = (pattern: string, pathname: string): boolean => {
   );
 };
 
-export const domainOfPath = (pathname: string): string => {
+const domainOfPath = (pathname: string): string => {
   const segments = pathname.split("/").filter((segment) => segment.length > 0);
   // /api/v1/me is account; /api/v1/{workspace|portal}/<domain>/... names the domain.
   if (segments[2] === "workspace" || segments[2] === "portal") {
@@ -99,7 +99,7 @@ export const domainOfPath = (pathname: string): string => {
   return segments[2] ?? "unknown";
 };
 
-export interface HybridFetchOptions {
+interface HybridFetchOptions {
   /** OperationId prefixes (lowercase) routed to fixtures; everything else goes live. */
   readonly liveFetch: typeof fetch;
   readonly mockedDomains: ReadonlySet<string>;
@@ -109,7 +109,7 @@ export interface HybridFetchOptions {
 }
 
 /** Builds a fetch that serves mocked domains from fixtures and passes the rest through. */
-export const createHybridFetch = (options: HybridFetchOptions): typeof fetch => {
+const createHybridFetch = (options: HybridFetchOptions): typeof fetch => {
   const registeredByPath = new Map(
     [...options.registered.values()].map((fixture) => [
       `${fixture.route.method.toUpperCase()} ${fixture.route.path}`,
@@ -140,7 +140,7 @@ export const createHybridFetch = (options: HybridFetchOptions): typeof fetch => 
   };
 };
 
-export const MOCK_BASE_URL = "https://mock.taskora.invalid";
+const MOCK_BASE_URL = "https://mock.taskora.invalid";
 
 /** Assembles the MobileApi layer whose mocked domains answer from fixtures. */
 export const makeMockMobileApiLayer = (

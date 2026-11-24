@@ -25,7 +25,7 @@ export interface ThemeContextValue {
 }
 
 /** Resolves the effective dark flag from the preference and the system scheme. */
-export const resolveIsDark = (mode: ThemeMode, systemScheme: string | null): boolean =>
+const resolveIsDark = (mode: ThemeMode, systemScheme: string | null): boolean =>
   mode === "system" ? systemScheme === "dark" : mode === "dark";
 
 const preferencesStore = createStore<ThemeValues>({

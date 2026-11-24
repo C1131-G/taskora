@@ -59,7 +59,7 @@ export const globalTaskViewActions = ({
     }),
 });
 
-export type GlobalTaskViewActions = ReturnType<typeof globalTaskViewActions>;
+type GlobalTaskViewActions = ReturnType<typeof globalTaskViewActions>;
 
 export const createInitialGlobalTaskViewState = (
   search: GlobalTaskSearch,

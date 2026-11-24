@@ -92,7 +92,7 @@
 .workspace-app .notification-row-icon {
   align-items: center;
   background: var(--surface-2);
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--text-2);
   display: inline-flex;
   flex: 0 0 32px;
