@@ -369,7 +369,10 @@ it("announces the warning and the overrun exactly once per period", async () => 
   await evaluateBudgetAlerts(projectId, OCTOBER);
   const afterOverrun = await notificationsFor(adminId);
   expect(afterOverrun).toHaveLength(2);
-  expect(afterOverrun[1]?.text.toLowerCase()).toContain("over");
+  // Both rows can carry the same timestamp, so the order is not asserted.
+  const texts = afterOverrun.map((row) => row.text.toLowerCase());
+  expect(texts.some((text) => text.includes("80%"))).toBe(true);
+  expect(texts.some((text) => text.includes("over"))).toBe(true);
   expect(await notificationsFor(leadId)).toHaveLength(2);
 });
 
