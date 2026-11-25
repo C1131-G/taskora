@@ -30,7 +30,7 @@ Taskora is actively developed. The web app and server are the primary product. T
 - [Environment variables](#environment-variables)
 - [Run the mobile app](#run-the-mobile-app)
 - [Tests and quality checks](#tests-and-quality-checks)
-- [Docker](#docker)
+- [Local services](#local-services)
 - [Production deployment](#production-deployment)
 - [Architecture and repository layout](#architecture-and-repository-layout)
 - [Contributing](#contributing)
@@ -46,7 +46,7 @@ Use the [documentation hub](docs/README.md) to find the [system architecture](do
 - [Bun](https://bun.sh/) 1.4 or newer.
 - [Docker Compose](https://docs.docker.com/compose/) for local PostgreSQL and optional MinIO.
 - Git.
-- A supported Node.js hosting environment or Docker for deployment.
+- A supported Node.js hosting environment for deployment.
 
 The mobile app also needs the [Expo tooling](https://docs.expo.dev/) and an iOS simulator or Android emulator for device development.
 
@@ -113,7 +113,7 @@ Use [`.env.example`](.env.example) as the complete variable reference. Keep `.en
 | `BETTER_AUTH_SECRET` | Private Better Auth signing secret. Use a unique value with at least 32 characters. |
 | `BETTER_AUTH_URL` | Public base URL used by authentication and email links. |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | Comma-separated trusted browser origins. |
-| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Stable base64-encoded 32-byte key shared by all web replicas. It is also required at Docker build time. |
+| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Stable base64-encoded 32-byte key shared by all web replicas. |
 | `SCHEDULER_TOKEN` | Bearer token used to authorize scheduled job requests. |
 | `DATABASE_POOL_MAX` | Maximum database pool size for the app instance. |
 | `S3_ENDPOINT` | Private object storage endpoint accessed by the server. |
@@ -169,7 +169,7 @@ The mobile client consumes the server's `/api/v1` endpoints. Run `bun run openap
 | `bun run test:effect` | `apps/mobile/` | Run mobile Effect tests. |
 | `bun run test:ui` | `apps/mobile/` | Run mobile UI tests. |
 
-CI also builds the production web app and Docker images and runs Playwright against Chromium.
+CI also builds the production web app and runs Playwright against Chromium.
 
 The backend test runner creates or migrates a dedicated local `taskora*_test` database and checks for leftover fixture rows. If `TEST_DATABASE_URL` is unset, it derives a test database name from a local `taskora` database URL. It refuses to derive a test database from a remote URL. Never point it at data you need to keep.
 
@@ -213,37 +213,13 @@ The MinIO images are built from pinned upstream source releases. The first build
 
 Playwright also checks keyboard interaction, axe WCAG A and AA rules, and horizontal overflow at supported viewport and zoom sizes. Authentication is rate limited, so allow the configured limit window between repeated full sign-in runs.
 
-## Docker
+## Local services
 
-Docker Compose provides PostgreSQL, MinIO, the web app, a background worker, and a one-shot migration service. Copy `.env.example` to `.env`, set unique values for `BETTER_AUTH_SECRET`, `SCHEDULER_TOKEN`, and `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`, then build and start the local stack:
-
-```bash
-docker compose up --build
-```
-
-For a controlled setup sequence, run migrations before starting the app and worker:
-
-```bash
-docker compose --profile setup run --rm migrate
-docker compose up --build -d
-```
-
-The Compose development override is loaded automatically. It exposes local service ports for development. The app image is a standalone Next.js server that runs as a non-root user. The worker image includes the source and full dependencies for background work and one-shot maintenance commands.
-
-`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` is passed to Docker as a BuildKit secret and embedded in the Next.js build. Generate a stable base64 key with `openssl rand -base64 32`. Build every replica in the same release with the same key, and keep it stable across rolling deployments.
-
-For a production Compose deployment, use the production overlay on each Compose command:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile setup run --rm migrate
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
-```
-
-The production overlay does not publish PostgreSQL or MinIO ports and binds the app to loopback for a reverse proxy. It requires production credentials and browser-reachable object storage configuration.
+Docker Compose runs only the local PostgreSQL and MinIO containers (`bun run db:up`). The web app and worker run directly with Bun; there is no application image. To use a database or object storage hosted elsewhere, set `DATABASE_URL` and the `S3_*` variables in `.env` and set `SKIP_INFRA=1`.
 
 ## Production deployment
 
-Taskora can run on a managed Node.js host or with Docker. Both use PostgreSQL, private S3-compatible object storage, and the same web server. Plan a deployment around these steps:
+Taskora runs on a managed Node.js host. It needs PostgreSQL, private S3-compatible object storage and the web server. Where to host each is your choice. Plan a deployment around these steps:
 
 1. Provision PostgreSQL and private object storage. Configure browser CORS for the exact app origin and signed `PUT`, `GET`, and `HEAD` requests.
 2. Set secrets and service URLs in the hosting platform. Set `DATABASE_URL`, `DATABASE_POOL_MAX`, Better Auth URL and origins, storage credentials, `SCHEDULER_TOKEN`, and a stable `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`.
@@ -259,13 +235,13 @@ If using `x-forwarded-for`, set `TRUSTED_PROXY_HOPS` to the number of trusted pr
 
 ### Background jobs
 
-Run `bun run worker` as a persistent process, or call `POST /api/internal/jobs` from a trusted external scheduler at least hourly with `Authorization: Bearer <SCHEDULER_TOKEN>`. The Docker Compose worker continuously processes jobs. Hosts that stop work after an HTTP response, including serverless request handlers, need the external scheduler. Workers reclaim jobs after an expired lease, so they can be restarted safely.
+Run `bun run worker` as a persistent process, or call `POST /api/internal/jobs` from a trusted external scheduler at least hourly with `Authorization: Bearer <SCHEDULER_TOKEN>`. Hosts that stop work after an HTTP response, including serverless request handlers, need the external scheduler. Workers reclaim jobs after an expired lease, so they can be restarted safely.
 
 Push delivery requires VAPID credentials and a narrow `WEB_PUSH_ALLOWED_HOSTS` list. Email delivery requires SMTP settings. Configure only the integrations you intend to use.
 
 ### Operations
 
-The app exposes `/api/health` for health checks. Back up PostgreSQL and the object bucket, enable bucket versioning where supported, and test a full restore. The repository includes [`docker/backup.sh`](docker/backup.sh) for Docker-based database backups. Retention settings for email receipts, webhook deliveries, and automation runs are in `.env.example`.
+The app exposes `/api/health` for health checks. Back up PostgreSQL and the object bucket, enable bucket versioning where supported, and test a full restore. Retention settings for email receipts, webhook deliveries, and automation runs are in `.env.example`.
 
 ## Architecture and repository layout
 
@@ -283,7 +259,7 @@ The web application uses Next.js App Router. Product pages, queries, Server Acti
 | `components/`, `hooks/`, `lib/` | Shared interface components and utilities. |
 | `tests/` | Web backend, UI, and end-to-end tests. |
 | `scripts/` | Database, test, bootstrap, worker, and API contract scripts. |
-| `docker/` | Container build and backup support files. |
+| `docker/` | MinIO image used for local development and CI object storage. |
 
 See [Architecture](docs/architecture.md) for the verified web, mobile, API, service, and persistence boundaries.
 
