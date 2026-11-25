@@ -9,6 +9,10 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 let nextAddress = Date.now() % 200;
 
+// Password hashing on a shared CI runner can outlast the default 5s assertion
+// timeout, so the answer to a sign-in gets its own, longer one.
+const SIGN_IN_ANSWER_MS = 20_000;
+
 const signIn = async (page: Page, password: string) => {
   nextAddress += 1;
   await page.context().setExtraHTTPHeaders({
@@ -18,7 +22,14 @@ const signIn = async (page: Page, password: string) => {
   await expect(page.locator('form[data-hydrated="true"]')).toBeVisible();
   await page.fill('input[name="email"]', PORTAL_ACCOUNTS.lockoutClient);
   await page.fill('input[name="password"]', password);
+  const answered = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/auth/sign-in/email") &&
+      response.request().method() === "POST",
+    { timeout: SIGN_IN_ANSWER_MS }
+  );
   await page.click('button[type="submit"]');
+  await answered;
 };
 
 test("five wrong passwords lock the account even for the right one", async ({
@@ -29,11 +40,14 @@ test("five wrong passwords lock the account even for the right one", async ({
     // eslint-disable-next-line no-await-in-loop
     await signIn(page, "definitely-wrong-password");
     // eslint-disable-next-line no-await-in-loop
-    await expect(page.locator("#login-error")).toBeVisible();
+    await expect(page.locator("#login-error")).toBeVisible({
+      timeout: SIGN_IN_ANSWER_MS,
+    });
   }
   await signIn(page, process.env["E2E_PORTAL_PASSWORD"] ?? "");
   await expect(page.locator("#login-error")).toContainText(
-    /couldn't sign you in/iu
+    /couldn't sign you in/iu,
+    { timeout: SIGN_IN_ANSWER_MS }
   );
   await expect(page).toHaveURL(/\/login/u);
 });
